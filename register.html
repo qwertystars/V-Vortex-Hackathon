@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>V‑VORTEX Hackathon Registration</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #020617 0%, #000 55%, #020617 100%);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #e5e7eb;
+    }
+
+    #vortexCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      display: block;
+    }
+
+    .bg-overlay {
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(circle at center, rgba(3,216,243,0.18), rgba(15,23,42,0.9)),
+        radial-gradient(circle at 10% 5%, rgba(189,0,255,0.28), transparent 60%);
+      z-index: 1;
+      pointer-events: none;
+      mix-blend-mode: screen;
+    }
+
+    .form-wrapper {
+      position: relative;
+      z-index: 2;
+      transform-origin: center center;
+      transition:
+        transform 2.2s cubic-bezier(0.2, 0.9, 0.3, 1.3),
+        opacity 2.2s ease,
+        filter 2.2s ease;
+    }
+
+    .form-wrapper.sucked {
+      transform: scale(0) rotate(1080deg);
+      opacity: 0;
+      filter: blur(10px);
+    }
+
+    .shell {
+      width: min(900px, 96vw);
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.1fr);
+      gap: 1.6rem;
+      align-items: stretch;
+    }
+
+    .panel {
+      border-radius: 1.4rem;
+      padding: 1.7rem 1.8rem;
+      border: 1px solid rgba(148,163,184,0.35);
+      background: radial-gradient(circle at top, rgba(15,23,42,0.75), rgba(15,23,42,0.68));
+      backdrop-filter: blur(26px) saturate(170%);
+      -webkit-backdrop-filter: blur(26px) saturate(170%);
+      box-shadow:
+        0 28px 80px rgba(15,23,42,0.9),
+        0 0 40px rgba(56,189,248,0.25);
+    }
+
+    .panel-header {
+      margin-bottom: 1.1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .logo-placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 28%;
+      max-height: 160px;
+      aspect-ratio: 1 / 1;
+      padding: 0.5rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.7);
+      background: radial-gradient(circle at top, rgba(15,23,42,0.95), rgba(15,23,42,0.96));
+      box-shadow:
+        0 0 30px rgba(3,216,243,0.6),
+        0 0 54px rgba(189,0,255,0.35);
+      margin-bottom: 0.9rem;
+    }
+
+    .logo-img {
+      width: 100%;
+      height: 100%;
+      border-radius: 999px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .tagline {
+      font-size: 0.78rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #a5b4fc;
+      margin-bottom: 0.32rem;
+    }
+
+    .title {
+      font-size: 1.9rem;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: #ecfdf5;
+      text-shadow:
+        0 0 14px rgba(3,216,243,0.9),
+        0 0 36px rgba(189,0,255,0.8);
+      margin-bottom: 0.4rem;
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: #9ca3af;
+    }
+
+    .bullet-list {
+      margin-top: 1.1rem;
+      font-size: 0.9rem;
+      color: #e5e7eb;
+      list-style: none;
+    }
+
+    .bullet-list li { margin-bottom: 0.35rem; }
+
+    .bullet-list li::before {
+      content: "▹";
+      color: #22c55e;
+      margin-right: 0.4rem;
+    }
+
+    form { width: 100%; }
+
+    .section-label {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: #9ca3af;
+      margin-bottom: 0.6rem;
+    }
+
+    .field-row {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .field {
+      flex: 1;
+      margin-bottom: 0.95rem;
+    }
+
+    .field label {
+      display: block;
+      font-size: 0.8rem;
+      margin-bottom: 0.25rem;
+      color: #e5e7eb;
+    }
+
+    .input-base {
+      width: 100%;
+      padding: 0.7rem 0.8rem;
+      border-radius: 0.7rem;
+      border: 1px solid rgba(148,163,184,0.7);
+      background:
+        radial-gradient(circle at top left, rgba(15,23,42,0.82), rgba(15,23,42,0.96));
+      color: #e5e7eb;
+      outline: none;
+      font-size: 0.95rem;
+      transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease,
+        background 0.15s ease;
+    }
+
+    .input-base:focus {
+      border-color: #38bdf8;
+      box-shadow:
+        0 0 0 1px rgba(56,189,248,0.7),
+        0 0 20px rgba(56,189,248,0.6);
+      background:
+        radial-gradient(circle at top left, rgba(15,23,42,0.95), rgba(15,23,42,0.99));
+    }
+
+    .field input::placeholder { color: #64748b; }
+
+    .team-size-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 0.9rem;
+      flex-wrap: wrap;
+    }
+
+    .team-size-row span {
+      font-size: 0.85rem;
+      color: #cbd5f5;
+    }
+
+    /* Custom dropdown */
+    .dropdown {
+      position: relative;
+      width: 100%;
+    }
+
+    .dropdown-toggle {
+      @apply: none;
+    }
+
+    .dropdown-toggle {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .dropdown-toggle span {
+      flex: 1;
+    }
+
+    .dropdown-toggle .chevron {
+      margin-left: 0.5rem;
+      font-size: 0.7rem;
+      color: #e5e7eb;
+    }
+
+    .dropdown-menu {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: calc(100% + 0.3rem);
+      border-radius: 0.8rem;
+      border: 1px solid rgba(148,163,184,0.7);
+      background: radial-gradient(circle at top, rgba(15,23,42,0.98), rgba(15,23,42,0.96));
+      box-shadow:
+        0 18px 40px rgba(15,23,42,0.9),
+        0 0 24px rgba(56,189,248,0.45);
+      list-style: none;
+      padding: 0.25rem 0;
+      z-index: 5;
+      display: none;
+    }
+
+    .dropdown-menu.open { display: block; }
+
+    .dropdown-item {
+      padding: 0.55rem 0.85rem;
+      font-size: 0.9rem;
+      color: #e5e7eb;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .dropdown-item:hover {
+      background: radial-gradient(circle at left, rgba(37,99,235,0.55), rgba(15,23,42,0.98));
+    }
+
+    .dropdown-item small {
+      font-size: 0.7rem;
+      color: #9ca3af;
+    }
+
+    .hint {
+      font-size: 0.75rem;
+      color: #9ca3af;
+      margin-bottom: 0.9rem;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 0.6rem;
+      padding: 0.85rem 0.75rem;
+      border-radius: 0.9rem;
+      border: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      background: linear-gradient(135deg, #22c55e, #3b82f6);
+      color: #020617;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      box-shadow:
+        0 14px 34px rgba(34,197,94,0.35),
+        0 0 24px rgba(59,130,246,0.55);
+      transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.06);
+    }
+
+    button:active {
+      transform: translateY(0);
+      box-shadow:
+        0 5px 14px rgba(34,197,94,0.22),
+        0 0 16px rgba(59,130,246,0.4);
+    }
+
+    .participant-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.7rem 0.9rem;
+    }
+
+    .participant-card {
+      padding: 0.6rem 0.7rem;
+      border-radius: 0.9rem;
+      border: 1px dashed rgba(148,163,184,0.7);
+      background:
+        radial-gradient(circle at top left, rgba(15,23,42,0.82), rgba(15,23,42,0.96));
+    }
+
+    .participant-title {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: #a5b4fc;
+      margin-bottom: 0.4rem;
+    }
+
+    .vortex-message {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 1.5rem;
+      z-index: 3;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.8s ease;
+    }
+
+    .vortex-message.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .vortex-message-inner {
+      max-width: 620px;
+      padding: 1.75rem 2rem;
+      border-radius: 0.9rem;
+      background: radial-gradient(circle at top, rgba(15,23,42,0.9), rgba(15,23,42,0.98));
+      box-shadow:
+        0 0 40px rgba(15,23,42,0.9),
+        0 0 80px rgba(3,216,243,0.35);
+      color: #e5e7eb;
+    }
+
+    .vortex-message-inner h2 {
+      font-size: 1.9rem;
+      margin-bottom: 0.9rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #ecfdf5;
+      text-shadow:
+        0 0 12px rgba(3,216,243,0.9),
+        0 0 32px rgba(189,0,255,0.7);
+    }
+
+    .vortex-message-inner p {
+      font-size: 1.05rem;
+      line-height: 1.6;
+      color: #e5e7eb;
+    }
+
+    .vortex-message-inner strong {
+      color: #bbf7d0;
+      font-weight: 600;
+    }
+
+    @media (max-width: 800px) {
+      body { align-items: flex-start; }
+
+      .shell {
+        width: 100vw;
+        height: 100vh;
+        grid-template-columns: 1fr;
+        gap: 1.1rem;
+        padding: 0.9rem;
+      }
+
+      .panel { padding: 1.25rem 1.2rem; }
+
+      .title { font-size: 1.6rem; }
+    }
+
+    @media (max-width: 640px) {
+      body { overflow-y: auto; }
+
+      .form-wrapper { padding: 0.75rem 0; }
+
+      .panel-header { margin-bottom: 0.9rem; }
+
+      .logo-placeholder { max-height: 130px; }
+
+      .field-row { flex-direction: column; }
+
+      .participant-grid { grid-template-columns: 1fr; }
+
+      button {
+        font-size: 0.9rem;
+        padding: 0.85rem 0.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="vortexCanvas"></canvas>
+  <div class="bg-overlay"></div>
+
+  <!-- background music (looping .m4a) -->
+  <audio id="bgMusic" src="videoplayback (1).m4a" loop preload="auto"></audio>
+
+  <div class="form-wrapper" id="formWrapper">
+    <div class="shell">
+      <!-- Left card -->
+      <aside class="panel">
+        <div class="panel-header">
+          <div class="logo-placeholder">
+            <img src="logo.png" alt="V‑VORTEX logo" class="logo-img" />
+          </div>
+          <div class="tagline">Hackathon Registration</div>
+          <div class="title">V‑VORTEX</div>
+          <p class="subtitle">Assemble your crew. Enter the vortex. Build something the future will remember.</p>
+        </div>
+        <ul class="bullet-list">
+          <li>Register a team of 2–4 innovators.</li>
+          <li>One team leader per team with valid registration number.</li>
+          <li>Use official institute names and registration numbers.</li>
+        </ul>
+      </aside>
+
+      <!-- Right card -->
+      <section class="panel">
+        <form id="teamForm">
+          <div class="section-label">Team details</div>
+          <div class="field">
+            <label for="teamName">Team name</label>
+            <input id="teamName" name="teamName" type="text"
+                   class="input-base"
+                   placeholder="e.g. Quantum Overdrive" required />
+          </div>
+
+          <div class="section-label" style="margin-top:0.6rem;">Team leader</div>
+          <div class="field-row">
+            <div class="field">
+              <label for="leaderName">Leader name</label>
+              <input id="leaderName" name="leaderName" type="text"
+                     class="input-base"
+                     placeholder="Full name" required />
+            </div>
+            <div class="field">
+              <label for="leaderReg">Leader registration no.</label>
+              <input id="leaderReg" name="leaderReg" type="text"
+                     class="input-base"
+                     placeholder="Institute reg. no." required />
+            </div>
+          </div>
+
+          <div class="section-label" style="margin-top:0.8rem;">Team size & members</div>
+
+          <div class="team-size-row">
+            <span>Team size:</span>
+            <div class="field" style="margin-bottom:0;">
+              <!-- custom dropdown -->
+              <div class="dropdown" id="teamSizeDropdown">
+                <div class="input-base dropdown-toggle" tabindex="0">
+                  <span id="teamSizeLabel">2 members</span>
+                  <span class="chevron">▾</span>
+                </div>
+                <ul class="dropdown-menu" id="teamSizeMenu">
+                  <li class="dropdown-item" data-value="2">
+                    <span>2 members</span>
+                  </li>
+                  <li class="dropdown-item" data-value="3">
+                    <span>3 members</span>
+                  </li>
+                  <li class="dropdown-item" data-value="4">
+                    <span>4 members (max)</span>
+                  </li>
+                </ul>
+              </div>
+              <!-- hidden real value for JS -->
+              <input type="hidden" id="teamSize" name="teamSize" value="2" />
+            </div>
+          </div>
+          <p class="hint">Leader is counted in team size. Maximum team size is 4. Add details for other members below.</p>
+
+          <div class="participant-grid" id="participantsContainer"></div>
+
+          <button type="submit">Enter the V‑VORTEX</button>
+        </form>
+      </section>
+    </div>
+  </div>
+
+  <div class="vortex-message" id="vortexMessage">
+    <div class="vortex-message-inner">
+      <h2>VORTEX ENGAGED</h2>
+      <p>Your squad has been swallowed by the <strong>VORTEX</strong>. The only way out is <strong>victory</strong>. Suit up.</p>
+    </div>
+  </div>
+
+  <script>
+    // ---------- BACKGROUND VORTEX ----------
+    const canvas = document.getElementById("vortexCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // ---------- BACKGROUND MUSIC ----------
+    const bgMusic = document.getElementById("bgMusic");
+    let bgMusicStarted = false;
+
+    function startBgMusic() {
+      if (!bgMusic || bgMusicStarted) return;
+      const playPromise = bgMusic.play();
+      if (playPromise && playPromise.then) {
+        playPromise
+          .then(() => { bgMusicStarted = true; })
+          .catch(err => console.log("Background music blocked:", err));
+      } else {
+        bgMusicStarted = true;
+      }
+    }
+
+    // start music on first user interaction[web:387]
+    ["click", "keydown", "touchstart"].forEach(evt => {
+      window.addEventListener(evt, () => startBgMusic(), { once: true });
+    });
+
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
+
+    window.addEventListener("resize", () => {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = width;
+      canvas.height = height;
+      initDigits();
+    });
+
+    const digits = [];
+    const ARMS = 10;
+    const POINTS_PER_ARM = 40;
+    const SPIRAL_TIGHTNESS = 0.28;
+
+    let baseSpeed = 0.00045;
+    let speedFactor = 1;
+    let targetSpeedFactor = 1;
+    let rotationAngle = 0;
+    let lastTime = 0;
+
+    function randomBinary() {
+      return Math.random() < 0.5 ? "0" : "1";
+    }
+
+    function initDigits() {
+      digits.length = 0;
+      const maxRadius = Math.min(width, height) * 0.9;
+      const minRadius = maxRadius * 0.06;
+
+      for (let arm = 0; arm < ARMS; arm++) {
+        const armOffset = (Math.PI * 2 * arm) / ARMS;
+
+        for (let i = 0; i < POINTS_PER_ARM; i++) {
+          const t = i / (POINTS_PER_ARM - 1);
+          const radius = minRadius + t * maxRadius;
+          const angle = armOffset + radius * SPIRAL_TIGHTNESS;
+          const depth = t;
+          const jitter = (Math.random() - 0.5) * 8;
+
+          digits.push({
+            char: randomBinary(),
+            baseRadius: radius + jitter,
+            baseAngle: angle + (Math.random() - 0.5) * 0.06,
+            depth,
+            size: 9 + depth * 20,
+            baseOpacity: 0.28 + (1 - Math.pow(depth, 0.5)) * 0.85,
+            paletteIndex: Math.floor(Math.random() * 3)
+          });
+        }
+      }
+    }
+
+    initDigits();
+
+    function draw(timestamp) {
+      if (!lastTime) lastTime = timestamp;
+      const dt = timestamp - lastTime;
+      lastTime = timestamp;
+
+      speedFactor += (targetSpeedFactor - speedFactor) * 0.04;
+      rotationAngle += baseSpeed * speedFactor * dt;
+
+      const cx = width / 2;
+      const cy = height / 2;
+
+      ctx.fillStyle = "rgba(2, 6, 23, 0.18)";
+      ctx.fillRect(0, 0, width, height);
+
+      digits.forEach((d) => {
+        const pulse = Math.sin(timestamp * 0.0005 + d.baseRadius * 0.008) * 6;
+        const radius = d.baseRadius + pulse;
+        const angle = d.baseAngle + rotationAngle * (0.7 + 0.6 * (1 - d.depth));
+
+        const x = cx + Math.cos(angle) * radius;
+        const y = cy + Math.sin(angle) * radius;
+
+        ctx.save();
+        ctx.translate(x, y);
+
+        const perspectiveScale = 0.75 + (1 - d.depth) * 0.6;
+        ctx.scale(1, perspectiveScale);
+        ctx.rotate(angle + Math.PI / 2);
+
+        const flicker = 0.9 + Math.sin(timestamp * 0.006 + d.baseRadius * 0.02) * 0.18;
+        const opacity = d.baseOpacity * flicker;
+
+        let hue;
+        if (d.paletteIndex === 0) hue = 190;
+        else if (d.paletteIndex === 1) hue = 325;
+        else hue = 283;
+
+        const light = 55 + (1 - d.depth) * 14;
+
+        ctx.font = `${d.size}px monospace`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        ctx.shadowColor = `hsla(${hue}, 100%, 65%, ${opacity})`;
+        ctx.shadowBlur = 12 * (1 - d.depth);
+
+        ctx.fillStyle = `hsla(${hue}, 100%, ${light}%, ${opacity})`;
+        ctx.fillText(d.char, 0, 0);
+        ctx.restore();
+
+        if (Math.random() < 0.0025) d.char = randomBinary();
+      });
+
+      requestAnimationFrame(draw);
+    }
+
+    ctx.fillStyle = "#020617";
+    ctx.fillRect(0, 0, width, height);
+    requestAnimationFrame(draw);
+
+    // ---------- CUSTOM DROPDOWN ----------
+    const teamSizeHidden = document.getElementById("teamSize");
+    const teamSizeLabel = document.getElementById("teamSizeLabel");
+    const dropdown = document.getElementById("teamSizeDropdown");
+    const dropdownToggle = dropdown.querySelector(".dropdown-toggle");
+    const dropdownMenu = document.getElementById("teamSizeMenu");
+
+    function closeDropdown() {
+      dropdownMenu.classList.remove("open");
+    }
+
+    dropdownToggle.addEventListener("click", () => {
+      dropdownMenu.classList.toggle("open");
+    });
+
+    dropdownToggle.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        dropdownMenu.classList.toggle("open");
+      }
+      if (e.key === "Escape") {
+        closeDropdown();
+      }
+    });
+
+    dropdownMenu.addEventListener("click", (e) => {
+      const item = e.target.closest(".dropdown-item");
+      if (!item) return;
+      const value = item.getAttribute("data-value");
+      const text = item.innerText;
+      teamSizeHidden.value = value;
+      teamSizeLabel.textContent = text;
+      closeDropdown();
+      renderParticipants();
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!dropdown.contains(e.target)) closeDropdown();
+    });
+
+    // ---------- TEAM SIZE & SUBMIT ANIMATION ----------
+    const participantsContainer = document.getElementById("participantsContainer");
+    const formWrapper = document.getElementById("formWrapper");
+    const vortexMessage = document.getElementById("vortexMessage");
+
+    function renderParticipants() {
+      const size = parseInt(teamSizeHidden.value, 10);
+      const otherCount = Math.max(0, size - 1);
+      participantsContainer.innerHTML = "";
+
+      for (let i = 1; i <= otherCount; i++) {
+        const card = document.createElement("div");
+        card.className = "participant-card";
+
+        const title = document.createElement("div");
+        title.className = "participant-title";
+        title.textContent = `Member ${i}`;
+        card.appendChild(title);
+
+        const nameField = document.createElement("div");
+        nameField.className = "field";
+        nameField.innerHTML = `
+          <label for="memberName${i}">Name</label>
+          <input id="memberName${i}" name="memberName${i}"
+                 type="text" class="input-base" placeholder="Full name" required />
+        `;
+        card.appendChild(nameField);
+
+        const regField = document.createElement("div");
+        regField.className = "field";
+        regField.innerHTML = `
+          <label for="memberReg${i}">Registration no.</label>
+          <input id="memberReg${i}" name="memberReg${i}"
+                 type="text" class="input-base" placeholder="Institute reg. no." required />
+        `;
+        card.appendChild(regField);
+
+        participantsContainer.appendChild(card);
+      }
+    }
+
+    renderParticipants();
+
+    document.getElementById("teamForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      targetSpeedFactor = 28;
+      formWrapper.classList.add("sucked");
+
+      setTimeout(() => {
+        vortexMessage.classList.add("visible");
+      }, 2200);
+    });
+  </script>
+</body>
+</html>
