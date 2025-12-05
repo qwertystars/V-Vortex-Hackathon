@@ -9,7 +9,7 @@ import { pool } from "./db.js";
 
 const app = express();
 
-// Allow frontend origin (change if your frontend runs on different port)
+// Allow frontend origin
 app.use(
   cors({
     origin: "http://localhost:3000",
