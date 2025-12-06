@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V-VORTEX • About The Arena</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(255, 0, 255, 0.5), 0 0 40px rgba(0, 247, 255, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(255, 0, 255, 0.8), 0 0 60px rgba(0, 247, 255, 0.5); }
+        }
+
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100vh); }
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #00f7ff;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(transparent, #00f7ff 50%, transparent);
+            opacity: 0.1;
+            animation: scanline 8s linear infinite;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 20px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(10, 0, 20, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid #ff00ff;
+            z-index: 1000;
+            box-shadow: 0 0 30px rgba(255, 0, 255, 0.3);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo img {
+            width: 50px;
+            height: 50px;
+            filter: drop-shadow(0 0 10px rgba(255, 0, 255, 0.8));
+        }
+
+        .logo h1 {
+            font-size: 28px;
+            background: linear-gradient(90deg, #00f7ff, #ff00ff, #ff6b35);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 3px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-btn {
+            padding: 12px 30px;
+            border: 2px solid #ff00ff;
+            background: transparent;
+            color: #00f7ff;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: radial-gradient(circle, rgba(255, 0, 255, 0.3), rgba(0, 247, 255, 0.2));
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .nav-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .nav-btn:hover {
+            border-color: #00f7ff;
+            color: #ff00ff;
+            box-shadow: 0 0 20px rgba(0, 247, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .nav-btn span {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 100px 20px 50px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(255, 0, 255, 0.2), transparent);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            animation: slideIn 1s ease-out;
+        }
+
+        .hero h2 {
+            font-size: 72px;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #00f7ff, #ff00ff, #ff6b35);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 5px;
+            text-shadow: 0 0 30px rgba(255, 0, 255, 0.5);
+        }
+
+        .hero-subtitle {
+            font-size: 24px;
+            margin-bottom: 30px;
+            color: #ff00ff;
+            letter-spacing: 3px;
+        }
+
+        .hero-desc {
+            font-size: 16px;
+            max-width: 800px;
+            line-height: 1.8;
+            margin-bottom: 40px;
+            opacity: 0.8;
+        }
+
+        .event-info {
+            display: flex;
+            gap: 40px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 40px;
+        }
+
+        .info-card {
+            background: rgba(10, 0, 20, 0.8);
+            border: 2px solid #ff00ff;
+            padding: 20px 40px;
+            border-radius: 10px;
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        .info-card h3 {
+            color: #ff6b35;
+            font-size: 14px;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        .info-card p {
+            font-size: 20px;
+            color: #00f7ff;
+        }
+
+        /* Domains Section */
+        .domains {
+            padding: 80px 50px;
+            background: linear-gradient(180deg, transparent, rgba(10, 0, 20, 0.5), transparent);
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 48px;
+            margin-bottom: 60px;
+            background: linear-gradient(90deg, #00f7ff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 4px;
+        }
+
+        .domains-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .domain-card {
+            background: rgba(10, 0, 20, 0.8);
+            border: 2px solid #ff00ff;
+            padding: 40px 30px;
+            text-align: center;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .domain-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 247, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .domain-card:hover::before {
+            left: 100%;
+        }
+
+        .domain-card:hover {
+            border-color: #00f7ff;
+            box-shadow: 0 0 30px rgba(0, 247, 255, 0.5);
+            transform: translateY(-10px);
+        }
+
+        .domain-card h3 {
+            font-size: 24px;
+            color: #00f7ff;
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+        }
+
+        .domain-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        /* Evaluation Section */
+        .evaluation {
+            padding: 80px 50px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .rounds {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 40px;
+        }
+
+        .round-card {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(10, 0, 20, 0.8);
+            border: 2px solid #ff00ff;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+            animation: slideIn 1s ease-out backwards;
+        }
+
+        .round-card:nth-child(1) { animation-delay: 0.2s; }
+        .round-card:nth-child(2) { animation-delay: 0.4s; }
+        .round-card:nth-child(3) { animation-delay: 0.6s; }
+
+        .round-number {
+            font-size: 64px;
+            color: #ff00ff;
+            opacity: 0.2;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+        }
+
+        .round-card h3 {
+            font-size: 28px;
+            color: #00f7ff;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+
+        .round-card p {
+            font-size: 16px;
+            line-height: 1.8;
+            opacity: 0.8;
+        }
+
+        /* Team Section */
+        .team {
+            padding: 80px 50px;
+            background: linear-gradient(180deg, transparent, rgba(10, 0, 20, 0.5), transparent);
+        }
+
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 40px;
+            max-width: 1400px;
+            margin: 40px auto 0;
+        }
+
+        .team-member {
+            background: rgba(10, 0, 20, 0.8);
+            border: 2px solid #ff00ff;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .team-member:hover {
+            border-color: #00f7ff;
+            box-shadow: 0 0 30px rgba(0, 247, 255, 0.5);
+            transform: scale(1.05);
+        }
+
+        .member-photo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 3px solid #ff00ff;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, #ff00ff, #00f7ff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: #000;
+            font-weight: bold;
+        }
+
+        .team-member:hover .member-photo {
+            border-color: #00f7ff;
+            animation: glow 1s ease-in-out infinite;
+        }
+
+        .member-name {
+            font-size: 22px;
+            color: #00f7ff;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .member-role {
+            font-size: 14px;
+            color: #ff00ff;
+            opacity: 0.8;
+            line-height: 1.6;
+        }
+
+        .coordinator-section {
+            margin-bottom: 60px;
+        }
+
+        .coordinator-cards {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 40px;
+        }
+
+        .coordinator-card {
+            background: rgba(10, 0, 20, 0.9);
+            border: 3px solid #ff6b35;
+            padding: 40px;
+            text-align: center;
+            min-width: 300px;
+            box-shadow: 0 0 40px rgba(255, 107, 53, 0.4);
+        }
+
+        .coordinator-card .member-photo {
+            border-color: #ff6b35;
+            width: 140px;
+            height: 140px;
+        }
+
+        /* Footer */
+        footer {
+            padding: 40px;
+            text-align: center;
+            background: rgba(10, 0, 20, 0.9);
+            border-top: 2px solid #ff00ff;
+            margin-top: 80px;
+        }
+
+        footer p {
+            font-size: 14px;
+            opacity: 0.8;
+            letter-spacing: 2px;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            nav {
+                padding: 15px 20px;
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .logo h1 {
+                font-size: 20px;
+            }
+
+            .logo img {
+                width: 35px;
+                height: 35px;
+            }
+
+            .nav-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .nav-btn {
+                padding: 10px 20px;
+                font-size: 12px;
+            }
+
+            .hero {
+                padding: 120px 20px 50px;
+            }
+
+            .hero h2 {
+                font-size: 36px;
+            }
+
+            .hero-subtitle {
+                font-size: 18px;
+            }
+
+            .hero-desc {
+                font-size: 14px;
+            }
+
+            .event-info {
+                gap: 20px;
+            }
+
+            .info-card {
+                padding: 15px 25px;
+            }
+
+            .section-title {
+                font-size: 32px;
+            }
+
+            .domains, .evaluation, .team {
+                padding: 50px 20px;
+            }
+
+            .domains-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .rounds {
+                flex-direction: column;
+            }
+
+            .team-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="scanline"></div>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="logo">
+            <img src="logo.png" alt="V-VORTEX">
+            <h1>V-VORTEX</h1>
+        </div>
+        <div class="nav-buttons">
+            <button class="nav-btn" onclick="window.location.href='register.html'">
+                <span>⚡ Register</span>
+            </button>
+            <button class="nav-btn" onclick="window.location.href='login.html'">
+                <span>🌀 Login</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h2>V-VORTEX</h2>
+            <p class="hero-subtitle">UNLEASH YOUR INNOVATION</p>
+            <p class="hero-desc">
+                The ultimate national-level hackathon from VIT Chennai where champions are forged, 
+                ideas become reality, and innovation knows no bounds. Join us for 24 hours of pure 
+                adrenaline, groundbreaking solutions, and the chance to etch your name in the hall of legends.
+            </p>
+            <div class="event-info">
+                <div class="info-card">
+                    <h3>📍 VENUE</h3>
+                    <p>VIT Chennai</p>
+                </div>
+                <div class="info-card">
+                    <h3>📅 DATES</h3>
+                    <p>8th - 9th January</p>
+                </div>
+                <div class="info-card">
+                    <h3>⚡ LEVEL</h3>
+                    <p>National</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Domains Section -->
+    <section class="domains">
+        <h2 class="section-title">⟨ BATTLE DOMAINS ⟩</h2>
+        <div class="domains-grid">
+            <div class="domain-card">
+                <div class="domain-icon">🤖</div>
+                <h3>AI/ML</h3>
+            </div>
+            <div class="domain-card">
+                <div class="domain-icon">🛡️</div>
+                <h3>Cybersecurity</h3>
+            </div>
+            <div class="domain-card">
+                <div class="domain-icon">🏥</div>
+                <h3>Healthcare</h3>
+            </div>
+            <div class="domain-card">
+                <div class="domain-icon">💰</div>
+                <h3>Fintech</h3>
+            </div>
+            <div class="domain-card">
+                <div class="domain-icon">🔌</div>
+                <h3>IoT & Robotics</h3>
+            </div>
+        </div>
+    </section>
+
+    <!-- Evaluation Section -->
+    <section class="evaluation">
+        <h2 class="section-title">⟨ PATH TO VICTORY ⟩</h2>
+        <div class="rounds">
+            <div class="round-card">
+                <span class="round-number">01</span>
+                <h3>ROUND 1</h3>
+                <p>Online PPT Submission - Showcase your revolutionary idea and initial game plan. Let your innovation speak through slides that captivate and convince.</p>
+            </div>
+            <div class="round-card">
+                <span class="round-number">02</span>
+                <h3>ROUND 2</h3>
+                <p>Offline Hackathon - The real battle begins. 24 hours of non-stop coding, building, and creating. Transform your vision into reality.</p>
+            </div>
+            <div class="round-card">
+                <span class="round-number">03</span>
+                <h3>ROUND 3</h3>
+                <p>Shark Tank - Face the legends. Pitch your creation to industry experts. Prove your solution can change the world.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section class="team">
+        <h2 class="section-title">⟨ THE ARCHITECTS ⟩</h2>
+        
+        <!-- Faculty Coordinator -->
+        <div class="coordinator-section">
+            <h3 style="text-align: center; color: #ff6b35; font-size: 24px; margin-bottom: 30px; letter-spacing: 2px;">▸ FACULTY COORDINATOR</h3>
+            <div class="coordinator-cards">
+                <div class="coordinator-card">
+                    <div class="member-photo">DP</div>
+                    <h4 class="member-name">Dr. Pavithra Sekar</h4>
+                    <p class="member-role">Faculty Coordinator</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Student Coordinators -->
+        <div class="coordinator-section">
+            <h3 style="text-align: center; color: #ff6b35; font-size: 24px; margin-bottom: 30px; letter-spacing: 2px;">▸ STUDENT COORDINATORS</h3>
+            <div class="coordinator-cards">
+                <div class="coordinator-card">
+                    <div class="member-photo">SJ</div>
+                    <h4 class="member-name">Sugeeth Jayaraj S.A</h4>
+                    <p class="member-role">Student Coordinator</p>
+                    <p class="member-role">Feel free to reach out</p>
+                    <p class="member-role">9790970726</p>
+                </div>
+                <div class="coordinator-card">
+                    <div class="member-photo">PM</div>
+                    <h4 class="member-name">Prasanna M</h4>
+                    <p class="member-role">Student Coordinator</p>
+                    <p class="member-role">Need Help?</p>
+                    <p class="member-role">81226 54796</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Core Team -->
+        <h3 style="text-align: center; color: #00f7ff; font-size: 32px; margin: 60px 0 40px; letter-spacing: 3px;">⟨ CORE WARRIORS ⟩</h3>
+        <div class="team-grid">
+            <div class="team-member">
+                <div class="member-photo">MS</div>
+                <h4 class="member-name">M. Shree</h4>
+                <p class="member-role">Team Lead<br>Guests, Sponsorship & Awards Committee</p>
+            </div>
+            <div class="team-member">
+                <div class="member-photo">YG</div>
+                <h4 class="member-name">Yashwant Gokul</h4>
+                <p class="member-role">Technical Support Committee</p>
+            </div>
+            <div class="team-member">
+                <div class="member-photo">KD</div>
+                <h4 class="member-name">L Kevin Daniel</h4>
+                <p class="member-role">Web Development Committee</p>
+            </div>
+            <div class="team-member">
+                <div class="member-photo">SJ</div>
+                <h4 class="member-name">Sanjana</h4>
+                <p class="member-role">Security Committee</p>
+            </div>
+            <div class="team-member">
+                <div class="member-photo">JK</div>
+                <h4 class="member-name">Jaidev Karthikeyan</h4>
+                <p class="member-role">Registration & Marketing Committee</p>
+            </div>
+            <div class="team-member">
+                <div class="member-photo">SV</div>
+                <h4 class="member-name">Suprajha V M</h4>
+                <p class="member-role">Design & Social Media Committee</p>
+            </div>
+            <div class="team-member">
+                <div class="member-photo">SN</div>
+                <h4 class="member-name">Sanju</h4>
+                <p class="member-role">Design & Social Media Committee</p>
+            </div>
+        </div>
+
+        <!-- Special Mentions -->
+        <h3 style="text-align: center; color: #ff00ff; font-size: 28px; margin: 80px 0 40px; letter-spacing: 3px;">⟨ SPECIAL MENTIONS ⟩</h3>
+        <div class="team-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); max-width: 1000px;">
+            <div class="team-member">
+                <div class="member-photo">IM</div>
+                <h4 class="member-name">Ibhan Mukerjee</h4>
+                <p class="member-role">Special Contributor</p>
+            </div>
+            <div class="team-member">
+                <div class="member-photo">DP</div>
+                <h4 class="member-name">Devangshu Pandey</h4>
+                <p class="member-role">Special Contributor</p>
+            </div>
+            <div class="team-member">
+                <div class="member-photo">SG</div>
+                <h4 class="member-name">Srijan Guchhait</h4>
+                <p class="member-role">Special Contributor</p>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>🌀 V-VORTEX 2025 • WHERE LEGENDS ARE BORN 🌀</p>
+        <p style="margin-top: 10px; font-size: 12px;">VIT Chennai • National Level Hackathon</p>
+    </footer>
+
+    <script>
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+
+        // Add scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.domain-card, .team-member').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'all 0.6s ease-out';
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>
