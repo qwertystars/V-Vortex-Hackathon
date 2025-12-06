@@ -1,0 +1,225 @@
+/* =========================================
+   GLOBAL RESET + FONT
+========================================= */
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Share Tech Mono", monospace;
+}
+
+body {
+  background: #020202;
+  color: #e8fff2;
+  overflow-x: hidden;
+}
+
+/* =========================================
+   BACKGROUND GRID (HOME PAGE)
+========================================= */
+#bgGrid {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.08;
+}
+
+/* =========================================
+   TOP NAVIGATION (HOME PAGE)
+========================================= */
+.topNav {
+  width: 100%;
+  height: 70px;
+  padding: 0 40px;
+  background: rgba(0, 20, 10, 0.55);
+  border-bottom: 1px solid rgba(0, 255, 150, 0.25);
+  backdrop-filter: blur(10px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.navLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.navLogo {
+  width: 45px;
+  height: 45px;
+}
+
+.brandName {
+  font-size: 24px;
+  color: #00ff9d;
+  text-shadow: 0 0 12px #00ff9d;
+}
+
+.navRight {
+  display: flex;
+  gap: 12px;
+}
+
+.navBtn {
+  padding: 8px 18px;
+  background: #00ff9d;
+  color: #002817;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.25s ease;
+}
+
+.navBtn:hover {
+  box-shadow: 0 0 18px #00ff9d;
+}
+
+.navBtn.secondary {
+  background: transparent;
+  border: 1px solid #00ff9d;
+  color: #00ff9d;
+}
+
+.navBtn.secondary:hover {
+  background: rgba(0, 255, 157, 0.1);
+}
+
+/* =========================================
+   HOME WRAPPER
+========================================= */
+.homeWrapper {
+  width: 100vw;
+  min-height: 100vh;
+  position: relative;
+  padding-top: 80px;
+  z-index: 2;
+}
+
+/* =========================================
+   ABOUT SECTION
+========================================= */
+.aboutSection {
+  width: 90%;
+  max-width: 900px;
+  margin: 50px auto;
+  padding: 40px;
+  background: rgba(0, 35, 20, 0.45);
+  border: 1px solid rgba(0, 255, 157, 0.3);
+  border-radius: 12px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 0 25px rgba(0, 255, 157, 0.15);
+  animation: fadeIn 1.2s ease-out forwards;
+}
+
+.aboutTitle {
+  font-size: 32px;
+  color: #00ffae;
+  margin-bottom: 20px;
+  text-shadow: 0 0 12px #00ffae;
+}
+
+.aboutText {
+  font-size: 17px;
+  line-height: 1.7;
+  color: #d9ffee;
+}
+
+.accent {
+  color: #00ffae;
+  text-shadow: 0 0 10px #00ffae;
+}
+
+/* =========================================
+   PRELOADER (INTRO VIDEO)
+========================================= */
+
+#enterScreen {
+  width: 100vw;
+  height: 100vh;
+  background: black;
+  color: #00ff9d;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+}
+
+#enterText {
+  font-size: 32px;
+  margin-bottom: 10px;
+  text-shadow: 0 0 12px #00ff9d;
+}
+
+#arrow {
+  font-size: 24px;
+  opacity: 0.8;
+}
+
+/* INTRO VIDEO */
+#introVideo {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 1s linear;
+  z-index: 200;
+}
+
+.videoFadeOut {
+  opacity: 0 !important;
+}
+
+/* =========================================
+   ANIMATIONS
+========================================= */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+@media (max-width: 600px) {
+  .topNav {
+    padding: 0 20px;
+  }
+
+  .brandName {
+    font-size: 18px;
+  }
+
+  .aboutSection {
+    padding: 25px;
+  }
+
+  .aboutTitle {
+    font-size: 26px;
+  }
+}
+@media (max-width: 400px) {
+  .navBtn {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+}
