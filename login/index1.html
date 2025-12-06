@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V-VORTEX • ACCESS BREACH</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="matrix-bg" id="matrix"></div>
+    <div class="scanline"></div>
+    <div class="noise"></div>
+
+    <div class="marquee-container">
+        <div class="marquee">
+            <span>⚡ 24 HOURS TO LEGENDARY STATUS • CODE LIKE YOUR DREAMS DEPEND ON IT • BUILD THE IMPOSSIBLE • SLEEP IS FOR THE WEAK • YOUR SQUAD, YOUR LEGACY • BREAK LIMITS, NOT RULES • INNOVATION NEVER SLEEPS • THE VORTEX CHOOSES THE WORTHY •</span>
+            <span>⚡ 24 HOURS TO LEGENDARY STATUS • CODE LIKE YOUR DREAMS DEPEND ON IT • BUILD THE IMPOSSIBLE • SLEEP IS FOR THE WEAK • YOUR SQUAD, YOUR LEGACY • BREAK LIMITS, NOT RULES • INNOVATION NEVER SLEEPS • THE VORTEX CHOOSES THE WORTHY •</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="terminal-box">
+            <div class="terminal-header">
+                <div class="terminal-title">
+                    <img src="logo.png" alt="V-VORTEX" class="logo-img">
+                    V-VORTEX
+                </div>
+                <div class="terminal-dots">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+            </div>
+
+            <div class="subtitle">⟨ WARRIORS ASSEMBLE • THE ARENA AWAITS ⟩</div>
+
+            <div id="loginSection">
+                <div class="input-group">
+                    <label class="input-label">▸ SQUAD LEADER IDENTITY</label>
+                    <div class="input-wrapper">
+                        <input type="email" id="email" placeholder="champion@institute.edu" required>
+                    </div>
+                    <div class="helper-text">→ Your official battle credentials</div>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">▸ TEAM CALL SIGN (Team Name)</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="teamName" placeholder="Enter your legendary squad name" required>
+                    </div>
+                    <div class="helper-text">→ The name that will echo through V-VORTEX history</div>
+                </div>
+
+                <button class="btn" onclick="requestOTP()">
+                    <span>⚡ ENTER THE ARENA • SEND BATTLE CODE ⚡</span>
+                </button>
+            </div>
+
+            <div id="otpSection">
+                <div class="success-message" id="successMsg">
+                    ⚡ BATTLE CODE DEPLOYED • CHECK YOUR COMMAND CENTER ⚡
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="input-group">
+                    <label class="input-label">▸ AUTHENTICATION CODE</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="otp" placeholder="Enter your 6-digit war code" maxlength="6" required>
+                    </div>
+                    <div class="helper-text">→ Your key to greatness awaits in your inbox</div>
+                </div>
+
+                <button class="btn" onclick="verifyOTP()">
+                    <span>🌀 DIVE INTO THE VORTEX • CLAIM YOUR DESTINY 🌀</span>
+                </button>
+
+                <button class="btn" onclick="goBack()" style="margin-top: 15px; opacity: 0.7;">
+                    <span>⟨ REGROUP • GO BACK ⟩</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="status-bar">
+        <div class="status-item">
+            <div class="status-dot"></div>
+            <span>ARENA STATUS: LIVE & ELECTRIC</span>
+        </div>
+        <div class="status-item">
+            <span id="time"></span>
+        </div>
+        <div class="status-item">
+            <span>LEGENDS IN THE MAKING: LOADING...</span>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>s
