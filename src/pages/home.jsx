@@ -127,7 +127,7 @@ export default function Home({ setTransition }) {
           </div>
         </div>
 
-        <h3 className="section-title alt" style={{paddingTop: "60px"}}>⟨ CORE WARRIORS ⟩</h3>
+        <h3 className="section-title alt" style={{paddingTop: "60px"}}>⟨ TEAM LEADS ⟩</h3>
         <div className="team-grid">
           <div className="team-member"><div className="member-photo">MS</div><h4 className="member-name">M. Shree</h4><p className="member-role">Team Lead Guests, Sponsorship & Awards Committee</p></div>
           <div className="team-member"><div className="member-photo">YG</div><h4 className="member-name">Yashwant Gokul</h4><p className="member-role">Technical Suppor Committee</p></div>
@@ -138,7 +138,7 @@ export default function Home({ setTransition }) {
           <div className="team-member"><div className="member-photo">SN</div><h4 className="member-name">Sanjana</h4><p className="member-role">Design & Social Media Committee</p></div>
         </div>
 
-        <h3 className="section-title special" style={{paddingTop: "60px"}}>⟨ SPECIAL MENTIONS ⟩</h3>
+        <h3 className="section-title special" style={{paddingTop: "60px"}}>⟨ DEV TEAM ⟩</h3>
         <div className="team-grid special-grid">
           <div className="team-member"><div className="member-photo">IM</div><h4 className="member-name">Ibhan Mukherjee</h4><p className="member-role">Special Contributor</p></div>
           <div className="team-member"><div className="member-photo">DP</div><h4 className="member-name">Devangshu Pandey</h4><p className="member-role">Special Contributor</p></div>
@@ -154,5 +154,6 @@ export default function Home({ setTransition }) {
     </div>
   );
 }
+
 
 
