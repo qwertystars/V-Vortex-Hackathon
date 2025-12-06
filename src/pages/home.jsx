@@ -116,13 +116,13 @@ export default function Home({ setTransition }) {
               <div className="member-photo">SJ</div>
               <h4 className="member-name">Sugeeth Jayaraj S.A</h4>
               <p className="member-role">Student Coordinator</p>
-              <p className="member-role">9790970726</p>
+              <p className="member-role">+91 81226 54796</p>
             </div>
             <div className="coordinator-card">
               <div className="member-photo">PM</div>
               <h4 className="member-name">Prasanna M</h4>
               <p className="member-role">Student Coordinator</p>
-              <p className="member-role">81226 54796</p>
+              <p className="member-role">+91 97909 70726</p>
             </div>
           </div>
         </div>
@@ -140,7 +140,7 @@ export default function Home({ setTransition }) {
 
         <h3 className="section-title special" style={{paddingTop: "60px"}}>⟨ SPECIAL MENTIONS ⟩</h3>
         <div className="team-grid special-grid">
-          <div className="team-member"><div className="member-photo">IM</div><h4 className="member-name">Ibhan Mukerjee</h4><p className="member-role">Special Contributor</p></div>
+          <div className="team-member"><div className="member-photo">IM</div><h4 className="member-name">Ibhan Mukherjee</h4><p className="member-role">Special Contributor</p></div>
           <div className="team-member"><div className="member-photo">DP</div><h4 className="member-name">Devangshu Pandey</h4><p className="member-role">Special Contributor</p></div>
           <div className="team-member"><div className="member-photo">SG</div><h4 className="member-name">Srijan Guchhait</h4><p className="member-role">Special Contributor</p></div>
         </div>
@@ -148,10 +148,11 @@ export default function Home({ setTransition }) {
 
       {/* FOOTER */}
       <footer>
-        <p>🌀 V-VORTEX 2025 • WHERE LEGENDS ARE BORN 🌀</p>
+        <p>🌀 V-VORTEX 2026 • WHERE LEGENDS ARE BORN 🌀</p>
         <p className="muted">VIT Chennai • National Level Hackathon</p>
       </footer>
     </div>
   );
 }
+
 
