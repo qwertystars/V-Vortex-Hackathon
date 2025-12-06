@@ -116,12 +116,14 @@ export default function Home({ setTransition }) {
               <div className="member-photo">SJ</div>
               <h4 className="member-name">Sugeeth Jayaraj S.A</h4>
               <p className="member-role">Student Coordinator</p>
+              <p class="member-role">Feel free to reach out</p>
               <p className="member-role">+91 81226 54796</p>
             </div>
             <div className="coordinator-card">
               <div className="member-photo">PM</div>
               <h4 className="member-name">Prasanna M</h4>
               <p className="member-role">Student Coordinator</p>
+              <p class="member-role">Need Help?</p>
               <p className="member-role">+91 97909 70726</p>
             </div>
           </div>
@@ -154,6 +156,7 @@ export default function Home({ setTransition }) {
     </div>
   );
 }
+
 
 
 
