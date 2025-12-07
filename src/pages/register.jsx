@@ -1,23 +1,22 @@
 // src/pages/Register.jsx
 import React, { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom"; // added
+import { useNavigate } from "react-router-dom";
 import "../styles/register.css";
 import logo from "/logo.jpg";
-import submitSfxFile from "/vortex_music.m4a"; // <-- submit sound effect file (kept)
+import submitSfxFile from "/vortex_music.m4a";
 
 /**
- * Register page converted from the provided HTML (pixel-perfect).
- * Reference HTML: see uploaded file. :contentReference[oaicite:1]{index=1}
+ * Register page - Fully responsive for mobile, tablet, and desktop
  */
 export default function Register() {
   // refs
   const canvasRef = useRef(null);
   const formWrapperRef = useRef(null);
   const vortexMessageRef = useRef(null);
-  const submitSfxRef = useRef(null); // <-- submit sfx ref
-  const timeoutsRef = useRef([]); // <-- new: track timeout IDs
+  const submitSfxRef = useRef(null);
+  const timeoutsRef = useRef([]);
 
-  const navigate = useNavigate(); // added
+  const navigate = useNavigate();
 
   // UI state
   const [teamSize, setTeamSize] = useState(2);
@@ -25,26 +24,45 @@ export default function Register() {
   const [teamSizeLabel, setTeamSizeLabel] = useState("2 members");
   const [sucked, setSucked] = useState(false);
   const [vortexVisible, setVortexVisible] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
-  // internal refs for animation state (avoids re-renders)
+  // internal refs for animation state
   const stateRef = useRef({
     width: window.innerWidth,
     height: window.innerHeight,
     digits: [],
-    ARMS: 10,
-    POINTS_PER_ARM: 40,
+    ARMS: 8, // Reduced for mobile performance
+    POINTS_PER_ARM: 30, // Reduced for mobile
     SPIRAL_TIGHTNESS: 0.28,
-    baseSpeed: 0.00045,
+    baseSpeed: 0.00035, // Slightly slower for mobile
     speedFactor: 1,
     targetSpeedFactor: 1,
     rotationAngle: 0,
     lastTime: 0,
   });
 
-  // participants are computed from teamSize (leader included)
   const [participants, setParticipants] = useState([]);
 
-  // ---------- PARTICIPANTS (leader counted) ----------
+  // Detect mobile and adjust animation params
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+      
+      // Adjust animation params for mobile
+      if (stateRef.current) {
+        stateRef.current.ARMS = mobile ? 6 : 10;
+        stateRef.current.POINTS_PER_ARM = mobile ? 25 : 40;
+        stateRef.current.baseSpeed = mobile ? 0.0003 : 0.00045;
+      }
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // Participants logic
   useEffect(() => {
     const others = Math.max(0, teamSize - 1);
     const arr = [];
@@ -54,59 +72,53 @@ export default function Register() {
     setParticipants(arr);
   }, [teamSize]);
 
-  // ---------- VORTEX CANVAS ----------
+  // Optimized Vortex Canvas for mobile
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     const s = stateRef.current;
 
-    // resize helper
     function resize() {
       s.width = canvas.width = window.innerWidth;
       s.height = canvas.height = window.innerHeight;
       initDigits();
     }
 
-    // binary helper
     function randomBinary() {
       return Math.random() < 0.5 ? "0" : "1";
     }
 
-    // digits init
     function initDigits() {
       s.digits.length = 0;
-      const maxRadius = Math.min(s.width, s.height) * 0.9;
-      const minRadius = maxRadius * 0.06;
+      const maxRadius = Math.min(s.width, s.height) * (isMobile ? 0.75 : 0.9);
+      const minRadius = maxRadius * 0.08;
 
       for (let arm = 0; arm < s.ARMS; arm++) {
         const armOffset = (Math.PI * 2 * arm) / s.ARMS;
-
         for (let i = 0; i < s.POINTS_PER_ARM; i++) {
           const t = i / (s.POINTS_PER_ARM - 1);
-          const radius = minRadius + t * maxRadius;
+          const radius = minRadius + t * (maxRadius - minRadius);
           const angle = armOffset + radius * s.SPIRAL_TIGHTNESS;
           const depth = t;
-          const jitter = (Math.random() - 0.5) * 8;
+          const jitter = (Math.random() - 0.5) * (isMobile ? 4 : 8);
 
           s.digits.push({
             char: randomBinary(),
             baseRadius: radius + jitter,
             baseAngle: angle + (Math.random() - 0.5) * 0.06,
             depth,
-            size: 9 + depth * 20,
-            baseOpacity: 0.28 + (1 - Math.pow(depth, 0.5)) * 0.85,
+            size: (isMobile ? 7 : 9) + depth * (isMobile ? 15 : 20),
+            baseOpacity: 0.25 + (1 - Math.pow(depth, 0.5)) * 0.75,
             paletteIndex: Math.floor(Math.random() * 3),
           });
         }
       }
     }
 
-    // initial sizes + digits
     resize();
     window.addEventListener("resize", resize);
 
-    // animation loop
     let rafId;
     function draw(ts) {
       if (!s.lastTime) s.lastTime = ts;
@@ -119,11 +131,11 @@ export default function Register() {
       const cx = s.width / 2;
       const cy = s.height / 2;
 
-      ctx.fillStyle = "rgba(2, 6, 23, 0.18)";
+      ctx.fillStyle = "rgba(2, 6, 23, 0.2)"; // Slightly more opaque trail on mobile
       ctx.fillRect(0, 0, s.width, s.height);
 
       s.digits.forEach((d) => {
-        const pulse = Math.sin(ts * 0.0005 + d.baseRadius * 0.008) * 6;
+        const pulse = Math.sin(ts * 0.0005 + d.baseRadius * 0.008) * (isMobile ? 4 : 6);
         const radius = d.baseRadius + pulse;
         const angle = d.baseAngle + s.rotationAngle * (0.7 + 0.6 * (1 - d.depth));
 
@@ -148,60 +160,68 @@ export default function Register() {
         ctx.textBaseline = "middle";
 
         ctx.shadowColor = `hsla(${hue}, 100%, 65%, ${opacity})`;
-        ctx.shadowBlur = 12 * (1 - d.depth);
+        ctx.shadowBlur = (isMobile ? 8 : 12) * (1 - d.depth);
 
         ctx.fillStyle = `hsla(${hue}, 100%, ${light}%, ${opacity})`;
         ctx.fillText(d.char, 0, 0);
         ctx.restore();
 
-        if (Math.random() < 0.0025) d.char = randomBinary();
+        if (Math.random() < (isMobile ? 0.0015 : 0.0025)) d.char = randomBinary();
       });
 
       rafId = requestAnimationFrame(draw);
     }
 
-    // start
     ctx.fillStyle = "#020617";
     ctx.fillRect(0, 0, s.width, s.height);
     rafId = requestAnimationFrame(draw);
 
-    // cleanup
     return () => {
       cancelAnimationFrame(rafId);
       window.removeEventListener("resize", resize);
     };
-  }, []);
+  }, [isMobile]);
 
-  // ---------- DROPDOWN HANDLERS ----------
-  const toggleDropdown = () => setDropdownOpen((v) => !v);
+  // Dropdown handlers with mobile improvements
+  const toggleDropdown = (e) => {
+    e.stopPropagation();
+    setDropdownOpen((v) => !v);
+  };
+
   const closeDropdown = () => setDropdownOpen(false);
 
   const handlePickTeamSize = (val) => {
     setTeamSize(Number(val));
     setTeamSizeLabel(`${val} ${val === "1" ? "member" : "members"}`);
-    setTimeout(() => {
-      // re-render participants
-      setParticipants((p) => {
-        const others = Math.max(0, Number(val) - 1);
-        const arr = [];
-        for (let i = 1; i <= others; i++) arr.push({ name: "", reg: "" });
-        return arr;
-      });
-    }, 0);
     closeDropdown();
   };
 
-  // keyboard accessibility for dropdown
   const handleDropdownKey = (e) => {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
-      toggleDropdown();
+      toggleDropdown(e);
     } else if (e.key === "Escape") {
       closeDropdown();
     }
   };
 
-  // ---------- PARTICIPANT FIELD CHANGE ----------
+  // Close dropdown on outside click (mobile friendly)
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownOpen && formWrapperRef.current && !formWrapperRef.current.contains(e.target)) {
+        closeDropdown();
+      }
+    };
+    if (dropdownOpen) {
+      document.addEventListener("click", handleClickOutside);
+      document.addEventListener("touchstart", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, [dropdownOpen]);
+
   const updateParticipant = (index, field, value) => {
     setParticipants((prev) => {
       const copy = [...prev];
@@ -210,56 +230,36 @@ export default function Register() {
     });
   };
 
-  // ---------- FORM SUBMIT ----------
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Clear any existing timeouts to prevent duplicates if user resubmits quickly
     timeoutsRef.current.forEach((id) => clearTimeout(id));
     timeoutsRef.current = [];
 
-    // 🔊 PLAY SUBMIT SOUND EFFECT
     if (submitSfxRef.current) {
       submitSfxRef.current.currentTime = 0;
       submitSfxRef.current.play().catch(() => {});
     }
 
-    // 🌀 Turbo vortex effect
-    stateRef.current.targetSpeedFactor = 28;
-
-    // 💥 Suck animation
+    stateRef.current.targetSpeedFactor = isMobile ? 20 : 28;
     setSucked(true);
 
-    // Timings
-    const showDelay = 2200; // show final card after 2.2s (existing)
-    const visibleDuration = 6000; // keep final card visible for 6s
+    const showDelay = isMobile ? 1800 : 2200;
+    const visibleDuration = isMobile ? 4500 : 6000;
 
-    // Show final card
-    const t1 = setTimeout(() => {
-      setVortexVisible(true);
-    }, showDelay);
-    timeoutsRef.current.push(t1);
-
-    // Hide final card and reset 'sucked'
+    const t1 = setTimeout(() => setVortexVisible(true), showDelay);
     const t2 = setTimeout(() => {
       setVortexVisible(false);
       setSucked(false);
     }, showDelay + visibleDuration);
-    timeoutsRef.current.push(t2);
+    const t3 = setTimeout(() => navigate("/login"), showDelay + visibleDuration + 250);
 
-    // Navigate shortly after vanish
-    const t3 = setTimeout(() => {
-      navigate("/login");
-    }, showDelay + visibleDuration + 250);
-    timeoutsRef.current.push(t3);
+    timeoutsRef.current.push(t1, t2, t3);
   };
 
-  // ---------- INITIALIZE SUBMIT SFX ----------
   useEffect(() => {
     submitSfxRef.current = new Audio(submitSfxFile);
     submitSfxRef.current.preload = "auto";
-    // optional volume tweak:
-    submitSfxRef.current.volume = 0.95;
+    submitSfxRef.current.volume = 0.85; // Slightly lower for mobile speakers
 
     return () => {
       try {
@@ -268,7 +268,6 @@ export default function Register() {
     };
   }, []);
 
-  // clear timeouts on unmount
   useEffect(() => {
     return () => {
       timeoutsRef.current.forEach((id) => clearTimeout(id));
@@ -278,7 +277,7 @@ export default function Register() {
 
   return (
     <>
-      <canvas id="vortexCanvas" ref={canvasRef} />
+      <canvas id="vortexCanvas" ref={canvasRef} aria-hidden="true" />
       <div className="bg-overlay" />
 
       <div
@@ -286,8 +285,8 @@ export default function Register() {
         ref={formWrapperRef}
       >
         <div className="shell">
-          {/* LEFT CARD */}
-          <aside className="panel">
+          {/* LEFT CARD - Mobile: Hidden or minimized */}
+          <aside className={`panel left-panel${isMobile ? " mobile-hidden" : ""}`}>
             <div className="panel-header">
               <div className="logo-placeholder">
                 <img src={logo} alt="V-VORTEX logo" className="logo-img" />
@@ -306,8 +305,8 @@ export default function Register() {
             </ul>
           </aside>
 
-          {/* RIGHT CARD */}
-          <section className="panel">
+          {/* RIGHT CARD - Mobile: Full width */}
+          <section className={`panel right-panel${isMobile ? " mobile-full" : ""}`}>
             <form id="teamForm" onSubmit={handleSubmit}>
               <div className="section-label">Team details</div>
 
@@ -358,7 +357,7 @@ export default function Register() {
 
               <div className="team-size-row">
                 <span>Team size:</span>
-                <div className="field" style={{ marginBottom: 0 }}>
+                <div className="field dropdown-container" style={{ marginBottom: 0 }}>
                   <div className="dropdown" id="teamSizeDropdown">
                     <div
                       className="input-base dropdown-toggle"
@@ -367,6 +366,7 @@ export default function Register() {
                       onClick={toggleDropdown}
                       onKeyDown={handleDropdownKey}
                       aria-expanded={dropdownOpen}
+                      onTouchStart={toggleDropdown} // Mobile touch support
                     >
                       <span id="teamSizeLabel">{teamSizeLabel}</span>
                       <span className="chevron">▾</span>
@@ -377,31 +377,22 @@ export default function Register() {
                       id="teamSizeMenu"
                       role="menu"
                     >
-                      <li
-                        className="dropdown-item"
-                        data-value="2"
-                        onClick={() => handlePickTeamSize(2)}
-                      >
-                        <span>2 members</span>
-                      </li>
-                      <li
-                        className="dropdown-item"
-                        data-value="3"
-                        onClick={() => handlePickTeamSize(3)}
-                      >
-                        <span>3 members</span>
-                      </li>
-                      <li
-                        className="dropdown-item"
-                        data-value="4"
-                        onClick={() => handlePickTeamSize(4)}
-                      >
-                        <span>4 members (max)</span>
-                      </li>
+                      {[2, 3, 4].map((size) => (
+                        <li
+                          key={size}
+                          className="dropdown-item"
+                          data-value={size}
+                          onClick={() => handlePickTeamSize(size)}
+                          onTouchStart={(e) => {
+                            e.stopPropagation();
+                            handlePickTeamSize(size);
+                          }}
+                        >
+                          <span>{size} {size === 1 ? "member" : "members"}{size === 4 ? " (max)" : ""}</span>
+                        </li>
+                      ))}
                     </ul>
                   </div>
-
-                  {/* hidden real value for compatibility */}
                   <input type="hidden" id="teamSize" name="teamSize" value={teamSize} readOnly />
                 </div>
               </div>
@@ -414,7 +405,6 @@ export default function Register() {
                 {participants.map((p, i) => (
                   <div className="participant-card" key={i}>
                     <div className="participant-title">Member {i + 1}</div>
-
                     <div className="field">
                       <label htmlFor={`memberName${i + 1}`}>Name</label>
                       <input
@@ -428,7 +418,6 @@ export default function Register() {
                         onChange={(e) => updateParticipant(i, "name", e.target.value)}
                       />
                     </div>
-
                     <div className="field">
                       <label htmlFor={`memberReg${i + 1}`}>Registration no.</label>
                       <input
@@ -446,14 +435,16 @@ export default function Register() {
                 ))}
               </div>
 
-              <button type="submit">Enter the V-VORTEX</button>
+              <button type="submit" className="submit-btn">
+                Enter the V-VORTEX
+              </button>
             </form>
           </section>
         </div>
       </div>
 
       <div
-        className={`vortex-message${vortexVisible ? " visible" : ""}`}
+        className={`vortex-message${vortexVisible ? " visible" : ""} ${isMobile ? "mobile" : ""}`}
         id="vortexMessage"
         ref={vortexMessageRef}
       >
