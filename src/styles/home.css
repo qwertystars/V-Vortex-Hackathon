@@ -237,6 +237,8 @@ body,
 
 .domains {
   padding: 80px 40px;
+}
+
 .section-title {
   text-align: center;
   font-size: 48px;
@@ -245,8 +247,6 @@ body,
   background: linear-gradient(90deg, #00f7ff, #ff00ff);
   background-clip: text;
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
   -webkit-text-fill-color: transparent;
 }
 
