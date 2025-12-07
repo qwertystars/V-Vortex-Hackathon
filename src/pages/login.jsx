@@ -9,10 +9,18 @@ export default function Login({ setTransition }) {
   const [email, setEmail] = useState("");
   const [teamName, setTeamName] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   const modalRef = useRef(null);
 
-  // handle modal confirmation — navigate to /otp and ensure modal closes
+  // Mobile detection
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   const handleModalOk = (e) => {
     if (e && e.preventDefault) e.preventDefault();
     setShowModal(false);
@@ -24,7 +32,6 @@ export default function Login({ setTransition }) {
     setShowModal(false);
   };
 
-  // keyboard handling while the modal is open
   useEffect(() => {
     if (!showModal) return;
     const onKey = (ev) => {
@@ -43,7 +50,6 @@ export default function Login({ setTransition }) {
     setShowModal(true);
   };
 
-  // time updater
   useEffect(() => {
     const el = document.getElementById("system-time");
     if (!el) return;
@@ -59,21 +65,17 @@ export default function Login({ setTransition }) {
   }, []);
 
   return (
-    <div className="loginWrapper">
+    <div className={`loginWrapper ${isMobile ? 'mobile' : ''}`}>
       <VortexBackground />
 
-      {/* TOP MARQUEE */}
+      {/* TOP MARQUEE - Mobile optimized */}
       <div className="marquee-bar">
         <div className="marquee-track">
           <span>
-            ⚡ 24 HOURS TO LEGENDARY STATUS • CODE LIKE YOUR DREAMS DEPEND ON IT
-            • BUILD THE IMPOSSIBLE • SLEEP IS FOR THE WEAK • YOUR SQUAD, YOUR
-            LEGACY • BREAK LIMITS, NOT RULES • INNOVATION NEVER SLEEPS •
+            ⚡ 24 HOURS TO LEGENDARY STATUS • CODE LIKE YOUR DREAMS DEPEND ON IT • BUILD THE IMPOSSIBLE • SLEEP IS FOR THE WEAK • YOUR SQUAD, YOUR LEGACY • BREAK LIMITS, NOT RULES • INNOVATION NEVER SLEEPS •
           </span>
-          <span>
-            ⚡ 24 HOURS TO LEGENDARY STATUS • CODE LIKE YOUR DREAMS DEPEND ON IT
-            • BUILD THE IMPOSSIBLE • SLEEP IS FOR THE WEAK • YOUR SQUAD, YOUR
-            LEGACY • BREAK LIMITS, NOT RULES • INNOVATION NEVER SLEEPS •
+          <span aria-hidden="true">
+            ⚡ 24 HOURS TO LEGENDARY STATUS • CODE LIKE YOUR DREAMS DEPEND ON IT • BUILD THE IMPOSSIBLE • SLEEP IS FOR THE WEAK • YOUR SQUAD, YOUR LEGACY • BREAK LIMITS, NOT RULES • INNOVATION NEVER SLEEPS •
           </span>
         </div>
       </div>
@@ -83,7 +85,7 @@ export default function Login({ setTransition }) {
         {/* HEADER */}
         <div className="terminalHeader">
           <div className="headerLeft">
-            <img src={logo} className="headerLogo" />
+            <img src={logo} className="headerLogo" alt="V-VORTEX logo" />
             <span className="title">V-VORTEX</span>
           </div>
 
@@ -104,9 +106,12 @@ export default function Login({ setTransition }) {
           <label className="fieldLabel">▸ SQUAD LEADER IDENTITY</label>
           <input
             className="inputField"
+            type="email"
             placeholder="champion@institute.edu"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
+            required
           />
           <p className="helper">– Your official battle credentials</p>
 
@@ -117,6 +122,7 @@ export default function Login({ setTransition }) {
             placeholder="Enter your legendary squad name"
             value={teamName}
             onChange={(e) => setTeamName(e.target.value)}
+            required
           />
           <p className="helper">
             – The name that will echo through V-VORTEX history
@@ -140,63 +146,35 @@ export default function Login({ setTransition }) {
         <div className="statusItem">LEGENDS IN THE MAKING: LOADING…</div>
       </div>
 
-      {/* Simple modal — OK navigates to /otp, Cancel closes modal */}
+      {/* Mobile-optimized Modal */}
       {showModal && (
         <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 9999,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "rgba(0,0,0,0.6)",
-            padding: "20px",
-          }}
+          className="mobile-modal-overlay"
           onClick={() => setShowModal(false)}
         >
           <div
-            style={{
-              background: "#0b0b0d",
-              color: "#fff",
-              width: "420px",
-              maxWidth: "100%",
-              borderRadius: "12px",
-              padding: "20px",
-              boxShadow: "0 6px 30px rgba(0,0,0,0.5)",
-            }}
+            className="mobile-modal-content"
             onClick={(e) => e.stopPropagation()}
             ref={modalRef}
             role="dialog"
             aria-modal="true"
             aria-labelledby="modalVerifyTitle"
           >
-            <h2 id="modalVerifyTitle" style={{ marginBottom: 8 }}>Verify</h2>
-            <p style={{ marginBottom: 18 }}>
+            <h2 id="modalVerifyTitle" className="modal-title">Verify</h2>
+            <p className="modal-text">
               A battle code has been dispatched. Click OK to enter the auth gate.
             </p>
-            <div
-              style={{
-                display: "flex",
-                gap: 10,
-                justifyContent: "center",
-              }}
-            >
+            <div className="modal-buttons">
               <button
                 type="button"
-                className="authBtn"
+                className="authBtn primary"
                 onClick={handleModalOk}
               >
                 OK
               </button>
               <button
-                className="authBtn secondary"
-                style={{
-                  background: "transparent",
-                  border: "1px solid #0affc2",
-                  color: "#0affc2",
-                }}
                 type="button"
+                className="authBtn secondary"
                 onClick={handleModalCancel}
               >
                 Cancel
