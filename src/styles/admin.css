@@ -59,9 +59,10 @@
 .adminGrid {
   margin-top: 40px;
   display: grid;
-  grid-template-columns: repeat(2, 300px);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 25px;
   justify-content: center;
+  padding: 0 20px;
 }
 
 .adminCard {
@@ -91,15 +92,30 @@
 
 /* ACTIVITY PANEL */
 .adminPanel {
-  width: 80%;
+  width: 90%;
   max-width: 900px;
-  margin: 50px auto;
-  padding: 30px;
+  margin: 30px auto;
+  padding: 20px;
   background: rgba(0, 35, 20, 0.45);
   border: 1px solid rgba(0, 255, 170, 0.25);
   border-radius: 12px;
   backdrop-filter: blur(10px);
   box-shadow: 0 0 20px rgba(0, 255, 170, 0.15);
+}
+
+/* MOBILE OPTIMIZATION */
+@media (max-width: 768px) {
+  .adminNav {
+    padding: 0 15px;
+  }
+  
+  .adminTitle {
+    font-size: 18px;
+  }
+  
+  .adminGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .panelTitle {

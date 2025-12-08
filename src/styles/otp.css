@@ -48,7 +48,7 @@
 
 /* OTP BOX */
 .otpBox {
-  width: 650px;
+  width: min(650px, 90vw);
   margin: 120px auto 0 auto;
   background: rgba(10, 0, 20, 0.9);
   border: 2px solid #ff00ff;
@@ -61,6 +61,23 @@
     0 0 25px #ff00ff,
     0 0 60px rgba(0, 255, 240, 0.2),
     0 0 90px rgba(255, 0, 255, 0.25);
+}
+
+@media (max-width: 600px) {
+  .otpBox {
+    padding: 20px;
+    margin-top: 80px;
+  }
+  
+  .otpHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .headerDots {
+    display: none;
+  }
 }
 
 /* HEADER */

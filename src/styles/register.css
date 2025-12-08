@@ -348,7 +348,9 @@ button.submit-btn:active {
   }
   
   .left-panel {
-    display: none !important; /* Hide left panel on mobile */
+    display: block !important;
+    width: 100%;
+    margin-bottom: 1.5rem;
   }
   
   .right-panel.mobile-full {
