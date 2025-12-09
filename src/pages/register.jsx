@@ -459,7 +459,7 @@ export default function Register() {
                 ))}
               </div>
 
-              <button type="submit">Enter the V-VORTEX</button>
+              <button type="submit" className="submit-btn">Enter the V-VORTEX</button>
             </form>
           </section>
         </div>
