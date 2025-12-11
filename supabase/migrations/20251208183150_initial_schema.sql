@@ -4,14 +4,17 @@ create table teams (
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   
   team_name text not null,
+  team_size integer not null,
   
   -- Team Lead Details
   lead_name text not null,
   lead_reg_no text not null,
   lead_email text not null, 
   
+  user_id uuid references auth.users default auth.uid(),
   
-  user_id uuid references auth.users default auth.uid()
+  -- Constraint: Team size must be between 2 and 4
+  constraint valid_team_size check (team_size >= 2 and team_size <= 4)
 );
 
 -- This table stores the details of the additional members (excluding the lead)
