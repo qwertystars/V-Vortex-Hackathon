@@ -1,9 +1,10 @@
 // src/pages/Register.jsx
 import React, { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom"; // added
+import { useNavigate } from "react-router-dom";
+import { supabase } from "../supabaseClient";
 import "../styles/register.css";
 import logo from "/logo.jpg";
-import submitSfxFile from "/vortex_music.m4a"; // <-- submit sound effect file (kept)
+import submitSfxFile from "/vortex_music.m4a";
 
 /**
  * Register page converted from the provided HTML (pixel-perfect).
@@ -218,40 +219,72 @@ export default function Register() {
     timeoutsRef.current.forEach((id) => clearTimeout(id));
     timeoutsRef.current = [];
 
-    // 🔊 PLAY SUBMIT SOUND EFFECT
-    if (submitSfxRef.current) {
-      submitSfxRef.current.currentTime = 0;
-      submitSfxRef.current.play().catch(() => {});
+    // Get form data
+    const formData = new FormData(e.target);
+    const teamName = formData.get("teamName");
+    const leaderName = formData.get("leaderName");
+    const leaderReg = formData.get("leaderReg");
+    const leaderEmail = formData.get("leaderEmail");
+
+    // Prepare members array
+    const members = participants.map((p, i) => ({
+      name: formData.get(`memberName${i + 1}`),
+      reg: formData.get(`memberReg${i + 1}`),
+    }));
+
+    try {
+      // Call the Edge Function
+      const { data, error } = await supabase.functions.invoke('register-team', {
+        body: {
+          teamName,
+          teamSize,
+          leaderName,
+          leaderReg,
+          leaderEmail,
+          members,
+        },
+      });
+
+      if (error) throw error;
+
+      // 🔊 PLAY SUBMIT SOUND EFFECT
+      if (submitSfxRef.current) {
+        submitSfxRef.current.currentTime = 0;
+        submitSfxRef.current.play().catch(() => {});
+      }
+
+      // 🌀 Turbo vortex effect
+      stateRef.current.targetSpeedFactor = 28;
+
+      // 💥 Suck animation
+      setSucked(true);
+
+      // Timings
+      const showDelay = 2200;
+      const visibleDuration = 6000;
+
+      // Show final card
+      const t1 = setTimeout(() => {
+        setVortexVisible(true);
+      }, showDelay);
+      timeoutsRef.current.push(t1);
+
+      // Hide final card and reset 'sucked'
+      const t2 = setTimeout(() => {
+        setVortexVisible(false);
+        setSucked(false);
+      }, showDelay + visibleDuration);
+      timeoutsRef.current.push(t2);
+
+      // Navigate shortly after vanish
+      const t3 = setTimeout(() => {
+        navigate("/login");
+      }, showDelay + visibleDuration + 250);
+      timeoutsRef.current.push(t3);
+    } catch (error) {
+      console.error("Registration error:", error);
+      alert("Registration failed. Please try again.");
     }
-
-    // 🌀 Turbo vortex effect
-    stateRef.current.targetSpeedFactor = 28;
-
-    // 💥 Suck animation
-    setSucked(true);
-
-    // Timings
-    const showDelay = 2200; // show final card after 2.2s (existing)
-    const visibleDuration = 6000; // keep final card visible for 6s
-
-    // Show final card
-    const t1 = setTimeout(() => {
-      setVortexVisible(true);
-    }, showDelay);
-    timeoutsRef.current.push(t1);
-
-    // Hide final card and reset 'sucked'
-    const t2 = setTimeout(() => {
-      setVortexVisible(false);
-      setSucked(false);
-    }, showDelay + visibleDuration);
-    timeoutsRef.current.push(t2);
-
-    // Navigate shortly after vanish
-    const t3 = setTimeout(() => {
-      navigate("/login");
-    }, showDelay + visibleDuration + 250);
-    timeoutsRef.current.push(t3);
   };
 
   // ---------- INITIALIZE SUBMIT SFX ----------
