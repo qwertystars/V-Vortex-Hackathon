@@ -107,6 +107,13 @@ export default function Home({ setTransition }) {
               <p className="member-role">Faculty Coordinator</p>
             </div>
           </div>
+          <div className="coordinator-cards">
+            <div className="coordinator-card">
+              <div className="member-photo">RP</div>
+              <h4 className="member-name"> Dr Rama Parvathy L</h4>
+              <p className="member-role">Faculty Coordinator</p>
+            </div>
+          </div>
         </div>
 
         <div className="coordinator-section">
@@ -133,7 +140,7 @@ export default function Home({ setTransition }) {
         <div className="team-grid">
           <div className="team-member"><div className="member-photo">MS</div><h4 className="member-name">M. Shree</h4><p className="member-role">Team Lead Guests, Sponsorship & Awards Committee</p></div>
           <div className="team-member"><div className="member-photo">YG</div><h4 className="member-name">Yashwant Gokul</h4><p className="member-role">Technical Support Committee</p></div>
-          <div className="team-member"><div className="member-photo">KD</div><h4 className="member-name">L. Kevin Daniell</h4><p className="member-role">Web Development Committee</p></div>
+          <div className="team-member"><div className="member-photo">KD</div><h4 className="member-name">L. Kevin Daniel</h4><p className="member-role">Web Development Committee</p></div>
           <div className="team-member"><div className="member-photo">SJ</div><h4 className="member-name">Sanjay</h4><p className="member-role">Security Committee</p></div>
           <div className="team-member"><div className="member-photo">JK</div><h4 className="member-name">Jaidev Karthikeyan</h4><p className="member-role">Reg & Marketing Committee</p></div>
           <div className="team-member"><div className="member-photo">SV</div><h4 className="member-name">Suprajha V M</h4><p className="member-role">Design & Social Media Committee</p></div>
@@ -156,6 +163,7 @@ export default function Home({ setTransition }) {
     </div>
   );
 }
+
 
 
 
