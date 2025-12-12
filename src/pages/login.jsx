@@ -67,7 +67,7 @@ export default function Login({ setTransition }) {
       const { error: otpError } = await supabase.auth.signInWithOtp({
         email: email,
         options: {
-          shouldCreateUser: false, // Don't create new users, only existing teams
+          shouldCreateUser: true, // Create auth user if doesn't exist
         }
       });
 
