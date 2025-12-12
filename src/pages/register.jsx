@@ -51,7 +51,7 @@ export default function Register() {
   useEffect(() => {
     const others = Math.max(0, teamSize - 1);
     const arr = [];
-    for (let i = 1; i <= others; i++) arr.push({ name: "", reg: "" });
+    for (let i = 1; i <= others; i++) arr.push({ name: "", reg: "", institution: "" });
     setParticipants(arr);
   }, [teamSize]);
 
@@ -226,7 +226,8 @@ export default function Register() {
 
     const members = participants.map((p, i) => ({
       name: formData.get(`memberName${i + 1}`),
-      reg: formData.get(`memberReg${i + 1}`),
+      reg: isVitChennai === "yes" ? formData.get(`memberReg${i + 1}`) : null,
+      institution: isVitChennai === "no" ? formData.get(`memberInstitution${i + 1}`) : null,
     }));
 
     // ensure conditional requirement in JS as well
@@ -241,9 +242,9 @@ export default function Register() {
           teamName,
           teamSize,
           isVitChennai,
-          collegeName: isVitChennai === "no" ? collegeName : null,
+          institution: isVitChennai === "no" ? collegeName : null,
           leaderName,
-          leaderReg,
+          leaderReg: isVitChennai === "yes" ? formData.get("leaderReg") : null,
           leaderEmail,
           members,
         },
@@ -410,17 +411,19 @@ export default function Register() {
                     required
                   />
                 </div>
-                <div className="field">
-                  <label htmlFor="leaderReg">Leader registration no.</label>
-                  <input
-                    id="leaderReg"
-                    name="leaderReg"
-                    type="text"
-                    className="input-base"
-                    placeholder="Institute reg. no."
-                    required
-                  />
-                </div>
+                {isVitChennai === "yes" && (
+                  <div className="field">
+                    <label htmlFor="leaderReg">Leader registration no.</label>
+                    <input
+                      id="leaderReg"
+                      name="leaderReg"
+                      type="text"
+                      className="input-base"
+                      placeholder="VIT reg. no."
+                      required={isVitChennai === "yes"}
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="field">
@@ -500,19 +503,35 @@ export default function Register() {
                       />
                     </div>
 
-                    <div className="field">
-                      <label htmlFor={`memberReg${i + 1}`}>Registration no.</label>
-                      <input
-                        id={`memberReg${i + 1}`}
-                        name={`memberReg${i + 1}`}
-                        type="text"
-                        className="input-base"
-                        placeholder="Institute reg. no."
-                        required
-                        value={participants[i]?.reg || ""}
-                        onChange={(e) => updateParticipant(i, "reg", e.target.value)}
-                      />
-                    </div>
+                    {isVitChennai === "yes" ? (
+                      <div className="field">
+                        <label htmlFor={`memberReg${i + 1}`}>Registration no.</label>
+                        <input
+                          id={`memberReg${i + 1}`}
+                          name={`memberReg${i + 1}`}
+                          type="text"
+                          className="input-base"
+                          placeholder="VIT reg. no."
+                          required={isVitChennai === "yes"}
+                          value={participants[i]?.reg || ""}
+                          onChange={(e) => updateParticipant(i, "reg", e.target.value)}
+                        />
+                      </div>
+                    ) : (
+                      <div className="field">
+                        <label htmlFor={`memberInstitution${i + 1}`}>Institution</label>
+                        <input
+                          id={`memberInstitution${i + 1}`}
+                          name={`memberInstitution${i + 1}`}
+                          type="text"
+                          className="input-base"
+                          placeholder="College/University name"
+                          required={isVitChennai === "no"}
+                          value={participants[i]?.institution || ""}
+                          onChange={(e) => updateParticipant(i, "institution", e.target.value)}
+                        />
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

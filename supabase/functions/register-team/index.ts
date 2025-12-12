@@ -18,12 +18,28 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const { teamName, teamSize, leaderName, leaderReg, leaderEmail, members } = await req.json();
+    const { teamName, teamSize, isVitChennai, institution, leaderName, leaderReg, leaderEmail, members } = await req.json();
 
-    // Validate input
-    if (!teamName || !leaderName || !leaderReg || !leaderEmail) {
+    // Validate input - conditional validation based on VIT Chennai status
+    if (!teamName || !leaderName || !leaderEmail) {
       return new Response(
         JSON.stringify({ error: "Missing required fields" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate VIT Chennai students have reg numbers
+    if (isVitChennai === "yes" && !leaderReg) {
+      return new Response(
+        JSON.stringify({ error: "VIT Chennai students must provide registration number" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate non-VIT students have institution
+    if (isVitChennai === "no" && !institution) {
+      return new Response(
+        JSON.stringify({ error: "Non-VIT students must provide institution name" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -35,7 +51,8 @@ Deno.serve(async (req) => {
         team_name: teamName,
         team_size: teamSize,
         lead_name: leaderName,
-        lead_reg_no: leaderReg,
+        lead_reg_no: isVitChennai === "yes" ? leaderReg : null,
+        institution: isVitChennai === "no" ? institution : null,
         lead_email: leaderEmail,
       })
       .select()
@@ -50,7 +67,8 @@ Deno.serve(async (req) => {
       const memberRecords = members.map((m: any) => ({
         team_id: team.id,
         member_name: m.name,
-        member_reg_no: m.reg,
+        member_reg_no: m.reg || null,
+        institution: m.institution || null,
       }));
 
       const { error: membersError } = await supabase
@@ -69,8 +87,10 @@ Deno.serve(async (req) => {
       const sheetData = {
         teamName,
         teamSize,
+        isVitChennai,
+        institution: isVitChennai === "no" ? institution : "VIT Chennai",
         leaderName,
-        leaderReg,
+        leaderReg: isVitChennai === "yes" ? leaderReg : "N/A",
         leaderEmail,
         members: members || [],
         timestamp: new Date().toISOString(),
