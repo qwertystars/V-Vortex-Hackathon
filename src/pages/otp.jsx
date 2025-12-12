@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { supabase } from "../supabaseClient";
 import "../styles/otp.css";
 import VortexBackground from "../components/VortexBackground";
 import logo from "/logo.jpg";
@@ -6,9 +7,21 @@ import { useNavigate } from "react-router-dom";
 
 export default function OTP({ setTransition }) {
   const [otp, setOtp] = useState("");
+  const [email, setEmail] = useState("");
   const navigate = useNavigate();
 
-  const handleVerify = (e) => {
+  // Get email from sessionStorage
+  useEffect(() => {
+    const storedEmail = sessionStorage.getItem('loginEmail');
+    if (!storedEmail) {
+      alert('❌ No login session found. Please login again.');
+      navigate('/login');
+      return;
+    }
+    setEmail(storedEmail);
+  }, [navigate]);
+
+  const handleVerify = async (e) => {
     e.preventDefault();
 
     if (otp.length !== 6) {
@@ -16,22 +29,47 @@ export default function OTP({ setTransition }) {
       return;
     }
 
-    alert("🔥 AUTH VERIFIED • WELCOME TO THE VORTEX CHAMPION 🔥");
+    try {
+      // Verify OTP with Supabase
+      const { data, error } = await supabase.auth.verifyOtp({
+        email: email,
+        token: otp,
+        type: 'email'
+      });
 
-    // Optional transition effect
-    if (setTransition) {
-      setTransition(
-        <div className="otpTransition">
-          <span>Entering The Vortex...</span>
-        </div>
-      );
+      if (error) {
+        alert(`❌ INVALID CODE: ${error.message}`);
+        return;
+      }
 
-      setTimeout(() => {
-        setTransition(null);
-        navigate("/");
-      }, 1200);
-    } else {
-      navigate("/");
+      // OTP verified successfully
+      alert("🔥 AUTH VERIFIED • WELCOME TO THE VORTEX CHAMPION 🔥");
+
+      // Clear session storage
+      sessionStorage.removeItem('loginEmail');
+      
+      // Get team ID to navigate to dashboard
+      const teamId = sessionStorage.getItem('teamId');
+      sessionStorage.removeItem('teamId');
+
+      // Navigate to team dashboard
+      if (setTransition) {
+        setTransition(
+          <div className="otpTransition">
+            <span>Entering The Vortex...</span>
+          </div>
+        );
+
+        setTimeout(() => {
+          setTransition(null);
+          navigate(`/dashboard/${teamId}`);
+        }, 1200);
+      } else {
+        navigate(`/dashboard/${teamId}`);
+      }
+    } catch (error) {
+      console.error('OTP verification error:', error);
+      alert('❌ An error occurred. Please try again.');
     }
   };
 

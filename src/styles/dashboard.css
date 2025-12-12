@@ -1,0 +1,161 @@
+.dashboardWrapper {
+  min-height: 100vh;
+  background: #020617;
+  color: #e0e7ff;
+  font-family: "Share Tech Mono", monospace;
+}
+
+.dashboardNav {
+  background: rgba(0, 30, 15, 0.55);
+  border-bottom: 1px solid rgba(0, 255, 157, 0.25);
+  padding: 20px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.navLeft h1 {
+  font-size: 24px;
+  color: #00ffae;
+  text-shadow: 0 0 10px #00ffae;
+}
+
+.logoutBtn {
+  padding: 10px 20px;
+  background: #00ff9d;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.25s;
+  font-family: "Share Tech Mono", monospace;
+}
+
+.logoutBtn:hover {
+  box-shadow: 0 0 15px #00ff9d;
+  transform: translateY(-2px);
+}
+
+.dashboardContent {
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+.teamInfo {
+  background: rgba(0, 35, 20, 0.45);
+  border: 1px solid rgba(0, 255, 157, 0.3);
+  border-radius: 12px;
+  padding: 30px;
+  margin-bottom: 30px;
+}
+
+.teamInfo h2 {
+  color: #00ffae;
+  font-size: 32px;
+  margin-bottom: 20px;
+  text-shadow: 0 0 10px #00ffae;
+}
+
+.teamInfo p {
+  font-size: 16px;
+  margin: 10px 0;
+  color: #cfffec;
+}
+
+.scorecardSection {
+  background: rgba(0, 35, 20, 0.45);
+  border: 1px solid rgba(0, 255, 157, 0.3);
+  border-radius: 12px;
+  padding: 30px;
+}
+
+.scorecardSection h3 {
+  color: #00ffae;
+  font-size: 24px;
+  margin-bottom: 20px;
+  text-shadow: 0 0 10px #00ffae;
+}
+
+.scorecard {
+  background: rgba(0, 20, 10, 0.4);
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.scoreItem {
+  display: flex;
+  justify-content: space-between;
+  padding: 15px 0;
+  border-bottom: 1px solid rgba(0, 255, 157, 0.2);
+  font-size: 18px;
+}
+
+.scoreItem.total {
+  border-top: 2px solid #00ff9d;
+  border-bottom: none;
+  margin-top: 10px;
+  font-size: 24px;
+  font-weight: bold;
+  color: #00ffae;
+}
+
+.score {
+  color: #00ff9d;
+  font-weight: bold;
+  text-shadow: 0 0 8px #00ff9d;
+}
+
+.comments {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(0, 255, 157, 0.2);
+}
+
+.comments h4 {
+  color: #00ffae;
+  margin-bottom: 10px;
+}
+
+.comments p {
+  color: #cfffec;
+  line-height: 1.6;
+}
+
+.noScore {
+  text-align: center;
+  padding: 40px;
+  color: #9ca3af;
+  font-size: 18px;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 24px;
+  color: #00ffae;
+}
+
+@media (max-width: 768px) {
+  .dashboardNav {
+    padding: 15px 20px;
+  }
+
+  .navLeft h1 {
+    font-size: 18px;
+  }
+
+  .teamInfo, .scorecardSection {
+    padding: 20px;
+  }
+
+  .scoreItem {
+    font-size: 16px;
+  }
+
+  .scoreItem.total {
+    font-size: 20px;
+  }
+}

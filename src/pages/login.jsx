@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "../supabaseClient";
 import "../styles/login.css";
 import VortexBackground from "../components/VortexBackground";
 import logo from "/logo.jpg";
@@ -45,9 +46,46 @@ export default function Login({ setTransition }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [showModal]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setShowModal(true);
+
+    try {
+      // 1. Verify team exists with this email
+      const { data: team, error: teamError } = await supabase
+        .from('teams')
+        .select('id, team_name, lead_email')
+        .eq('team_name', teamName)
+        .eq('lead_email', email)
+        .single();
+
+      if (teamError || !team) {
+        alert('❌ Team not found. Please check your team name and email.');
+        return;
+      }
+
+      // 2. Send OTP to email using Supabase Auth
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        email: email,
+        options: {
+          shouldCreateUser: false, // Don't create new users, only existing teams
+        }
+      });
+
+      if (otpError) {
+        alert(`❌ Failed to send OTP: ${otpError.message}`);
+        return;
+      }
+
+      // 3. Store email in sessionStorage for OTP verification page
+      sessionStorage.setItem('loginEmail', email);
+      sessionStorage.setItem('teamId', team.id);
+      
+      // 4. Show success modal
+      setShowModal(true);
+    } catch (error) {
+      console.error('Login error:', error);
+      alert('❌ An error occurred. Please try again.');
+    }
   };
 
   useEffect(() => {
