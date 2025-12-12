@@ -3,12 +3,26 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "description": "This Repository consists of a web app which handles attendee registration, team formation, project submission, real-time scorekeeping, and administrative tools",
+  "main": "index.js",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/V-Vortex-VIT/V-Vortex-Hackathon.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/V-Vortex-VIT/V-Vortex-Hackathon/issues"
+  },
+  "homepage": "https://github.com/V-Vortex-VIT/V-Vortex-Hackathon#readme",
   "dependencies": {
     "@supabase/supabase-js": "^2.87.1",
     "react": "^19.2.0",
