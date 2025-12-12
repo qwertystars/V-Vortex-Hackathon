@@ -62,7 +62,7 @@ export default function Home({ setTransition }) {
             </div>
             <div className="info-card">
               <h3>📅 DATES</h3>
-              <p>8th - 9th January</p>
+              <p>7th - 8th January</p>
             </div>
             <div className="info-card">
               <h3>⚡LEVEL</h3>
@@ -163,6 +163,7 @@ export default function Home({ setTransition }) {
     </div>
   );
 }
+
 
 
 
