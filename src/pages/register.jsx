@@ -1,4 +1,3 @@
-// src/pages/Register.jsx
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
@@ -8,17 +7,16 @@ import submitSfxFile from "/vortex_music.m4a";
 
 /**
  * Register page converted from the provided HTML (pixel-perfect).
- * Reference HTML: see uploaded file. :contentReference[oaicite:1]{index=1}
  */
 export default function Register() {
   // refs
   const canvasRef = useRef(null);
   const formWrapperRef = useRef(null);
   const vortexMessageRef = useRef(null);
-  const submitSfxRef = useRef(null); // <-- submit sfx ref
-  const timeoutsRef = useRef([]); // <-- new: track timeout IDs
+  const submitSfxRef = useRef(null);
+  const timeoutsRef = useRef([]);
 
-  const navigate = useNavigate(); // added
+  const navigate = useNavigate();
 
   // UI state
   const [teamSize, setTeamSize] = useState(2);
@@ -26,6 +24,10 @@ export default function Register() {
   const [teamSizeLabel, setTeamSizeLabel] = useState("2 members");
   const [sucked, setSucked] = useState(false);
   const [vortexVisible, setVortexVisible] = useState(false);
+
+  // VIT Chennai toggle
+  const [isVitChennai, setIsVitChennai] = useState("yes"); // 'yes' | 'no'
+  const [collegeName, setCollegeName] = useState("");
 
   // internal refs for animation state (avoids re-renders)
   const stateRef = useRef({
@@ -49,11 +51,16 @@ export default function Register() {
   useEffect(() => {
     const others = Math.max(0, teamSize - 1);
     const arr = [];
-    for (let i = 1; i <= others; i++) {
-      arr.push({ name: "", reg: "" });
-    }
+    for (let i = 1; i <= others; i++) arr.push({ name: "", reg: "" });
     setParticipants(arr);
   }, [teamSize]);
+
+  // ---------- VIT / COLLEGE FIELD COUPLING ----------
+  useEffect(() => {
+    if (isVitChennai === "yes") {
+      setCollegeName("");
+    }
+  }, [isVitChennai]);
 
   // ---------- VORTEX CANVAS ----------
   useEffect(() => {
@@ -62,19 +69,10 @@ export default function Register() {
     const ctx = canvas.getContext("2d");
     const s = stateRef.current;
 
-    // resize helper
-    function resize() {
-      s.width = canvas.width = window.innerWidth;
-      s.height = canvas.height = window.innerHeight;
-      initDigits();
-    }
-
-    // binary helper
     function randomBinary() {
       return Math.random() < 0.5 ? "0" : "1";
     }
 
-    // digits init
     function initDigits() {
       s.digits.length = 0;
       const maxRadius = Math.min(s.width, s.height) * 0.9;
@@ -82,7 +80,6 @@ export default function Register() {
 
       for (let arm = 0; arm < s.ARMS; arm++) {
         const armOffset = (Math.PI * 2 * arm) / s.ARMS;
-
         for (let i = 0; i < s.POINTS_PER_ARM; i++) {
           const t = i / (s.POINTS_PER_ARM - 1);
           const radius = minRadius + t * maxRadius;
@@ -103,11 +100,15 @@ export default function Register() {
       }
     }
 
-    // initial sizes + digits
+    function resize() {
+      s.width = canvas.width = window.innerWidth;
+      s.height = canvas.height = window.innerHeight;
+      initDigits();
+    }
+
     resize();
     window.addEventListener("resize", resize);
 
-    // animation loop
     let rafId;
     function draw(ts) {
       if (!s.lastTime) s.lastTime = ts;
@@ -141,7 +142,7 @@ export default function Register() {
         const flicker = 0.9 + Math.sin(ts * 0.006 + d.baseRadius * 0.02) * 0.18;
         const opacity = d.baseOpacity * flicker;
 
-        let hue = d.paletteIndex === 0 ? 190 : d.paletteIndex === 1 ? 325 : 283;
+        const hue = d.paletteIndex === 0 ? 190 : d.paletteIndex === 1 ? 325 : 283;
         const light = 55 + (1 - d.depth) * 14;
 
         ctx.font = `${d.size}px monospace`;
@@ -161,12 +162,10 @@ export default function Register() {
       rafId = requestAnimationFrame(draw);
     }
 
-    // start
     ctx.fillStyle = "#020617";
     ctx.fillRect(0, 0, s.width, s.height);
     rafId = requestAnimationFrame(draw);
 
-    // cleanup
     return () => {
       cancelAnimationFrame(rafId);
       window.removeEventListener("resize", resize);
@@ -178,21 +177,12 @@ export default function Register() {
   const closeDropdown = () => setDropdownOpen(false);
 
   const handlePickTeamSize = (val) => {
-    setTeamSize(Number(val));
-    setTeamSizeLabel(`${val} ${val === "1" ? "member" : "members"}`);
-    setTimeout(() => {
-      // re-render participants
-      setParticipants((p) => {
-        const others = Math.max(0, Number(val) - 1);
-        const arr = [];
-        for (let i = 1; i <= others; i++) arr.push({ name: "", reg: "" });
-        return arr;
-      });
-    }, 0);
+    const n = Number(val);
+    setTeamSize(n);
+    setTeamSizeLabel(`${val} ${val === 1 ? "member" : "members"}${val === 4 ? " (max)" : ""}`);
     closeDropdown();
   };
 
-  // keyboard accessibility for dropdown
   const handleDropdownKey = (e) => {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
@@ -201,6 +191,15 @@ export default function Register() {
       closeDropdown();
     }
   };
+
+  // close dropdown on outside click
+  useEffect(() => {
+    function onDocClick(e) {
+      if (!e.target.closest?.(".dropdown")) closeDropdown();
+    }
+    document.addEventListener("click", onDocClick);
+    return () => document.removeEventListener("click", onDocClick);
+  }, []);
 
   // ---------- PARTICIPANT FIELD CHANGE ----------
   const updateParticipant = (index, field, value) => {
@@ -215,29 +214,34 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Clear any existing timeouts to prevent duplicates if user resubmits quickly
+    // Clear any existing timeouts
     timeoutsRef.current.forEach((id) => clearTimeout(id));
     timeoutsRef.current = [];
 
-    // Get form data
     const formData = new FormData(e.target);
     const teamName = formData.get("teamName");
     const leaderName = formData.get("leaderName");
     const leaderReg = formData.get("leaderReg");
     const leaderEmail = formData.get("leaderEmail");
 
-    // Prepare members array
     const members = participants.map((p, i) => ({
       name: formData.get(`memberName${i + 1}`),
       reg: formData.get(`memberReg${i + 1}`),
     }));
 
+    // ensure conditional requirement in JS as well
+    if (isVitChennai === "no" && !String(collegeName || "").trim()) {
+      alert("Please enter your College / Institute name.");
+      return;
+    }
+
     try {
-      // Call the Edge Function
-      const { data, error } = await supabase.functions.invoke('register-team', {
+      const { error } = await supabase.functions.invoke("register-team", {
         body: {
           teamName,
           teamSize,
+          isVitChennai,
+          collegeName: isVitChennai === "no" ? collegeName : null,
           leaderName,
           leaderReg,
           leaderEmail,
@@ -247,40 +251,25 @@ export default function Register() {
 
       if (error) throw error;
 
-      // 🔊 PLAY SUBMIT SOUND EFFECT
       if (submitSfxRef.current) {
         submitSfxRef.current.currentTime = 0;
         submitSfxRef.current.play().catch(() => {});
       }
 
-      // 🌀 Turbo vortex effect
       stateRef.current.targetSpeedFactor = 28;
-
-      // 💥 Suck animation
       setSucked(true);
 
-      // Timings
       const showDelay = 2200;
       const visibleDuration = 6000;
 
-      // Show final card
-      const t1 = setTimeout(() => {
-        setVortexVisible(true);
-      }, showDelay);
-      timeoutsRef.current.push(t1);
-
-      // Hide final card and reset 'sucked'
+      const t1 = setTimeout(() => setVortexVisible(true), showDelay);
       const t2 = setTimeout(() => {
         setVortexVisible(false);
         setSucked(false);
       }, showDelay + visibleDuration);
-      timeoutsRef.current.push(t2);
+      const t3 = setTimeout(() => navigate("/login"), showDelay + visibleDuration + 250);
 
-      // Navigate shortly after vanish
-      const t3 = setTimeout(() => {
-        navigate("/login");
-      }, showDelay + visibleDuration + 250);
-      timeoutsRef.current.push(t3);
+      timeoutsRef.current.push(t1, t2, t3);
     } catch (error) {
       console.error("Registration error:", error);
       alert("Registration failed. Please try again.");
@@ -291,7 +280,6 @@ export default function Register() {
   useEffect(() => {
     submitSfxRef.current = new Audio(submitSfxFile);
     submitSfxRef.current.preload = "auto";
-    // optional volume tweak:
     submitSfxRef.current.volume = 0.95;
 
     return () => {
@@ -314,10 +302,7 @@ export default function Register() {
       <canvas id="vortexCanvas" ref={canvasRef} />
       <div className="bg-overlay" />
 
-      <div
-        className={`form-wrapper${sucked ? " sucked" : ""}`}
-        ref={formWrapperRef}
-      >
+      <div className={`form-wrapper${sucked ? " sucked" : ""}`} ref={formWrapperRef}>
         <div className="shell">
           {/* LEFT CARD */}
           <aside className="panel">
@@ -356,6 +341,59 @@ export default function Register() {
                 />
               </div>
 
+              {/* VIT CHENNAI TOGGLE */}
+              <div className="field">
+                <label>Are you from VIT Chennai?</label>
+
+                <div className={`toggle-group${isVitChennai === "no" ? " no-selected" : ""}`} id="vitToggleGroup">
+                  <div className="toggle-slider" />
+
+                  <label className="toggle-option">
+                    <input
+                      type="radio"
+                      name="isVitChennai"
+                      value="yes"
+                      checked={isVitChennai === "yes"}
+                      onChange={() => setIsVitChennai("yes")}
+                    />
+                    <span className="toggle-label">
+                      <span className="toggle-icon">✓</span>
+                      Yes, VIT Chennai
+                    </span>
+                  </label>
+
+                  <label className="toggle-option">
+                    <input
+                      type="radio"
+                      name="isVitChennai"
+                      value="no"
+                      checked={isVitChennai === "no"}
+                      onChange={() => setIsVitChennai("no")}
+                    />
+                    <span className="toggle-label">
+                      <span className="toggle-icon">✕</span>
+                      No, Other College
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              {isVitChennai === "no" && (
+                <div className="field college-field" id="collegeField">
+                  <label htmlFor="collegeName">College / Institute name</label>
+                  <input
+                    id="collegeName"
+                    name="collegeName"
+                    type="text"
+                    className="input-base"
+                    placeholder="Enter your college name"
+                    required
+                    value={collegeName}
+                    onChange={(e) => setCollegeName(e.target.value)}
+                  />
+                </div>
+              )}
+
               <div className="section-label" style={{ marginTop: "0.6rem" }}>
                 Team leader
               </div>
@@ -385,7 +423,6 @@ export default function Register() {
                 </div>
               </div>
 
-              {/* LEADER EMAIL -- placed on the next line */}
               <div className="field">
                 <label htmlFor="leaderEmail">Leader Email Address</label>
                 <input
@@ -397,7 +434,7 @@ export default function Register() {
                   required
                 />
               </div>
-              
+
               <div className="section-label" style={{ marginTop: "0.8rem" }}>
                 Team size & members
               </div>
@@ -413,6 +450,7 @@ export default function Register() {
                       onClick={toggleDropdown}
                       onKeyDown={handleDropdownKey}
                       aria-expanded={dropdownOpen}
+                      id="dropdownToggle"
                     >
                       <span id="teamSizeLabel">{teamSizeLabel}</span>
                       <span className="chevron">▾</span>
@@ -423,31 +461,18 @@ export default function Register() {
                       id="teamSizeMenu"
                       role="menu"
                     >
-                      <li
-                        className="dropdown-item"
-                        data-value="2"
-                        onClick={() => handlePickTeamSize(2)}
-                      >
+                      <li className="dropdown-item" data-value="2" onClick={() => handlePickTeamSize(2)}>
                         <span>2 members</span>
                       </li>
-                      <li
-                        className="dropdown-item"
-                        data-value="3"
-                        onClick={() => handlePickTeamSize(3)}
-                      >
+                      <li className="dropdown-item" data-value="3" onClick={() => handlePickTeamSize(3)}>
                         <span>3 members</span>
                       </li>
-                      <li
-                        className="dropdown-item"
-                        data-value="4"
-                        onClick={() => handlePickTeamSize(4)}
-                      >
+                      <li className="dropdown-item" data-value="4" onClick={() => handlePickTeamSize(4)}>
                         <span>4 members (max)</span>
                       </li>
                     </ul>
                   </div>
 
-                  {/* hidden real value for compatibility */}
                   <input type="hidden" id="teamSize" name="teamSize" value={teamSize} readOnly />
                 </div>
               </div>
@@ -492,7 +517,9 @@ export default function Register() {
                 ))}
               </div>
 
-              <button type="submit" className="submit-btn">Enter the V-VORTEX</button>
+              <button type="submit" className="submit-btn">
+                Enter the V-VORTEX
+              </button>
             </form>
           </section>
         </div>
@@ -506,7 +533,8 @@ export default function Register() {
         <div className="vortex-message-inner">
           <h2>VORTEX ENGAGED</h2>
           <p>
-            Your squad has been swallowed by the <strong>VORTEX</strong>. The only way out is <strong>victory</strong>. Suit up.
+            Your squad has been swallowed by the <strong>VORTEX</strong>. The only way out is{" "}
+            <strong>victory</strong>. Suit up.
           </p>
         </div>
       </div>
