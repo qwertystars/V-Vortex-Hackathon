@@ -62,7 +62,7 @@ export default function Home({ setTransition }) {
             </div>
             <div className="info-card">
               <h3>📅 DATES</h3>
-              <p>8th - 9th January</p>
+              <p>7th - 8th January</p>
             </div>
             <div className="info-card">
               <h3>⚡LEVEL</h3>
@@ -107,6 +107,13 @@ export default function Home({ setTransition }) {
               <p className="member-role">Faculty Coordinator</p>
             </div>
           </div>
+          <div className="coordinator-cards" style={{ marginTop: "40px" }}>
+            <div className="coordinator-card">
+              <div className="member-photo">RP</div>
+              <h4 className="member-name"> Dr Rama Parvathy L</h4>
+              <p className="member-role">Faculty Coordinator</p>
+            </div>
+          </div>
         </div>
 
         <div className="coordinator-section">
@@ -131,7 +138,7 @@ export default function Home({ setTransition }) {
 
         <h3 className="section-title alt" style={{paddingTop: "60px"}}>⟨ TEAM LEADS ⟩</h3>
         <div className="team-grid">
-          <div className="team-member"><div className="member-photo">MS</div><h4 className="member-name">M. Shree</h4><p className="member-role">Team Lead Guests, Sponsorship & Awards Committee</p></div>
+          <div className="team-member"><div className="member-photo">MS</div><h4 className="member-name">M. Shree</h4><p className="member-role">Guests, Sponsorship & Awards Committee</p></div>
           <div className="team-member"><div className="member-photo">YG</div><h4 className="member-name">Yashwant Gokul</h4><p className="member-role">Technical Support Committee</p></div>
           <div className="team-member"><div className="member-photo">KD</div><h4 className="member-name">L. Kevin Daniel</h4><p className="member-role">Web Development Committee</p></div>
           <div className="team-member"><div className="member-photo">SJ</div><h4 className="member-name">Sanjay</h4><p className="member-role">Security Committee</p></div>
@@ -156,6 +163,11 @@ export default function Home({ setTransition }) {
     </div>
   );
 }
+
+
+
+
+
 
 
 
