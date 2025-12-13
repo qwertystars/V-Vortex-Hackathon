@@ -44,6 +44,34 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Check for duplicate team name
+    const { data: existingTeamName } = await supabase
+      .from("teams")
+      .select("id")
+      .eq("team_name", teamName)
+      .maybeSingle();
+
+    if (existingTeamName) {
+      return new Response(
+        JSON.stringify({ error: "Team name already registered. Please choose a different team name." }),
+        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Check for duplicate leader email
+    const { data: existingEmail } = await supabase
+      .from("teams")
+      .select("id")
+      .eq("lead_email", leaderEmail)
+      .maybeSingle();
+
+    if (existingEmail) {
+      return new Response(
+        JSON.stringify({ error: "This email is already registered. If you need to update your registration, please contact support." }),
+        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // 1. Insert team into database
     const { data: team, error: teamError } = await supabase
       .from("teams")
