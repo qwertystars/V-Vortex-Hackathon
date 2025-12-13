@@ -24,6 +24,8 @@ export default function Register() {
   const [teamSizeLabel, setTeamSizeLabel] = useState("2 members");
   const [sucked, setSucked] = useState(false);
   const [vortexVisible, setVortexVisible] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState("");
 
   // VIT Chennai toggle
   const [isVitChennai, setIsVitChennai] = useState("yes"); // 'yes' | 'no'
@@ -214,6 +216,9 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Prevent multiple submissions
+    if (isSubmitting) return;
+
     // Clear any existing timeouts
     timeoutsRef.current.forEach((id) => clearTimeout(id));
     timeoutsRef.current = [];
@@ -236,7 +241,11 @@ export default function Register() {
       return;
     }
 
+    setIsSubmitting(true);
+    setSubmitMessage("🔄 Connecting to V-VORTEX servers...");
+
     try {
+      setSubmitMessage("📡 Transmitting team data...");
       const { error } = await supabase.functions.invoke("register-team", {
         body: {
           teamName,
@@ -251,6 +260,8 @@ export default function Register() {
       });
 
       if (error) throw error;
+
+      setSubmitMessage("✅ Registration successful! Entering the VORTEX...");
 
       if (submitSfxRef.current) {
         submitSfxRef.current.currentTime = 0;
@@ -273,7 +284,9 @@ export default function Register() {
       timeoutsRef.current.push(t1, t2, t3);
     } catch (error) {
       console.error("Registration error:", error);
-      alert("Registration failed. Please try again.");
+      setIsSubmitting(false);
+      setSubmitMessage("");
+      alert("❌ Registration failed. Please try again.");
     }
   };
 
@@ -536,8 +549,27 @@ export default function Register() {
                 ))}
               </div>
 
-              <button type="submit" className="submit-btn">
-                Enter the V-VORTEX
+              {isSubmitting && (
+                <div className="submit-message" style={{
+                  textAlign: 'center',
+                  padding: '1rem',
+                  marginBottom: '1rem',
+                  background: 'rgba(0, 255, 255, 0.1)',
+                  border: '1px solid rgba(0, 255, 255, 0.3)',
+                  borderRadius: '8px',
+                  color: '#00ffff',
+                  fontSize: '0.95rem',
+                  fontWeight: '500'
+                }}>
+                  {submitMessage}
+                </div>
+              )}
+
+              <button type="submit" className="submit-btn" disabled={isSubmitting} style={{
+                opacity: isSubmitting ? 0.6 : 1,
+                cursor: isSubmitting ? 'not-allowed' : 'pointer'
+              }}>
+                {isSubmitting ? '⏳ Processing...' : 'Enter the V-VORTEX'}
               </button>
             </form>
           </section>
