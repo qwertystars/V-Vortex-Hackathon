@@ -1,16 +1,15 @@
 // src/pages/home.jsx
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
-import PageTransition from "../components/PageTransition";
+import PageTransition from "../components/PageTransition"; // re-used pattern
 import "../styles/home.css";
-import logo from "/logo.jpg";
+import logo from "/logo.jpg"; // use your project logo
 
 export default function Home({ setTransition }) {
   const navigate = useNavigate();
-  const [modalOpen, setModalOpen] = useState(false);
-  const [currentRound, setCurrentRound] = useState(null);
 
   const goTo = (path) => {
+    // play your transition.mp4 then navigate (App will clear it via PageTransition onFinished)
     setTransition(
       <PageTransition
         videoSrc="/transition.mp4"
@@ -19,155 +18,6 @@ export default function Home({ setTransition }) {
           navigate(path);
         }}
       />
-    );
-  };
-
-  const roundData = {
-    round1: {
-      title: "ROUND 1: CONCEPTUALIZATION",
-      subtitle: "Online PPT Submission",
-      description: "Submit your vision to our digital gateway for initial processing.",
-      sections: [
-        {
-          heading: "Rules & Guidelines",
-          items: [
-            "Submit a comprehensive PPT (10-15 slides maximum)",
-            "Clearly articulate your problem statement and proposed solution",
-            "Include market research and feasibility analysis",
-            "Demonstrate innovation and uniqueness of your approach",
-            "Submission deadline: 3rd January 2026, 11:59 PM"
-          ]
-        },
-        {
-          heading: "Timeline",
-          text: "Registration opens: 15th Dec 2025<br/>Submission: 20th Dec - 3rd Jan 2026<br/>Results: 5th Jan 2026"
-        },
-        {
-          heading: "Evaluation Metrics",
-          items: [
-            "Innovation & Creativity (30%)",
-            "Technical Feasibility (25%)",
-            "Market Potential (25%)",
-            "Presentation Quality (20%)"
-          ]
-        }
-      ]
-    },
-    round2: {
-      title: "ROUND 2: CONSTRUCTION",
-      subtitle: "Offline Hackathon",
-      description: "24-hour intensive coding marathon at VIT Chennai. Transform vision into code.",
-      sections: [
-        {
-          heading: "Rules & Guidelines",
-          items: [
-            "24-hour intensive coding at VIT Chennai campus",
-            "Teams must be present throughout the entire duration",
-            "Use any programming language or framework",
-            "Pre-written code is strictly prohibited",
-            "Access to mentors and technical support provided"
-          ]
-        },
-        {
-          heading: "Timeline",
-          text: "Check-in: 7th Jan, 9:00 AM<br/>Hacking: 7th Jan 11:00 AM to 8th Jan 11:00 AM<br/>Freeze: 8th Jan, 12:00 PM"
-        },
-        {
-          heading: "Evaluation Metrics",
-          items: [
-            "Working Prototype (35%)",
-            "Code Quality & Architecture (25%)",
-            "Innovation (20%)",
-            "UX/UI Design (20%)"
-          ]
-        }
-      ]
-    },
-    round3: {
-      title: "ROUND 3: VALIDATION",
-      subtitle: "Shark Tank Pitch",
-      description: "Face the titans of industry and secure your victory in the final arena.",
-      sections: [
-        {
-          heading: "Rules & Guidelines",
-          items: [
-            "10-minute pitch + 10-minute Q&A session",
-            "Live working prototype demonstration required",
-            "Present business model and monetization strategy",
-            "Professional attire recommended",
-            "Explain scalability and impact"
-          ]
-        },
-        {
-          heading: "Victory Rewards",
-          items: [
-            "Winner: ₹1,00,000 + Trophy + Certificates",
-            "Runner Up: ₹50,000 + Trophy",
-            "Special Category Awards and Goodies",
-            "Internship opportunities with partners"
-          ]
-        },
-        {
-          heading: "Final Timeline",
-          text: "Prep: 8th Jan, 1:00 PM - 3:00 PM<br/>Pitching: 3:00 PM - 7:00 PM<br/>Awards: 8:00 PM"
-        }
-      ]
-    }
-  };
-
-  const openModal = (roundKey) => {
-    setCurrentRound(roundKey);
-    setModalOpen(true);
-    document.body.style.overflow = 'hidden';
-  };
-
-  const closeModal = () => {
-    setModalOpen(false);
-    setCurrentRound(null);
-    document.body.style.overflow = 'auto';
-  };
-
-  useEffect(() => {
-    const handleEscape = (e) => {
-      if (e.key === 'Escape') closeModal();
-    };
-    document.addEventListener('keydown', handleEscape);
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'auto';
-    };
-  }, []);
-
-  const renderModalContent = () => {
-    if (!currentRound) return null;
-    const data = roundData[currentRound];
-
-    return (
-      <div className="modal-header">
-        <h2 className="modal-title font-orbitron">{data.title}</h2>
-        <p className="modal-subtitle">{data.subtitle}</p>
-        <div className="modal-divider"></div>
-        <p className="modal-description">"{data.description}"</p>
-        
-        <div className="modal-sections">
-          {data.sections.map((section, idx) => (
-            <div key={idx} className="modal-section">
-              <h4>{section.heading}</h4>
-              {section.items ? (
-                <ul>
-                  {section.items.map((item, i) => (
-                    <li key={i}>
-                      <span className="bullet">▶</span> {item}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-sm text-gray-400" dangerouslySetInnerHTML={{ __html: section.text }} />
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
     );
   };
 
@@ -234,47 +84,15 @@ export default function Home({ setTransition }) {
         </div>
       </section>
 
-      {/* EVALUATION / ROUNDS - UPDATED WITH MODAL */}
+      {/* EVALUATION / ROUNDS */}
       <section className="evaluation">
         <h2 className="section-title">⟨ PATH TO VICTORY ⟩</h2>
-        <div className="rounds-grid">
-          <div className="round-card-modal" onClick={() => openModal('round1')}>
-            <div className="scanline-card"></div>
-            <div className="round-number-large">01</div>
-            <h3 className="font-orbitron text-xl">ROUND 1</h3>
-            <p className="mt-4 text-sm text-gray-400">Online PPT Submission - Showcase your revolutionary idea and initial game plan.</p>
-            <div className="access-data">Access Data <span>→</span></div>
-          </div>
-
-          <div className="round-card-modal" onClick={() => openModal('round2')}>
-            <div className="scanline-card"></div>
-            <div className="round-number-large">02</div>
-            <h3 className="font-orbitron text-xl">ROUND 2</h3>
-            <p className="mt-4 text-sm text-gray-400">Offline Hackathon - 24 hours of non-stop coding, building, and creating.</p>
-            <div className="access-data">Access Data <span>→</span></div>
-          </div>
-
-          <div className="round-card-modal" onClick={() => openModal('round3')}>
-            <div className="scanline-card"></div>
-            <div className="round-number-large">03</div>
-            <h3 className="font-orbitron text-xl">ROUND 3</h3>
-            <p className="mt-4 text-sm text-gray-400">Shark Tank - Pitch your creation to industry experts. Prove your solution.</p>
-            <div className="access-data">Access Data <span>→</span></div>
-          </div>
+        <div className="rounds">
+          <div className="round-card"><span className="round-number">01</span><h3>ROUND 1</h3><p>Online PPT Submission - Showcase your revolutionary idea and initial game plan. Let your innovation speak through slides that captivate and convince.</p></div>
+          <div className="round-card"><span className="round-number">02</span><h3>ROUND 2</h3><p>Offline Hackathon - The real battle begins. 24 hours of non-stop coding, building, and creating. Transform your vision into reality.</p></div>
+          <div className="round-card"><span className="round-number">03</span><h3>ROUND 3</h3><p>Shark Tank - Face the legends. Pitch your creation to industry experts. Prove your solution can change the world.</p></div>
         </div>
       </section>
-
-      {/* Modal Overlay */}
-      {modalOpen && (
-        <div className="modal-overlay active" onClick={closeModal}>
-          <div className="modal-container" onClick={(e) => e.stopPropagation()}>
-            <button className="close-modal" onClick={closeModal}>&times;</button>
-            <div id="modalContent">
-              {renderModalContent()}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* TEAM / COORDINATORS */}
       <section className="team">
@@ -305,14 +123,14 @@ export default function Home({ setTransition }) {
               <div className="member-photo">SJ</div>
               <h4 className="member-name">Sugeeth Jayaraj S.A</h4>
               <p className="member-role">Student Coordinator</p>
-              <p className="member-role">Feel free to reach out</p>
+              <p class="member-role">Feel free to reach out</p>
               <p className="member-role">+91 81226 54796</p>
             </div>
             <div className="coordinator-card">
               <div className="member-photo">PM</div>
               <h4 className="member-name">Prasanna M</h4>
               <p className="member-role">Student Coordinator</p>
-              <p className="member-role">Need Help?</p>
+              <p class="member-role">Need Help?</p>
               <p className="member-role">+91 97909 70726</p>
             </div>
           </div>
