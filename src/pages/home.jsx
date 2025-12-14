@@ -6,7 +6,6 @@ import "../styles/home.css";
 import logo from "/logo.jpg";
 import { useState, useEffect } from "react";
 
-
 export default function Home({ setTransition }) {
   const navigate = useNavigate();
 
@@ -27,8 +26,18 @@ export default function Home({ setTransition }) {
       title: "ROUND 1: CONCEPTUALIZATION",
       desc: "Online PPT Submission – Showcase your revolutionary idea and initial game plan.",
       blocks: {
-        Rules: ["10–15 slides maximum", "Clear problem & solution", "Market & feasibility analysis", "Deadline: 3 Jan 2026"],
-        Evaluation: ["Innovation (30%)", "Feasibility (25%)", "Market Impact (25%)", "Presentation (20%)"],
+        Rules: [
+          "10–15 slides maximum",
+          "Clear problem & solution",
+          "Market & feasibility analysis",
+          "Deadline: 3 Jan 2026",
+        ],
+        Evaluation: [
+          "Innovation (30%)",
+          "Feasibility (25%)",
+          "Market Impact (25%)",
+          "Presentation (20%)",
+        ],
       },
     },
     r2: {
@@ -70,8 +79,88 @@ export default function Home({ setTransition }) {
     document.body.style.overflow = "";
   }
 
+  // Inline styles to ensure modal layout works even if CSS isn't updated yet.
+  // Prefer moving these to home.css, but inline ensures the layout/visual fix you requested.
+  const overlayStyle = {
+    position: "fixed",
+    inset: 0,
+    display: activeRound ? "flex" : "none",
+    alignItems: "center",
+    justifyContent: "center",
+    background:
+      "linear-gradient(0deg, rgba(0,0,0,0.7), rgba(0,0,0,0.6))",
+    zIndex: 1000,
+    padding: "40px 20px",
+    overflowY: "auto",
+  };
+
+  const modalStyle = {
+    width: "100%",
+    maxWidth: 1100,
+    background: "linear-gradient(180deg, rgba(10,4,14,0.98) 0%, rgba(5,2,8,0.98) 100%)",
+    border: "2px solid #00e6ff",
+    borderRadius: 12,
+    padding: "28px",
+    boxShadow: "0 20px 60px rgba(0,0,0,0.8)",
+    color: "#9ffcff",
+    position: "relative",
+  };
+
+  const headerBarStyle = {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    marginBottom: 12,
+  };
+
+  const titleStyle = {
+    fontFamily: "'Courier New', Courier, monospace",
+    fontWeight: 700,
+    letterSpacing: 1.5,
+    fontSize: 22,
+    color: "#00e6ff",
+    margin: 0,
+  };
+
+  const closeBtnStyle = {
+    background: "#0b0b0b",
+    color: "#00e6ff",
+    border: "2px solid rgba(255,255,255,0.03)",
+    height: 30,
+    width: 30,
+    borderRadius: 6,
+    cursor: "pointer",
+    fontSize: 18,
+    lineHeight: "24px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  };
+
+  const bodyGridStyle = {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: 24,
+    marginTop: 16,
+    alignItems: "start",
+  };
+
+  const blockTitleStyle = {
+    color: "#e8fefe",
+    fontWeight: 700,
+    marginBottom: 8,
+    letterSpacing: 0.6,
+  };
+
+  const listStyle = {
+    margin: 0,
+    paddingLeft: 20,
+    color: "#bfeffb",
+    lineHeight: 1.9,
+  };
+
   return (
-    
     <div className="vv-home">
       {/* scanline */}
       <div className="scanline" aria-hidden />
@@ -126,11 +215,26 @@ export default function Home({ setTransition }) {
       <section className="domains">
         <h2 className="section-title">⟨ BATTLE DOMAINS ⟩</h2>
         <div className="domains-grid">
-          <div className="domain-card"><div className="domain-icon">🤖</div><h3>AI/ML</h3></div>
-          <div className="domain-card"><div className="domain-icon">🛡️</div><h3>Cybersecurity</h3></div>
-          <div className="domain-card selected"><div className="domain-icon">🏥</div><h3>Healthcare</h3></div>
-          <div className="domain-card"><div className="domain-icon">💰</div><h3>Fintech</h3></div>
-          <div className="domain-card"><div className="domain-icon">🔌</div><h3>IoT & Robotics</h3></div>
+          <div className="domain-card">
+            <div className="domain-icon">🤖</div>
+            <h3>AI/ML</h3>
+          </div>
+          <div className="domain-card">
+            <div className="domain-icon">🛡️</div>
+            <h3>Cybersecurity</h3>
+          </div>
+          <div className="domain-card selected">
+            <div className="domain-icon">🏥</div>
+            <h3>Healthcare</h3>
+          </div>
+          <div className="domain-card">
+            <div className="domain-icon">💰</div>
+            <h3>Fintech</h3>
+          </div>
+          <div className="domain-card">
+            <div className="domain-icon">🔌</div>
+            <h3>IoT & Robotics</h3>
+          </div>
         </div>
       </section>
 
@@ -174,21 +278,54 @@ export default function Home({ setTransition }) {
           onClick={closeModal}
           role="dialog"
           aria-modal={activeRound ? "true" : "false"}
+          aria-hidden={!activeRound}
+          style={overlayStyle}
         >
           {activeRound && (
-            <div className="modal" onClick={(e) => e.stopPropagation()}>
-              <button className="close" onClick={closeModal}>×</button>
-              <h2>{activeRound.title}</h2>
-              <div className="modal-sub">{activeRound.sub}</div>
-              <div className="divider" />
-              <p className="modal-desc">"{activeRound.desc}"</p>
-              <div className="modal-grid">
-                {Object.entries(activeRound.blocks).map(([h, items]) => (
-                  <div className="block" key={h}>
-                    <h4>{h}</h4>
-                    <ul>
+            <div
+              className="modal"
+              onClick={(e) => e.stopPropagation()}
+              style={modalStyle}
+            >
+              <div style={headerBarStyle}>
+                <h2 style={titleStyle}>{activeRound.title}</h2>
+                <button
+                  onClick={closeModal}
+                  aria-label="Close details"
+                  style={closeBtnStyle}
+                >
+                  ×
+                </button>
+              </div>
+
+              <div style={{ fontStyle: "italic", color: "#bfeffb", marginBottom: 8 }}>
+                "{activeRound.desc}"
+              </div>
+
+              <div style={{ height: 1, background: "rgba(255,255,255,0.03)", margin: "12px 0" }} />
+
+              {/* Two column layout similar to the mock */}
+              <div style={bodyGridStyle}>
+                {Object.entries(activeRound.blocks).map(([heading, items]) => (
+                  <div key={heading}>
+                    <h4 style={blockTitleStyle}>{heading.toUpperCase()}</h4>
+                    <ul style={listStyle}>
                       {items.map((it, i) => (
-                        <li key={i}>{it}</li>
+                        <li key={i} style={{ listStyleType: "none", marginBottom: 8 }}>
+                          <span
+                            style={{
+                              display: "inline-block",
+                              width: 10,
+                              height: 10,
+                              background: "#ff2fe6",
+                              borderRadius: 2,
+                              marginRight: 10,
+                              transform: "translateY(-1px)",
+                            }}
+                            aria-hidden
+                          />
+                          {it}
+                        </li>
                       ))}
                     </ul>
                   </div>
@@ -215,7 +352,9 @@ export default function Home({ setTransition }) {
         </div>
 
         <div className="coordinator-section">
-          <h3 className="coord-title" style={{paddingTop: "60px"}}>▸ STUDENT COORDINATORS</h3>
+          <h3 className="coord-title" style={{ paddingTop: "60px" }}>
+            ▸ STUDENT COORDINATORS
+          </h3>
           <div className="coordinator-cards">
             <div className="coordinator-card">
               <div className="member-photo">SJ</div>
@@ -232,22 +371,66 @@ export default function Home({ setTransition }) {
           </div>
         </div>
 
-        <h3 className="section-title alt" style={{paddingTop: "60px"}}>⟨ CORE WARRIORS ⟩</h3>
+        <h3 className="section-title alt" style={{ paddingTop: "60px" }}>
+          ⟨ CORE WARRIORS ⟩
+        </h3>
         <div className="team-grid">
-          <div className="team-member"><div className="member-photo">MS</div><h4 className="member-name">M. Shree</h4><p className="member-role">Team Lead Guests, Sponsorship & Awards Committee</p></div>
-          <div className="team-member"><div className="member-photo">YG</div><h4 className="member-name">Yashwant Gokul</h4><p className="member-role">Technical Suppor Committee</p></div>
-          <div className="team-member"><div className="member-photo">KD</div><h4 className="member-name">L Kevin Daniel</h4><p className="member-role">Web Development Committee</p></div>
-          <div className="team-member"><div className="member-photo">SJ</div><h4 className="member-name">Sanjana</h4><p className="member-role">Security Committee</p></div>
-          <div className="team-member"><div className="member-photo">JK</div><h4 className="member-name">Jaidev Karthikeyan</h4><p className="member-role">Reg & Marketing Committee</p></div>
-          <div className="team-member"><div className="member-photo">SV</div><h4 className="member-name">Suprajha V M</h4><p className="member-role">Design & Social Media Committee</p></div>
-          <div className="team-member"><div className="member-photo">SN</div><h4 className="member-name">Sanju</h4><p className="member-role">Design & Social Media Committee</p></div>
+          <div className="team-member">
+            <div className="member-photo">MS</div>
+            <h4 className="member-name">M. Shree</h4>
+            <p className="member-role">Team Lead Guests, Sponsorship & Awards Committee</p>
+          </div>
+          <div className="team-member">
+            <div className="member-photo">YG</div>
+            <h4 className="member-name">Yashwant Gokul</h4>
+            <p className="member-role">Technical Support Committee</p>
+          </div>
+          <div className="team-member">
+            <div className="member-photo">KD</div>
+            <h4 className="member-name">L Kevin Daniel</h4>
+            <p className="member-role">Web Development Committee</p>
+          </div>
+          <div className="team-member">
+            <div className="member-photo">SJ</div>
+            <h4 className="member-name">Sanjana</h4>
+            <p className="member-role">Security Committee</p>
+          </div>
+          <div className="team-member">
+            <div className="member-photo">JK</div>
+            <h4 className="member-name">Jaidev Karthikeyan</h4>
+            <p className="member-role">Reg & Marketing Committee</p>
+          </div>
+          <div className="team-member">
+            <div className="member-photo">SV</div>
+            <h4 className="member-name">Suprajha V M</h4>
+            <p className="member-role">Design & Social Media Committee</p>
+          </div>
+          <div className="team-member">
+            <div className="member-photo">SN</div>
+            <h4 className="member-name">Sanju</h4>
+            <p className="member-role">Design & Social Media Committee</p>
+          </div>
         </div>
 
-        <h3 className="section-title special" style={{paddingTop: "60px"}}>⟨ SPECIAL MENTIONS ⟩</h3>
+        <h3 className="section-title special" style={{ paddingTop: "60px" }}>
+          ⟨ SPECIAL MENTIONS ⟩
+        </h3>
         <div className="team-grid special-grid">
-          <div className="team-member"><div className="member-photo">IM</div><h4 className="member-name">Ibhan Mukerjee</h4><p className="member-role">Special Contributor</p></div>
-          <div className="team-member"><div className="member-photo">DP</div><h4 className="member-name">Devangshu Pandey</h4><p className="member-role">Special Contributor</p></div>
-          <div className="team-member"><div className="member-photo">SG</div><h4 className="member-name">Srijan Guchhait</h4><p className="member-role">Special Contributor</p></div>
+          <div className="team-member">
+            <div className="member-photo">IM</div>
+            <h4 className="member-name">Ibhan Mukerjee</h4>
+            <p className="member-role">Special Contributor</p>
+          </div>
+          <div className="team-member">
+            <div className="member-photo">DP</div>
+            <h4 className="member-name">Devangshu Pandey</h4>
+            <p className="member-role">Special Contributor</p>
+          </div>
+          <div className="team-member">
+            <div className="member-photo">SG</div>
+            <h4 className="member-name">Srijan Guchhait</h4>
+            <p className="member-role">Special Contributor</p>
+          </div>
         </div>
       </section>
 
