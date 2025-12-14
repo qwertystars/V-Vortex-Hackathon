@@ -12,7 +12,7 @@ export default function Home({ setTransition }) {
   const goTo = (path) => {
     setTransition(
       <PageTransition
-        videoSrc="/transition.mp4"
+        videoSrc="/transition. mp4"
         onFinished={() => {
           setTransition(null);
           navigate(path);
@@ -41,7 +41,7 @@ export default function Home({ setTransition }) {
       },
     },
     r2: {
-      title: "ROUND 2: CONSTRUCTION",
+      title:  "ROUND 2: CONSTRUCTION",
       desc: "Offline Hackathon – 24 hours of non-stop coding, building and creating.",
       blocks: {
         Rules: ["No pre-written code", "Any tech stack allowed", "Mentors available"],
@@ -79,15 +79,15 @@ export default function Home({ setTransition }) {
     document.body.style.overflow = "";
   }
 
-  // Inline styles to ensure modal layout works even if CSS isn't updated yet.
-  // Prefer moving these to home.css, but inline ensures the layout/visual fix you requested.
+  // Inline styles to ensure modal layout works even if CSS isn't updated yet. 
+  // Prefer moving these to home.css, but inline ensures the layout/visual fix you requested. 
   const overlayStyle = {
     position: "fixed",
     inset: 0,
     display: activeRound ? "flex" : "none",
     alignItems: "center",
     justifyContent: "center",
-    background:
+    background: 
       "linear-gradient(0deg, rgba(0,0,0,0.7), rgba(0,0,0,0.6))",
     zIndex: 1000,
     padding: "40px 20px",
@@ -99,7 +99,7 @@ export default function Home({ setTransition }) {
     maxWidth: 1100,
     background: "linear-gradient(180deg, rgba(10,4,14,0.98) 0%, rgba(5,2,8,0.98) 100%)",
     border: "2px solid #00e6ff",
-    borderRadius: 12,
+    borderRadius:  12,
     padding: "28px",
     boxShadow: "0 20px 60px rgba(0,0,0,0.8)",
     color: "#9ffcff",
@@ -131,7 +131,7 @@ export default function Home({ setTransition }) {
     width: 30,
     borderRadius: 6,
     cursor: "pointer",
-    fontSize: 18,
+    fontSize:  18,
     lineHeight: "24px",
     display: "flex",
     alignItems: "center",
@@ -275,7 +275,7 @@ export default function Home({ setTransition }) {
 
         {/* Modal overlay */}
         <div
-          className={`modal-overlay ${activeRound ? "active" : ""}`}
+          className={`modal-overlay ${activeRound ? "active" :  ""}`}
           onClick={closeModal}
           role="dialog"
           aria-modal={activeRound ? "true" : "false"}
@@ -309,14 +309,14 @@ export default function Home({ setTransition }) {
               <div style={bodyGridStyle}>
                 {Object.entries(activeRound.blocks).map(([heading, items]) => (
                   <div key={heading}>
-                    <h4 style={blockTitleStyle}>{heading.toUpperCase()}</h4>
+                    <h4 style={blockTitleStyle}>{heading. toUpperCase()}</h4>
                     <ul style={listStyle}>
                       {items.map((it, i) => (
                         <li key={i} style={{ listStyleType: "none", marginBottom: 8 }}>
                           <span
                             style={{
                               display: "inline-block",
-                              width: 10,
+                              width:  10,
                               height: 10,
                               background: "#ff2fe6",
                               borderRadius: 2,
@@ -349,7 +349,6 @@ export default function Home({ setTransition }) {
               <h4 className="member-name">Dr. Pavithra Sekar</h4>
               <p className="member-role">Faculty Coordinator</p>
             </div>
-            <div className="coordinator-cards" style={{paddingTop: "40px"}}>
             <div className="coordinator-card">
               <div className="member-photo">RP</div>
               <h4 className="member-name">Dr. Rama Parvathy</h4>
@@ -357,7 +356,6 @@ export default function Home({ setTransition }) {
             </div>
           </div>
         </div>
-          </div>
 
         <div className="coordinator-section">
           <h3 className="coord-title" style={{ paddingTop: "60px" }}>
@@ -366,7 +364,7 @@ export default function Home({ setTransition }) {
           <div className="coordinator-cards">
             <div className="coordinator-card">
               <div className="member-photo">SJ</div>
-              <h4 className="member-name">Sugeeth Jayaraj S.A</h4>
+              <h4 className="member-name">Sugeeth Jayaraj S. A</h4>
               <p className="member-role">Student Coordinator</p>
               <p className="member-role">9790970726</p>
             </div>
@@ -450,7 +448,3 @@ export default function Home({ setTransition }) {
     </div>
   );
 }
-
-
-
-
