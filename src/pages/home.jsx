@@ -444,10 +444,11 @@ export default function Home({ setTransition }) {
 
       {/* FOOTER */}
       <footer>
-        <p>🌀 V-VORTEX 2025 • WHERE LEGENDS ARE BORN 🌀</p>
+        <p>🌀 V-VORTEX 2026 • WHERE LEGENDS ARE BORN 🌀</p>
         <p className="muted">VIT Chennai • National Level Hackathon</p>
       </footer>
     </div>
   );
 }
+
 
