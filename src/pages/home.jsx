@@ -349,8 +349,7 @@ export default function Home({ setTransition }) {
               <h4 className="member-name">Dr. Pavithra Sekar</h4>
               <p className="member-role">Faculty Coordinator</p>
             </div>
-          </div>
-          <div className="coordinator-cards" style={{padding=40px"}}>
+            <div className="coordinator-cards" style={{paddingTop="40px"}}>
             <div className="coordinator-card">
               <div className="member-photo">RP</div>
               <h4 className="member-name">Dr. Rama Parvathy</h4>
@@ -358,6 +357,7 @@ export default function Home({ setTransition }) {
             </div>
           </div>
         </div>
+          </div>
 
         <div className="coordinator-section">
           <h3 className="coord-title" style={{ paddingTop: "60px" }}>
@@ -386,7 +386,7 @@ export default function Home({ setTransition }) {
           <div className="team-member">
             <div className="member-photo">MS</div>
             <h4 className="member-name">M. Shree</h4>
-            <p className="member-role">Team Lead Guests, Sponsorship & Awards Committee</p>
+            <p className="member-role">Guests, Sponsorship & Awards Committee</p>
           </div>
           <div className="team-member">
             <div className="member-photo">YG</div>
@@ -415,7 +415,7 @@ export default function Home({ setTransition }) {
           </div>
           <div className="team-member">
             <div className="member-photo">SN</div>
-            <h4 className="member-name">Sanju</h4>
+            <h4 className="member-name">Sanjay</h4>
             <p className="member-role">Design & Social Media Committee</p>
           </div>
         </div>
@@ -450,5 +450,6 @@ export default function Home({ setTransition }) {
     </div>
   );
 }
+
 
 
