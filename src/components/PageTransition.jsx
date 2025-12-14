@@ -10,7 +10,6 @@ export default function PageTransition({ videoSrc, onFinished }) {
 
     v.muted = false;
     v.currentTime = 0;
-    v.play();
 
     const handleEnd = () => onFinished();
     v.addEventListener("ended", handleEnd);
@@ -18,7 +17,7 @@ export default function PageTransition({ videoSrc, onFinished }) {
     return () => {
       v.removeEventListener("ended", handleEnd);
     };
-  }, [onFinished]); // ✅ FIXED
+  }, [onFinished]);
 
   return (
     <div className="transitionOverlay">
@@ -28,3 +27,4 @@ export default function PageTransition({ videoSrc, onFinished }) {
     </div>
   );
 }
+
