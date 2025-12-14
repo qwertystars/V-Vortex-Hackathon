@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import PageTransition from "../components/PageTransition"; // re-used pattern
 import "../styles/home.css";
 import logo from "/logo.jpg"; // use your project logo
+import { useState, useEffect } from "react";
+
 
 export default function Home({ setTransition }) {
   const navigate = useNavigate();
@@ -21,7 +23,56 @@ export default function Home({ setTransition }) {
     );
   };
 
+  const rounds = {
+    r1: {
+      title: "ROUND 1: CONCEPTUALIZATION",
+      desc: "Online PPT Submission – Showcase your revolutionary idea and initial game plan.",
+      blocks: {
+        Rules: ["10–15 slides maximum", "Clear problem & solution", "Market & feasibility analysis", "Deadline: 3 Jan 2026"],
+        Evaluation: ["Innovation (30%)", "Feasibility (25%)", "Market Impact (25%)", "Presentation (20%)"],
+      },
+    },
+    r2: {
+      title: "ROUND 2: CONSTRUCTION",
+      desc: "Offline Hackathon – 24 hours of non-stop coding, building and creating.",
+      blocks: {
+        Rules: ["No pre-written code", "Any tech stack allowed", "Mentors available"],
+        Evaluation: ["Working Prototype (35%)", "Code Quality (25%)", "UX/UI (20%)"],
+      },
+    },
+    r3: {
+      title: "ROUND 3: VALIDATION",
+      desc: "Shark Tank – Pitch your creation to industry experts.",
+      blocks: {
+        Pitch: ["10 min pitch + Q&A", "Live demo required", "Business model"],
+        Rewards: ["₹1,00,000 Winner", "₹50,000 Runner-up", "Internships"],
+      },
+    },
+  };
+
+  const [activeRound, setActiveRound] = useState(null);
+
+  useEffect(() => {
+    function onKey(e) {
+      if (e.key === "Escape") closeModal();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  function openModal(key) {
+    setActiveRound(rounds[key]);
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeModal(e) {
+    if (e && e.stopPropagation) e.stopPropagation();
+    setActiveRound(null);
+    document.body.style.overflow = "";
+  }
+
   return (
+    
     <div className="vv-home">
       {/* scanline */}
       <div className="scanline" aria-hidden />
@@ -62,7 +113,7 @@ export default function Home({ setTransition }) {
             </div>
             <div className="info-card">
               <h3>📅 DATES</h3>
-              <p>7th - 8th January</p>
+              <p>8th - 9th January</p>
             </div>
             <div className="info-card">
               <h3>⚡LEVEL</h3>
@@ -76,7 +127,7 @@ export default function Home({ setTransition }) {
       <section className="domains">
         <h2 className="section-title">⟨ BATTLE DOMAINS ⟩</h2>
         <div className="domains-grid">
-          <div className="domain-card"><div className="domain-icon">⛓️</div><h3>Blockchain</h3></div>
+          <div className="domain-card"><div className="domain-icon">🤖</div><h3>AI/ML</h3></div>
           <div className="domain-card"><div className="domain-icon">🛡️</div><h3>Cybersecurity</h3></div>
           <div className="domain-card selected"><div className="domain-icon">🏥</div><h3>Healthcare</h3></div>
           <div className="domain-card"><div className="domain-icon">💰</div><h3>Fintech</h3></div>
@@ -88,9 +139,64 @@ export default function Home({ setTransition }) {
       <section className="evaluation">
         <h2 className="section-title">⟨ PATH TO VICTORY ⟩</h2>
         <div className="rounds">
-          <div className="round-card"><span className="round-number">01</span><h3>ROUND 1</h3><p>Online PPT Submission - Showcase your revolutionary idea and initial game plan. Let your innovation speak through slides that captivate and convince.</p></div>
-          <div className="round-card"><span className="round-number">02</span><h3>ROUND 2</h3><p>Offline Hackathon - The real battle begins. 24 hours of non-stop coding, building, and creating. Transform your vision into reality.</p></div>
-          <div className="round-card"><span className="round-number">03</span><h3>ROUND 3</h3><p>Shark Tank - Face the legends. Pitch your creation to industry experts. Prove your solution can change the world.</p></div>
+          {Object.keys(rounds).map((k, idx) => (
+            <div
+              className="round-card"
+              key={k}
+              onClick={() => openModal(k)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") openModal(k);
+              }}
+            >
+              <span className="round-number">0{idx + 1}</span>
+              <h3>{`ROUND ${idx + 1}`}</h3>
+              <p>{rounds[k].desc}</p>
+              <a
+                href="#"
+                className="access"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  openModal(k);
+                }}
+                aria-label={`Open ${rounds[k].title} details`}
+              >
+                ACCESS DATA →
+              </a>
+            </div>
+          ))}
+        </div>
+
+        {/* Modal overlay */}
+        <div
+          className={`modal-overlay ${activeRound ? "active" : ""}`}
+          onClick={closeModal}
+          role="dialog"
+          aria-modal={activeRound ? "true" : "false"}
+        >
+          {activeRound && (
+            <div className="modal" onClick={(e) => e.stopPropagation()}>
+              <button className="close" onClick={closeModal}>×</button>
+              <h2>{activeRound.title}</h2>
+              <div className="modal-sub">{activeRound.sub}</div>
+              <div className="divider" />
+              <p className="modal-desc">"{activeRound.desc}"</p>
+              <div className="modal-grid">
+                {Object.entries(activeRound.blocks).map(([h, items]) => (
+                  <div className="block" key={h}>
+                    <h4>{h}</h4>
+                    <ul>
+                      {items.map((it, i) => (
+                        <li key={i}>{it}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
@@ -107,13 +213,6 @@ export default function Home({ setTransition }) {
               <p className="member-role">Faculty Coordinator</p>
             </div>
           </div>
-          <div className="coordinator-cards" style={{ marginTop: "40px" }}>
-            <div className="coordinator-card">
-              <div className="member-photo">RP</div>
-              <h4 className="member-name"> Dr Rama Parvathy L</h4>
-              <p className="member-role">Faculty Coordinator</p>
-            </div>
-          </div>
         </div>
 
         <div className="coordinator-section">
@@ -123,33 +222,31 @@ export default function Home({ setTransition }) {
               <div className="member-photo">SJ</div>
               <h4 className="member-name">Sugeeth Jayaraj S.A</h4>
               <p className="member-role">Student Coordinator</p>
-              <p class="member-role">Feel free to reach out</p>
-              <p className="member-role">+91 81226 54796</p>
+              <p className="member-role">9790970726</p>
             </div>
             <div className="coordinator-card">
               <div className="member-photo">PM</div>
               <h4 className="member-name">Prasanna M</h4>
               <p className="member-role">Student Coordinator</p>
-              <p class="member-role">Need Help?</p>
-              <p className="member-role">+91 97909 70726</p>
+              <p className="member-role">81226 54796</p>
             </div>
           </div>
         </div>
 
-        <h3 className="section-title alt" style={{paddingTop: "60px"}}>⟨ TEAM LEADS ⟩</h3>
+        <h3 className="section-title alt" style={{paddingTop: "60px"}}>⟨ CORE WARRIORS ⟩</h3>
         <div className="team-grid">
-          <div className="team-member"><div className="member-photo">MS</div><h4 className="member-name">M. Shree</h4><p className="member-role">Guests, Sponsorship & Awards Committee</p></div>
-          <div className="team-member"><div className="member-photo">YG</div><h4 className="member-name">Yashwant Gokul</h4><p className="member-role">Technical Support Committee</p></div>
-          <div className="team-member"><div className="member-photo">KD</div><h4 className="member-name">L. Kevin Daniel</h4><p className="member-role">Web Development Committee</p></div>
-          <div className="team-member"><div className="member-photo">SJ</div><h4 className="member-name">Sanjay</h4><p className="member-role">Security Committee</p></div>
+          <div className="team-member"><div className="member-photo">MS</div><h4 className="member-name">M. Shree</h4><p className="member-role">Team Lead Guests, Sponsorship & Awards Committee</p></div>
+          <div className="team-member"><div className="member-photo">YG</div><h4 className="member-name">Yashwant Gokul</h4><p className="member-role">Technical Suppor Committee</p></div>
+          <div className="team-member"><div className="member-photo">KD</div><h4 className="member-name">L Kevin Daniel</h4><p className="member-role">Web Development Committee</p></div>
+          <div className="team-member"><div className="member-photo">SJ</div><h4 className="member-name">Sanjana</h4><p className="member-role">Security Committee</p></div>
           <div className="team-member"><div className="member-photo">JK</div><h4 className="member-name">Jaidev Karthikeyan</h4><p className="member-role">Reg & Marketing Committee</p></div>
           <div className="team-member"><div className="member-photo">SV</div><h4 className="member-name">Suprajha V M</h4><p className="member-role">Design & Social Media Committee</p></div>
-          <div className="team-member"><div className="member-photo">SN</div><h4 className="member-name">Sanjana</h4><p className="member-role">Design & Social Media Committee</p></div>
+          <div className="team-member"><div className="member-photo">SN</div><h4 className="member-name">Sanju</h4><p className="member-role">Design & Social Media Committee</p></div>
         </div>
 
-        <h3 className="section-title special" style={{paddingTop: "60px"}}>⟨ DEV TEAM ⟩</h3>
+        <h3 className="section-title special" style={{paddingTop: "60px"}}>⟨ SPECIAL MENTIONS ⟩</h3>
         <div className="team-grid special-grid">
-          <div className="team-member"><div className="member-photo">IM</div><h4 className="member-name">Ibhan Mukherjee</h4><p className="member-role">Special Contributor</p></div>
+          <div className="team-member"><div className="member-photo">IM</div><h4 className="member-name">Ibhan Mukerjee</h4><p className="member-role">Special Contributor</p></div>
           <div className="team-member"><div className="member-photo">DP</div><h4 className="member-name">Devangshu Pandey</h4><p className="member-role">Special Contributor</p></div>
           <div className="team-member"><div className="member-photo">SG</div><h4 className="member-name">Srijan Guchhait</h4><p className="member-role">Special Contributor</p></div>
         </div>
@@ -157,7 +254,7 @@ export default function Home({ setTransition }) {
 
       {/* FOOTER */}
       <footer>
-        <p>🌀 V-VORTEX 2026 • WHERE LEGENDS ARE BORN 🌀</p>
+        <p>🌀 V-VORTEX 2025 • WHERE LEGENDS ARE BORN 🌀</p>
         <p className="muted">VIT Chennai • National Level Hackathon</p>
       </footer>
     </div>
