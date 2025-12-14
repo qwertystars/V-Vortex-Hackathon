@@ -68,7 +68,7 @@ body {
   filter: blur(20px);
 }
 
-/* Outer shell – strong glassmorphism with subtle border */
+/* Outer shell – strong glassmorphism */
 
 .shell {
   display: flex;
@@ -93,7 +93,7 @@ body {
 
 .panel {
   flex: 1;
-  padding: 2.8rem 3rem;
+  padding: 2.4rem 3rem; /* reduced vertical padding for less empty space */
 }
 
 /* Left panel – hero / marketing */
@@ -106,10 +106,10 @@ body {
   border-right: 1px solid rgba(148, 163, 184, 0.4);
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start; /* logo + text higher on desktop */
   position: relative;
-  padding-top: 3.4rem;
-  padding-bottom: 3.4rem;
+  padding-top: 2.2rem;
+  padding-bottom: 2.6rem;
 }
 
 /* Decorative neon arcs in left panel */
@@ -125,17 +125,17 @@ body {
 }
 
 .panel:first-child::before {
-  width: 260px;
-  height: 260px;
-  top: 6%;
+  width: 240px;
+  height: 240px;
+  top: -6%;
   right: -18%;
   background: radial-gradient(circle, rgba(129, 140, 248, 0.9), transparent 65%);
 }
 
 .panel:first-child::after {
-  width: 300px;
-  height: 300px;
-  bottom: -22%;
+  width: 280px;
+  height: 280px;
+  bottom: -20%;
   left: -14%;
   background: radial-gradient(circle, rgba(236, 72, 153, 0.9), transparent 65%);
 }
@@ -143,7 +143,7 @@ body {
 /* Left panel content stacking */
 
 .panel-header {
-  margin-bottom: 2.7rem;
+  margin-bottom: 2.2rem;
   position: relative;
   z-index: 1;
 }
@@ -159,7 +159,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 2.3rem;
+  margin-bottom: 2rem;
   box-shadow:
     0 0 0 1px rgba(248, 250, 252, 0.09),
     0 32px 90px rgba(129, 140, 248, 0.85);
@@ -197,14 +197,14 @@ body {
 }
 
 .title {
-  font-size: 3.1rem;
+  font-size: 3rem;
   font-weight: 800;
   line-height: 1.05;
   background: conic-gradient(from 190deg, #e0e7ff, #f9a8d4, #a855f7, #22d3ee, #e0e7ff);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin-bottom: 1.1rem;
+  margin-bottom: 1rem;
   text-shadow: 0 0 26px rgba(59, 130, 246, 0.6);
 }
 
@@ -721,6 +721,7 @@ body {
   .panel:first-child {
     border-right: none;
     border-bottom: 1px solid rgba(148, 163, 184, 0.4);
+    justify-content: center; /* center on mobile since you liked that */
     padding: 2.1rem 1.9rem 2rem;
   }
 
