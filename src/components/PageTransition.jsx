@@ -8,7 +8,7 @@ export default function PageTransition({ videoSrc, onFinished }) {
     const v = videoRef.current;
     if (!v) return;
 
-    v.muted = false;
+    v.muted = true;
     v.currentTime = 0;
 
     const handleEnd = () => onFinished();
@@ -27,4 +27,5 @@ export default function PageTransition({ videoSrc, onFinished }) {
     </div>
   );
 }
+
 
