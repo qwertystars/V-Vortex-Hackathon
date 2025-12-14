@@ -60,21 +60,83 @@ body {
 
 .shell {
   display: flex;
-  max-width: 1200px;
+  max-width: 1280px;
   width: 100%;
-  border-radius: 2.5rem;
+  border-radius: 3rem;
   overflow: hidden;
-  background:
-    radial-gradient(circle at top left, rgba(99, 102, 241, 0.15), transparent 50%) padding-box,
-    linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.95));
+  background: rgba(5, 10, 25, 0.4);
   box-shadow:
-    0 0 0 1px rgba(99, 102, 241, 0.3),
-    0 40px 120px rgba(0, 0, 0, 0.9),
-    0 0 100px rgba(129, 140, 248, 0.4),
-    0 0 180px rgba(236, 72, 153, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(40px) saturate(180%);
+    0 0 0 2px rgba(56, 189, 248, 0.4),
+    0 0 0 4px rgba(236, 72, 153, 0.3),
+    0 50px 150px rgba(0, 0, 0, 0.95),
+    0 0 150px rgba(56, 189, 248, 0.6),
+    0 0 250px rgba(236, 72, 153, 0.5),
+    inset 0 0 100px rgba(56, 189, 248, 0.08);
+  backdrop-filter: blur(50px) saturate(200%);
   position: relative;
+  animation: shellFloat 6s ease-in-out infinite;
+}
+
+@keyframes shellFloat {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-10px) scale(1.002); }
+}
+
+/* Animated border scan line */
+.shell::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 3rem;
+  padding: 3px;
+  background: linear-gradient(135deg, 
+    transparent 0%, 
+    #38bdf8 10%,
+    #a855f7 25%, 
+    #ec4899 40%,
+    #fb923c 55%,
+    #38bdf8 70%,
+    transparent 100%);
+  background-size: 200% 200%;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.8;
+  pointer-events: none;
+  animation: borderScan 4s linear infinite;
+  filter: blur(1px);
+}
+
+@keyframes borderScan {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 200% 200%; }
+}
+
+/* Holographic shimmer overlay */
+.shell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 3rem;
+  background: linear-gradient(
+    110deg,
+    transparent 0%,
+    transparent 40%,
+    rgba(56, 189, 248, 0.15) 45%,
+    rgba(236, 72, 153, 0.15) 50%,
+    rgba(56, 189, 248, 0.15) 55%,
+    transparent 60%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: holographicShimmer 3s linear infinite;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+@keyframes holographicShimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
 .shell::before {
@@ -245,35 +307,60 @@ body {
 }
 
 .title {
-  font-size: 3.2rem;
+  font-size: 4rem;
   font-weight: 900;
-  line-height: 1;
+  line-height: 0.95;
   background: linear-gradient(135deg, 
-    #e0e7ff 0%, 
-    #c7d2fe 20%, 
-    #f0abfc 40%, 
-    #e879f9 60%, 
-    #a855f7 80%, 
-    #c084fc 100%);
+    #ffffff 0%, 
+    #38bdf8 15%,
+    #a855f7 35%, 
+    #ec4899 55%,
+    #f97316 75%,
+    #38bdf8 100%);
+  background-size: 200% 100%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin-bottom: 1.2rem;
-  filter: drop-shadow(0 0 30px rgba(168, 85, 247, 0.6));
+  margin-bottom: 1.5rem;
   position: relative;
+  filter: drop-shadow(0 0 40px rgba(56, 189, 248, 0.9));
+  animation: titleGlow 4s ease-in-out infinite;
+  letter-spacing: 0.05em;
+}
+
+@keyframes titleGlow {
+  0%, 100% { 
+    filter: drop-shadow(0 0 40px rgba(56, 189, 248, 0.9));
+  }
+  50% { 
+    filter: drop-shadow(0 0 60px rgba(236, 72, 153, 1)) drop-shadow(0 0 80px rgba(168, 85, 247, 0.8));
+  }
+}
+
+.title::before {
+  content: 'V-VORTEX';
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  z-index: -1;
+  background: linear-gradient(135deg, #ec4899, #a855f7, #38bdf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: blur(15px);
+  opacity: 0.8;
 }
 
 .title::after {
-  content: attr(data-text);
+  content: 'V-VORTEX';
   position: absolute;
-  left: 0;
-  top: 0;
-  z-index: -1;
-  background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+  left: -2px;
+  top: -2px;
+  z-index: -2;
+  background: linear-gradient(135deg, #38bdf8, #6366f1);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: blur(20px);
-  opacity: 0.7;
+  filter: blur(25px);
+  opacity: 0.6;
 }
 
 .subtitle {
@@ -788,61 +875,89 @@ body {
 
 .submit-btn {
   width: 100%;
-  padding: 1.1rem 2rem;
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 30%, #ec4899 60%, #f97316 100%);
-  border: none;
-  border-radius: 1.2rem;
+  padding: 1.3rem 2.5rem;
+  background: linear-gradient(135deg, #38bdf8 0%, #6366f1 20%, #a855f7 40%, #ec4899 60%, #f97316 80%, #fbbf24 100%);
+  background-size: 200% 100%;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 1.5rem;
   color: #ffffff;
-  font-size: 1rem;
-  font-weight: 800;
+  font-size: 1.05rem;
+  font-weight: 900;
   cursor: pointer;
   text-transform: uppercase;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.2em;
   box-shadow:
-    0 20px 50px rgba(99, 102, 241, 0.5),
-    0 0 40px rgba(236, 72, 153, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    0 0 60px rgba(56, 189, 248, 0.8),
+    0 0 100px rgba(236, 72, 153, 0.6),
+    0 25px 60px rgba(168, 85, 247, 0.7),
+    inset 0 0 40px rgba(255, 255, 255, 0.1);
   transition:
-    transform 0.2s ease,
-    box-shadow 0.3s ease,
-    filter 0.2s ease;
+    transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.4s ease,
+    filter 0.3s ease;
   position: relative;
   overflow: hidden;
+  animation: buttonPulse 3s ease-in-out infinite;
+  text-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+}
+
+@keyframes buttonPulse {
+  0%, 100% { 
+    background-position: 0% 0%;
+    box-shadow:
+      0 0 60px rgba(56, 189, 248, 0.8),
+      0 0 100px rgba(236, 72, 153, 0.6),
+      0 25px 60px rgba(168, 85, 247, 0.7),
+      inset 0 0 40px rgba(255, 255, 255, 0.1);
+  }
+  50% { 
+    background-position: 100% 0%;
+    box-shadow:
+      0 0 80px rgba(56, 189, 248, 1),
+      0 0 130px rgba(236, 72, 153, 0.8),
+      0 30px 80px rgba(168, 85, 247, 1),
+      inset 0 0 60px rgba(255, 255, 255, 0.2);
+  }
 }
 
 .submit-btn::before {
   content: '';
   position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transform: translateX(-100%) skewX(-15deg);
-  transition: transform 0.6s ease;
+  inset: -50%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  transform: translateX(-150%) rotate(45deg);
+  transition: transform 0.8s ease;
 }
 
 .submit-btn:hover:not(:disabled)::before {
-  transform: translateX(100%) skewX(-15deg);
+  transform: translateX(150%) rotate(45deg);
 }
 
 .submit-btn:hover:not(:disabled) {
-  transform: translateY(-3px) scale(1.02);
+  transform: translateY(-5px) scale(1.03);
   box-shadow:
-    0 28px 70px rgba(99, 102, 241, 0.7),
-    0 0 60px rgba(236, 72, 153, 0.7),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  filter: brightness(1.1);
+    0 0 100px rgba(56, 189, 248, 1),
+    0 0 150px rgba(236, 72, 153, 1),
+    0 35px 90px rgba(168, 85, 247, 1),
+    inset 0 0 60px rgba(255, 255, 255, 0.2);
+  filter: brightness(1.2) saturate(1.2);
+  animation: none;
+  background-position: 100% 0%;
 }
 
 .submit-btn:active:not(:disabled) {
-  transform: translateY(0) scale(0.98);
+  transform: translateY(-2px) scale(1);
   box-shadow:
-    0 15px 40px rgba(99, 102, 241, 0.6),
-    0 0 35px rgba(236, 72, 153, 0.6);
+    0 0 70px rgba(56, 189, 248, 0.9),
+    0 0 110px rgba(236, 72, 153, 0.7),
+    0 20px 50px rgba(168, 85, 247, 0.8);
 }
 
 .submit-btn:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
-  filter: grayscale(0.3);
+  filter: grayscale(0.5);
+  animation: none;
 }
 
 /* ========== VORTEX SUCCESS MODAL ========== */
