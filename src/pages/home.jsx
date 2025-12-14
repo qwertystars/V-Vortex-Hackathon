@@ -10,16 +10,20 @@ export default function Home({ setTransition }) {
   const navigate = useNavigate();
 
   const goTo = (path) => {
-    setTransition(
-      <PageTransition
-        videoSrc="/transition.mp4"
-        onFinished={() => {
-          setTransition(null);
-          navigate(path);
-        }}
-      />
-    );
-  };
+  console.log("GO TO CLICKED:", path);
+
+  setTransition(
+    <PageTransition
+      videoSrc="/transition.mp4"
+      onFinished={() => {
+        console.log("TRANSITION FINISHED");
+        setTransition(null);
+        navigate(path);
+      }}
+    />
+  );
+};
+
 
   const rounds = {
     r1: {
@@ -454,5 +458,6 @@ export default function Home({ setTransition }) {
     </div>
   );
 }
+
 
 
