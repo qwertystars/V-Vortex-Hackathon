@@ -68,7 +68,7 @@ body {
   filter: blur(20px);
 }
 
-/* Outer shell – stronger glassmorphism, subtle border */
+/* Outer shell – strong glassmorphism with subtle border */
 
 .shell {
   display: flex;
