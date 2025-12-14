@@ -19,6 +19,8 @@ Deno.serve(async (req) => {
     );
 
     const { teamName, teamSize, isVitChennai, institution, leaderName, leaderReg, leaderEmail, receiptLink, members } = await req.json();
+    
+    console.log("Received registration:", { teamName, leaderEmail, isVitChennai, receiptLink });
 
     // Validate input - conditional validation based on VIT Chennai status
     if (!teamName || !leaderName || !leaderEmail || !receiptLink) {
@@ -73,23 +75,31 @@ Deno.serve(async (req) => {
     }
 
     // 1. Insert team into database
+    const teamData = {
+      team_name: teamName,
+      team_size: teamSize,
+      lead_name: leaderName,
+      lead_reg_no: isVitChennai === "yes" ? leaderReg : null,
+      institution: isVitChennai === "no" ? institution : null,
+      lead_email: leaderEmail,
+      receipt_link: receiptLink,
+      is_vit_chennai: isVitChennai === "yes",
+    };
+    
+    console.log("Inserting team data:", teamData);
+    
     const { data: team, error: teamError } = await supabase
       .from("teams")
-      .insert({
-        team_name: teamName,
-        team_size: teamSize,
-        lead_name: leaderName,
-        lead_reg_no: isVitChennai === "yes" ? leaderReg : null,
-        institution: isVitChennai === "no" ? institution : null,
-        lead_email: leaderEmail,
-        receipt_link: receiptLink,
-      })
+      .insert(teamData)
       .select()
       .single();
 
     if (teamError) {
+      console.error("Database error:", teamError);
       throw new Error(`Database error: ${teamError.message}`);
     }
+    
+    console.log("Team inserted successfully:", team.id);
 
     // 2. Insert team members if any
     if (members && members.length > 0) {
@@ -138,6 +148,7 @@ Deno.serve(async (req) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
+    console.error("Registration error:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
