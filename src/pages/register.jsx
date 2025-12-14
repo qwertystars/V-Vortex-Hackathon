@@ -228,6 +228,7 @@ export default function Register() {
     const leaderName = formData.get("leaderName");
     const leaderReg = formData.get("leaderReg");
     const leaderEmail = formData.get("leaderEmail");
+    const receiptLink = formData.get("receiptLink");
 
     const members = participants.map((p, i) => ({
       name: formData.get(`memberName${i + 1}`),
@@ -238,6 +239,12 @@ export default function Register() {
     // ensure conditional requirement in JS as well
     if (isVitChennai === "no" && !String(collegeName || "").trim()) {
       alert("Please enter your College / Institute name.");
+      return;
+    }
+
+    // Validate receipt link format
+    if (!receiptLink || !receiptLink.trim()) {
+      alert("⚠️ Please provide a payment receipt link.");
       return;
     }
 
@@ -255,6 +262,7 @@ export default function Register() {
           leaderName,
           leaderReg: isVitChennai === "yes" ? formData.get("leaderReg") : null,
           leaderEmail,
+          receiptLink,
           members,
         },
       });
@@ -449,6 +457,21 @@ export default function Register() {
                   placeholder="leader@institute.edu"
                   required
                 />
+              </div>
+
+              <div className="field">
+                <label htmlFor="receiptLink">Payment Receipt (Google Drive Link) *</label>
+                <input
+                  id="receiptLink"
+                  name="receiptLink"
+                  type="url"
+                  className="input-base"
+                  placeholder="https://drive.google.com/file/..."
+                  required
+                />
+                <p className="hint" style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: '#00ffff' }}>
+                  Upload your payment receipt to Google Drive and paste the shareable link here. Ensure the link is set to "Anyone with the link can view".
+                </p>
               </div>
 
               <div className="section-label" style={{ marginTop: "0.8rem" }}>

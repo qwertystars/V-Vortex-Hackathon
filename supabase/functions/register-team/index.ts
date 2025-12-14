@@ -18,10 +18,10 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const { teamName, teamSize, isVitChennai, institution, leaderName, leaderReg, leaderEmail, members } = await req.json();
+    const { teamName, teamSize, isVitChennai, institution, leaderName, leaderReg, leaderEmail, receiptLink, members } = await req.json();
 
     // Validate input - conditional validation based on VIT Chennai status
-    if (!teamName || !leaderName || !leaderEmail) {
+    if (!teamName || !leaderName || !leaderEmail || !receiptLink) {
       return new Response(
         JSON.stringify({ error: "Missing required fields" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -82,6 +82,7 @@ Deno.serve(async (req) => {
         lead_reg_no: isVitChennai === "yes" ? leaderReg : null,
         institution: isVitChennai === "no" ? institution : null,
         lead_email: leaderEmail,
+        receipt_link: receiptLink,
       })
       .select()
       .single();
@@ -120,6 +121,7 @@ Deno.serve(async (req) => {
         leaderName,
         leaderReg: isVitChennai === "yes" ? leaderReg : "N/A",
         leaderEmail,
+        receiptLink,
         members: members || [],
         timestamp: new Date().toISOString(),
       };
