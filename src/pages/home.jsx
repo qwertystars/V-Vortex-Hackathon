@@ -12,7 +12,7 @@ export default function Home({ setTransition }) {
   const goTo = (path) => {
     setTransition(
       <PageTransition
-        videoSrc="/transition. mp4"
+        videoSrc="/transition.  mp4"
         onFinished={() => {
           setTransition(null);
           navigate(path);
@@ -41,7 +41,7 @@ export default function Home({ setTransition }) {
       },
     },
     r2: {
-      title:  "ROUND 2: CONSTRUCTION",
+      title:   "ROUND 2: CONSTRUCTION",
       desc: "Offline Hackathon – 24 hours of non-stop coding, building and creating.",
       blocks: {
         Rules: ["No pre-written code", "Any tech stack allowed", "Mentors available"],
@@ -79,10 +79,10 @@ export default function Home({ setTransition }) {
     document.body.style.overflow = "";
   }
 
-  // Inline styles to ensure modal layout works even if CSS isn't updated yet. 
-  // Prefer moving these to home.css, but inline ensures the layout/visual fix you requested. 
+  // Inline styles to ensure modal layout works even if CSS isn't updated yet.  
+  // Prefer moving these to home.css, but inline ensures the layout/visual fix you requested.  
   const overlayStyle = {
-    position: "fixed",
+    position:  "fixed",
     inset: 0,
     display: activeRound ? "flex" : "none",
     alignItems: "center",
@@ -99,7 +99,7 @@ export default function Home({ setTransition }) {
     maxWidth: 1100,
     background: "linear-gradient(180deg, rgba(10,4,14,0.98) 0%, rgba(5,2,8,0.98) 100%)",
     border: "2px solid #00e6ff",
-    borderRadius:  12,
+    borderRadius:   12,
     padding: "28px",
     boxShadow: "0 20px 60px rgba(0,0,0,0.8)",
     color: "#9ffcff",
@@ -117,7 +117,7 @@ export default function Home({ setTransition }) {
   const titleStyle = {
     fontFamily: "'Courier New', Courier, monospace",
     fontWeight: 700,
-    letterSpacing: 1.5,
+    letterSpacing: 1. 5,
     fontSize: 22,
     color: "#00e6ff",
     margin: 0,
@@ -131,7 +131,7 @@ export default function Home({ setTransition }) {
     width: 30,
     borderRadius: 6,
     cursor: "pointer",
-    fontSize:  18,
+    fontSize:   18,
     lineHeight: "24px",
     display: "flex",
     alignItems: "center",
@@ -158,6 +158,12 @@ export default function Home({ setTransition }) {
     paddingLeft: 20,
     color: "#bfeffb",
     lineHeight: 1.9,
+  };
+
+  const coordinatorCardStyle = {
+    minHeight: "220px",
+    display: "flex",
+    flexDirection: "column",
   };
 
   return (
@@ -275,7 +281,7 @@ export default function Home({ setTransition }) {
 
         {/* Modal overlay */}
         <div
-          className={`modal-overlay ${activeRound ? "active" :  ""}`}
+          className={`modal-overlay ${activeRound ? "active" :   ""}`}
           onClick={closeModal}
           role="dialog"
           aria-modal={activeRound ? "true" : "false"}
@@ -309,14 +315,14 @@ export default function Home({ setTransition }) {
               <div style={bodyGridStyle}>
                 {Object.entries(activeRound.blocks).map(([heading, items]) => (
                   <div key={heading}>
-                    <h4 style={blockTitleStyle}>{heading. toUpperCase()}</h4>
+                    <h4 style={blockTitleStyle}>{heading.  toUpperCase()}</h4>
                     <ul style={listStyle}>
                       {items.map((it, i) => (
                         <li key={i} style={{ listStyleType: "none", marginBottom: 8 }}>
                           <span
                             style={{
                               display: "inline-block",
-                              width:  10,
+                              width:   10,
                               height: 10,
                               background: "#ff2fe6",
                               borderRadius: 2,
@@ -344,12 +350,12 @@ export default function Home({ setTransition }) {
         <div className="coordinator-section">
           <h3 className="coord-title">▸ FACULTY COORDINATOR</h3>
           <div className="coordinator-cards">
-            <div className="coordinator-card">
+            <div className="coordinator-card" style={coordinatorCardStyle}>
               <div className="member-photo">PS</div>
               <h4 className="member-name">Dr. Pavithra Sekar</h4>
               <p className="member-role">Faculty Coordinator</p>
             </div>
-            <div className="coordinator-card">
+            <div className="coordinator-card" style={coordinatorCardStyle}>
               <div className="member-photo">RP</div>
               <h4 className="member-name">Dr. Rama Parvathy</h4>
               <p className="member-role">Faculty Coordinator</p>
@@ -362,13 +368,13 @@ export default function Home({ setTransition }) {
             ▸ STUDENT COORDINATORS
           </h3>
           <div className="coordinator-cards">
-            <div className="coordinator-card">
+            <div className="coordinator-card" style={coordinatorCardStyle}>
               <div className="member-photo">SJ</div>
-              <h4 className="member-name">Sugeeth Jayaraj S. A</h4>
+              <h4 className="member-name">Sugeeth Jayaraj S.  A</h4>
               <p className="member-role">Student Coordinator</p>
               <p className="member-role">9790970726</p>
             </div>
-            <div className="coordinator-card">
+            <div className="coordinator-card" style={coordinatorCardStyle}>
               <div className="member-photo">PM</div>
               <h4 className="member-name">Prasanna M</h4>
               <p className="member-role">Student Coordinator</p>
