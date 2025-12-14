@@ -349,7 +349,7 @@ export default function Home({ setTransition }) {
               <h4 className="member-name">Dr. Pavithra Sekar</h4>
               <p className="member-role">Faculty Coordinator</p>
             </div>
-            <div className="coordinator-cards" style={{paddingTop="40px"}}>
+            <div className="coordinator-cards" style={{paddingTop: "40px"}}>
             <div className="coordinator-card">
               <div className="member-photo">RP</div>
               <h4 className="member-name">Dr. Rama Parvathy</h4>
@@ -450,6 +450,7 @@ export default function Home({ setTransition }) {
     </div>
   );
 }
+
 
 
 
