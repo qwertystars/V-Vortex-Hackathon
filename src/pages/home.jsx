@@ -117,7 +117,7 @@ export default function Home({ setTransition }) {
   const titleStyle = {
     fontFamily: "'Courier New', Courier, monospace",
     fontWeight: 700,
-    letterSpacing: 1. 5,
+    letterSpacing: 1.5,
     fontSize: 22,
     color: "#00e6ff",
     margin: 0,
@@ -454,4 +454,5 @@ export default function Home({ setTransition }) {
     </div>
   );
 }
+
 
