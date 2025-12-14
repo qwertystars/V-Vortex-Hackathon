@@ -1,17 +1,24 @@
 import { useEffect, useRef } from "react";
-import "../styles/transition.css"; // we will create this
+import "../styles/transition.css";
 
 export default function PageTransition({ videoSrc, onFinished }) {
   const videoRef = useRef(null);
 
   useEffect(() => {
     const v = videoRef.current;
-    if (v) {
-      v.muted = false;
-      v.play();
-      v.onended = () => onFinished();
-    }
-  }, []);
+    if (!v) return;
+
+    v.muted = false;
+    v.currentTime = 0;
+    v.play();
+
+    const handleEnd = () => onFinished();
+    v.addEventListener("ended", handleEnd);
+
+    return () => {
+      v.removeEventListener("ended", handleEnd);
+    };
+  }, [onFinished]); // ✅ FIXED
 
   return (
     <div className="transitionOverlay">
