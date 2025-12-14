@@ -76,7 +76,7 @@ export default function Home({ setTransition }) {
       <section className="domains">
         <h2 className="section-title">⟨ BATTLE DOMAINS ⟩</h2>
         <div className="domains-grid">
-          <div className="domain-card"><div className="domain-icon">🤖</div><h3>AI/ML</h3></div>
+          <div className="domain-card"><div className="domain-icon">⛓️</div><h3>Blockchain</h3></div>
           <div className="domain-card"><div className="domain-icon">🛡️</div><h3>Cybersecurity</h3></div>
           <div className="domain-card selected"><div className="domain-icon">🏥</div><h3>Healthcare</h3></div>
           <div className="domain-card"><div className="domain-icon">💰</div><h3>Fintech</h3></div>
@@ -163,6 +163,7 @@ export default function Home({ setTransition }) {
     </div>
   );
 }
+
 
 
 
