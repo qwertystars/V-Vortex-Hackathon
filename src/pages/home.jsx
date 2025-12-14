@@ -12,7 +12,7 @@ export default function Home({ setTransition }) {
   const goTo = (path) => {
     setTransition(
       <PageTransition
-        videoSrc="/transition.  mp4"
+        videoSrc="/transition.mp4"
         onFinished={() => {
           setTransition(null);
           navigate(path);
@@ -454,3 +454,4 @@ export default function Home({ setTransition }) {
     </div>
   );
 }
+
