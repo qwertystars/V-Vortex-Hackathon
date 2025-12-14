@@ -201,7 +201,8 @@ export default function Home({ setTransition }) {
             </div>
             <div className="info-card">
               <h3>📅 DATES</h3>
-              <p>8th - 9th January</p>
+              <p>7th January - Ideathon</p>
+              <p>9th - 10th January - Hackathon</p>
             </div>
             <div className="info-card">
               <h3>⚡LEVEL</h3>
@@ -344,8 +345,15 @@ export default function Home({ setTransition }) {
           <h3 className="coord-title">▸ FACULTY COORDINATOR</h3>
           <div className="coordinator-cards">
             <div className="coordinator-card">
-              <div className="member-photo">DP</div>
+              <div className="member-photo">PS</div>
               <h4 className="member-name">Dr. Pavithra Sekar</h4>
+              <p className="member-role">Faculty Coordinator</p>
+            </div>
+          </div>
+          <div className="coordinator-cards" style={{padding=40px"}}>
+            <div className="coordinator-card">
+              <div className="member-photo">RP</div>
+              <h4 className="member-name">Dr. Rama Parvathy</h4>
               <p className="member-role">Faculty Coordinator</p>
             </div>
           </div>
@@ -442,3 +450,4 @@ export default function Home({ setTransition }) {
     </div>
   );
 }
+
