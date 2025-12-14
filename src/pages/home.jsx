@@ -1,9 +1,9 @@
 // src/pages/home.jsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import PageTransition from "../components/PageTransition"; // re-used pattern
+import PageTransition from "../components/PageTransition";
 import "../styles/home.css";
-import logo from "/logo.jpg"; // use your project logo
+import logo from "/logo.jpg";
 import { useState, useEffect } from "react";
 
 
@@ -11,7 +11,6 @@ export default function Home({ setTransition }) {
   const navigate = useNavigate();
 
   const goTo = (path) => {
-    // play your transition.mp4 then navigate (App will clear it via PageTransition onFinished)
     setTransition(
       <PageTransition
         videoSrc="/transition.mp4"
