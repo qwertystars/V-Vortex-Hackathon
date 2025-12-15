@@ -189,6 +189,22 @@ form {
   color: rgba(155, 234, 255, 0.5);
 }
 
+/* SELECT DROPDOWN SPECIFIC STYLING */
+select.inputField {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239beaff' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right clamp(12px, 3vw, 16px) center;
+  padding-right: clamp(2.5rem, 6vw, 3rem);
+}
+
+select.inputField option {
+  background: rgba(10, 0, 20, 0.98);
+  color: #9beaff;
+  padding: 12px;
+}
+
 .helper {
   margin-top: clamp(4px, 1vw, 6px);
   color: #7f9ca6;
