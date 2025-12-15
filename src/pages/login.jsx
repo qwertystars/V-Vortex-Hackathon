@@ -9,6 +9,7 @@ export default function Login({ setTransition }) {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [teamName, setTeamName] = useState("");
+  const [role, setRole] = useState("Team Leader");
   const [showModal, setShowModal] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -140,6 +141,19 @@ export default function Login({ setTransition }) {
 
         {/* FORM */}
         <form onSubmit={handleSubmit}>
+          {/* ROLE DROPDOWN */}
+          <label className="fieldLabel">▸ WARRIOR CLASS</label>
+          <select
+            className="inputField"
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            required
+          >
+            <option value="Team Leader">Team Leader</option>
+            <option value="Team Member">Team Member</option>
+          </select>
+          <p className="helper">– Your designation in the squad</p>
+
           {/* EMAIL */}
           <label className="fieldLabel">▸ SQUAD LEADER IDENTITY</label>
           <input
