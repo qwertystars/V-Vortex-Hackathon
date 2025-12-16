@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import "../styles/login.css";
-// import VortexBackground from "../components/VortexBackground"; // Commented out - CSS now handles background effects
 import logo from "/logo.jpg";
 
 export default function Login({ setTransition }) {
@@ -46,7 +45,7 @@ export default function Login({ setTransition }) {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [showModal, handleModalOk]); // Added handleModalOk to dependencies
+  }, [showModal, handleModalOk]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -69,7 +68,7 @@ export default function Login({ setTransition }) {
       const { error: otpError } = await supabase.auth.signInWithOtp({
         email: email,
         options: {
-          shouldCreateUser: true, // Create auth user if doesn't exist
+          shouldCreateUser: true,
         }
       });
 
@@ -105,10 +104,8 @@ export default function Login({ setTransition }) {
   }, []);
 
   return (
-    <div className={`loginWrapper ${isMobile ? 'mobile' : ''}`}>
-      {/* VortexBackground removed - CSS now handles background effects with scanline and noise */}
-
-      {/* TOP MARQUEE - Mobile optimized */}
+    <>
+      {/* TOP MARQUEE - FIXED */}
       <div className="marquee-bar">
         <div className="marquee-track">
           <span>
@@ -120,102 +117,102 @@ export default function Login({ setTransition }) {
         </div>
       </div>
 
-      {/* LOGIN BOX */}
-      <div className="terminalBox">
-        {/* HEADER */}
-        <div className="terminalHeader">
-          <div className="headerLeft">
-            <img src={logo} className="headerLogo" alt="V-VORTEX logo" />
-            <span className="title">V-VORTEX</span>
+      <div className={`loginWrapper ${isMobile ? 'mobile' : ''}`}>
+        {/* LOGIN BOX */}
+        <div className="terminalBox">
+          {/* HEADER */}
+          <div className="terminalHeader">
+            <div className="headerLeft">
+              <img src={logo} className="headerLogo" alt="V-VORTEX logo" />
+              <span className="title">V-VORTEX</span>
+            </div>
+
+            <div className="headerDots">
+              <div className="dot d1"></div>
+              <div className="dot d2"></div>
+              <div className="dot d3"></div>
+            </div>
           </div>
 
-          <div className="headerDots">
-            <div className="dot d1"></div>
-            <div className="dot d2"></div>
-            <div className="dot d3"></div>
+          <div className="sectionSubtitle">
+            ⟨ WARRIORS ASSEMBLE • THE ARENA AWAITS ⟩
           </div>
+
+          {/* FORM */}
+          <form onSubmit={handleSubmit}>
+            <label className="fieldLabel">▸ WARRIOR CLASS</label>
+            <select
+              className="inputField"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              required
+            >
+              <option value="Team Leader">Team Leader</option>
+              <option value="Team Member">Team Member</option>
+            </select>
+            <p className="helper">– Your designation in the squad</p>
+
+            <label className="fieldLabel">
+              {role === "Team Leader" ? "▸ TEAM LEADER EMAIL ID" : "▸ MEMBER EMAIL ID"}
+            </label>
+            <input
+              className="inputField"
+              type="email"
+              placeholder="champion@institute.edu"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+              required
+            />
+            <p className="helper">– Your official battle credentials</p>
+
+            <label className="fieldLabel">
+              {role === "Team Leader" ? "▸ TEAM LEADER NAME" : "▸ MEMBER NAME"}
+            </label>
+            <input
+              className="inputField"
+              type="text"
+              placeholder="Enter your warrior name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+            <p className="helper">– Your battle identity</p>
+
+            <label className="fieldLabel">▸ TEAM CALL SIGN (TEAM NAME)</label>
+            <input
+              className="inputField"
+              placeholder="Enter your legendary squad name"
+              value={teamName}
+              onChange={(e) => setTeamName(e.target.value)}
+              required
+            />
+            <p className="helper">
+              – The name that will echo through V-VORTEX history
+            </p>
+
+            <button className="submitBtn" type="submit">
+              <span>⚡ ENTER THE ARENA • SEND BATTLE CODE ⚡</span>
+            </button>
+          </form>
         </div>
-
-        <div className="sectionSubtitle">
-          ⟨ WARRIORS ASSEMBLE • THE ARENA AWAITS ⟩
-        </div>
-
-        {/* FORM */}
-        <form onSubmit={handleSubmit}>
-          {/* ROLE DROPDOWN */}
-          <label className="fieldLabel">▸ WARRIOR CLASS</label>
-          <select
-            className="inputField"
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            required
-          >
-            <option value="Team Leader">Team Leader</option>
-            <option value="Team Member">Team Member</option>
-          </select>
-          <p className="helper">– Your designation in the squad</p>
-
-          {/* EMAIL - Dynamic label based on role */}
-          <label className="fieldLabel">
-            {role === "Team Leader" ? "▸ TEAM LEADER EMAIL ID" : "▸ MEMBER EMAIL ID"}
-          </label>
-          <input
-            className="inputField"
-            type="email"
-            placeholder="champion@institute.edu"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            autoComplete="email"
-            required
-          />
-          <p className="helper">– Your official battle credentials</p>
-
-          {/* NAME - Dynamic label based on role */}
-          <label className="fieldLabel">
-            {role === "Team Leader" ? "▸ TEAM LEADER NAME" : "▸ MEMBER NAME"}
-          </label>
-          <input
-            className="inputField"
-            type="text"
-            placeholder="Enter your warrior name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-          <p className="helper">– Your battle identity</p>
-
-          {/* TEAM NAME */}
-          <label className="fieldLabel">▸ TEAM CALL SIGN (TEAM NAME)</label>
-          <input
-            className="inputField"
-            placeholder="Enter your legendary squad name"
-            value={teamName}
-            onChange={(e) => setTeamName(e.target.value)}
-            required
-          />
-          <p className="helper">
-            – The name that will echo through V-VORTEX history
-          </p>
-
-          {/* BUTTON */}
-          <button className="submitBtn" type="submit">
-            <span>⚡ ENTER THE ARENA • SEND BATTLE CODE ⚡</span>
-          </button>
-        </form>
       </div>
 
-      {/* STATUS BAR */}
+      {/* STATUS BAR - FIXED BOTTOM */}
       <div className="statusBar">
         <div className="statusItem">
-          <div className="statusDot"></div> ARENA STATUS: LIVE & ELECTRIC
+          <div className="statusDot"></div>
+          <span>ARENA STATUS: LIVE & ELECTRIC</span>
         </div>
         <div className="statusItem">
-          SYSTEM TIME: <span id="system-time"></span>
+          <span>SYSTEM TIME: <span id="system-time"></span></span>
         </div>
-        <div className="statusItem">LEGENDS IN THE MAKING: LOADING…</div>
+        <div className="statusItem">
+          <span>LEGENDS IN THE MAKING: LOADING…</span>
+        </div>
       </div>
 
-      {/* Mobile-optimized Modal */}
+      {/* MODAL */}
       {showModal && (
         <div
           className="mobile-modal-overlay"
@@ -252,6 +249,6 @@ export default function Login({ setTransition }) {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
