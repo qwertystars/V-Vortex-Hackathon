@@ -29,7 +29,7 @@ export default function Register() {
 
   // VIT Chennai toggle
   const [isVitChennai, setIsVitChennai] = useState("yes"); // 'yes' | 'no'
-  const [collegeName, setCollegeName] = useState("");
+  const [eventHubId, setEventHubId] = useState("");
 
   // internal refs for animation state (avoids re-renders)
   const stateRef = useRef({
@@ -53,14 +53,14 @@ export default function Register() {
   useEffect(() => {
     const others = Math.max(0, teamSize - 1);
     const arr = [];
-    for (let i = 1; i <= others; i++) arr.push({ name: "", reg: "", institution: "" });
+    for (let i = 1; i <= others; i++) arr.push({ name: "", reg: "", institution: "", email: "" });
     setParticipants(arr);
   }, [teamSize]);
 
-  // ---------- VIT / COLLEGE FIELD COUPLING ----------
+  // ---------- VIT / EVENTHUB FIELD COUPLING ----------
   useEffect(() => {
     if (isVitChennai === "yes") {
-      setCollegeName("");
+      setEventHubId("");
     }
   }, [isVitChennai]);
 
@@ -232,13 +232,14 @@ export default function Register() {
 
     const members = participants.map((p, i) => ({
       name: formData.get(`memberName${i + 1}`),
+      email: formData.get(`memberEmail${i + 1}`),
       reg: isVitChennai === "yes" ? formData.get(`memberReg${i + 1}`) : null,
       institution: isVitChennai === "no" ? formData.get(`memberInstitution${i + 1}`) : null,
     }));
 
     // ensure conditional requirement in JS as well
-    if (isVitChennai === "no" && !String(collegeName || "").trim()) {
-      alert("Please enter your College / Institute name.");
+    if (isVitChennai === "no" && !String(eventHubId || "").trim()) {
+      alert("Please enter your VIT EventHub Unique ID.");
       return;
     }
 
@@ -258,7 +259,7 @@ export default function Register() {
           teamName,
           teamSize,
           isVitChennai,
-          institution: isVitChennai === "no" ? collegeName : null,
+          eventHubId: isVitChennai === "no" ? eventHubId : null,
           leaderName,
           leaderReg: isVitChennai === "yes" ? formData.get("leaderReg") : null,
           leaderEmail,
@@ -402,16 +403,16 @@ export default function Register() {
 
               {isVitChennai === "no" && (
                 <div className="field college-field" id="collegeField">
-                  <label htmlFor="collegeName">College / Institute name</label>
+                  <label htmlFor="eventHubId">VIT EventHub Unique ID</label>
                   <input
-                    id="collegeName"
-                    name="collegeName"
+                    id="eventHubId"
+                    name="eventHubId"
                     type="text"
                     className="input-base"
-                    placeholder="Enter your college name"
+                    placeholder="Enter your EventHub Unique ID"
                     required
-                    value={collegeName}
-                    onChange={(e) => setCollegeName(e.target.value)}
+                    value={eventHubId}
+                    onChange={(e) => setEventHubId(e.target.value)}
                   />
                 </div>
               )}
@@ -536,6 +537,20 @@ export default function Register() {
                         required
                         value={participants[i]?.name || ""}
                         onChange={(e) => updateParticipant(i, "name", e.target.value)}
+                      />
+                    </div>
+
+                    <div className="field">
+                      <label htmlFor={`memberEmail${i + 1}`}>Email</label>
+                      <input
+                        id={`memberEmail${i + 1}`}
+                        name={`memberEmail${i + 1}`}
+                        type="email"
+                        className="input-base"
+                        placeholder="member@institute.edu"
+                        required
+                        value={participants[i]?.email || ""}
+                        onChange={(e) => updateParticipant(i, "email", e.target.value)}
                       />
                     </div>
 
