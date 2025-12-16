@@ -88,15 +88,15 @@ body, #root {
   max-width: clamp(440px, 92vw, 720px);
   width: 100%;
   margin: clamp(3rem, 10vw, 160px) auto clamp(3rem, 8vw, 6rem) auto;
-  background: 
-    linear-gradient(145deg, rgba(8, 8, 15, 0.95) 0%, rgba(12, 12, 20, 0.93) 50%, rgba(8, 8, 15, 0.95) 100%);
+  background: rgba(0, 0, 0, 0.95);
   backdrop-filter: blur(25px) saturate(140%);
-  border: 2px solid rgba(100, 100, 150, 0.3);
+  border: 3px solid #ff00ff;
   border-radius: clamp(14px, 3vw, 20px);
   padding: clamp(2.5rem, 6vw, 56px);
   position: relative;
   box-shadow:
-    0 0 20px rgba(100, 100, 150, 0.15),
+    0 0 30px rgba(255, 0, 255, 0.5),
+    0 0 60px rgba(255, 0, 255, 0.3),
     0 20px 60px rgba(0, 0, 0, 0.7);
   transform: translateZ(0);
   backface-visibility: hidden;
@@ -112,15 +112,15 @@ body, #root {
   border-radius: inherit;
   background: linear-gradient(
     45deg,
-    rgba(100, 100, 150, 0.2),
-    rgba(120, 120, 180, 0.15),
-    rgba(100, 100, 150, 0.2)
+    #ff00ff,
+    #ff00ff,
+    #ff00ff
   );
   background-size: 300% 300%;
   animation: borderGlow 8s ease infinite;
   z-index: -1;
-  opacity: 0.3;
-  filter: blur(4px);
+  opacity: 0.4;
+  filter: blur(8px);
 }
 
 @keyframes borderGlow {
