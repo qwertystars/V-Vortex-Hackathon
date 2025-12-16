@@ -774,4 +774,5 @@ select.inputField option {
 .terminalBox,
 .mobile-modal-content {
   -webkit-font-smoothing: subpixel-antialiased;
-  -moz-osx-font
+  -moz-osx-font-smoothing: grayscale;
+}
