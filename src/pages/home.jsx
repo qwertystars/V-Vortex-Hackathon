@@ -434,7 +434,7 @@ export default function Home({ setTransition }) {
         <div className="team-grid special-grid">
           <div className="team-member">
             <div className="member-photo">IM</div>
-            <h4 className="member-name">Ibhan Mukerjee</h4>
+            <h4 className="member-name">Ibhan Mukherjee</h4>
             <p className="member-role">Special Contributor</p>
           </div>
           <div className="team-member">
@@ -458,6 +458,7 @@ export default function Home({ setTransition }) {
     </div>
   );
 }
+
 
 
 
