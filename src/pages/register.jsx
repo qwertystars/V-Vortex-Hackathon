@@ -242,7 +242,7 @@ export default function Register() {
           isVitChennai,
           eventHubId: isVitChennai === "no" ? eventHubId : null,
           leaderName,
-          leaderReg: isVitChennai === "yes" ? formData.get("leaderReg") : null,
+          leaderReg: isVitChennai === "yes" ? leaderReg : null,
           leaderEmail,
           receiptLink,
           members,
@@ -288,7 +288,9 @@ export default function Register() {
     return () => {
       try {
         submitSfxRef.current.pause();
-      } catch (e) {}
+      } catch (e) {
+        // Ignore errors on cleanup
+      }
     };
   }, []);
 

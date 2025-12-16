@@ -142,9 +142,21 @@ export default function Home({ setTransition }) {
 
         <h3 className="section-title special" style={{paddingTop: "60px"}}>⟨ DEV TEAM ⟩</h3>
         <div className="team-grid special-grid">
-          <div className="team-member"><div className="member-photo">IM</div><h4 className="member-name">Ibhan Mukherjee</h4><p className="member-role">Special Contributor</p></div>
-          <div className="team-member"><div className="member-photo">DP</div><h4 className="member-name">Devangshu Pandey</h4><p className="member-role">Special Contributor</p></div>
-          <div className="team-member"><div className="member-photo">SG</div><h4 className="member-name">Srijan Guchhait</h4><p className="member-role">Special Contributor</p></div>
+          <div className="team-member">
+            <div className="member-photo">IM</div>
+            <h4 className="member-name">Ibhan Mukherjee</h4>
+            <p className="member-role">Special Contributor</p>
+          </div>
+          <div className="team-member">
+            <div className="member-photo">DP</div>
+            <h4 className="member-name">Devangshu Pandey</h4>
+            <p className="member-role">Special Contributor</p>
+          </div>
+          <div className="team-member">
+            <div className="member-photo">SG</div>
+            <h4 className="member-name">Srijan Guchhait</h4>
+            <p className="member-role">Special Contributor</p>
+          </div>
         </div>
       </section>
 
