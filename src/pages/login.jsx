@@ -8,6 +8,7 @@ import logo from "/logo.jpg";
 export default function Login({ setTransition }) {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
   const [teamName, setTeamName] = useState("");
   const [role, setRole] = useState("Team Leader");
   const [showModal, setShowModal] = useState(false);
@@ -154,8 +155,10 @@ export default function Login({ setTransition }) {
           </select>
           <p className="helper">– Your designation in the squad</p>
 
-          {/* EMAIL */}
-          <label className="fieldLabel">▸ SQUAD LEADER IDENTITY</label>
+          {/* EMAIL - Dynamic label based on role */}
+          <label className="fieldLabel">
+            {role === "Team Leader" ? "▸ TEAM LEADER EMAIL ID" : "▸ MEMBER EMAIL ID"}
+          </label>
           <input
             className="inputField"
             type="email"
@@ -166,6 +169,20 @@ export default function Login({ setTransition }) {
             required
           />
           <p className="helper">– Your official battle credentials</p>
+
+          {/* NAME - Dynamic label based on role */}
+          <label className="fieldLabel">
+            {role === "Team Leader" ? "▸ TEAM LEADER NAME" : "▸ MEMBER NAME"}
+          </label>
+          <input
+            className="inputField"
+            type="text"
+            placeholder="Enter your warrior name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+          <p className="helper">– Your battle identity</p>
 
           {/* TEAM NAME */}
           <label className="fieldLabel">▸ TEAM CALL SIGN (TEAM NAME)</label>
