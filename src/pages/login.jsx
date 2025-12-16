@@ -1,777 +1,257 @@
-/* src/styles/login.css - ULTRA SMOOTH OPTIMIZED EDITION */
-@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@700;900&family=Audiowide&display=swap');
+import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "../supabaseClient";
+import "../styles/login.css";
+import VortexBackground from "../components/VortexBackground";
+import logo from "/logo.jpg";
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+export default function Login({ setTransition }) {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [teamName, setTeamName] = useState("");
+  const [role, setRole] = useState("Team Leader");
+  const [showModal, setShowModal] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
-body, #root {
-  font-family: "Rajdhani", "Share Tech Mono", monospace;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
-  text-rendering: optimizeLegibility;
-}
+  const modalRef = useRef(null);
 
-.loginWrapper {
-  width: 100vw;
-  min-height: 100vh;
-  background: transparent;
-  overflow-x: hidden;
-  color: #e8f4ff;
-  padding: clamp(1rem, 4vw, 2rem);
-  position: relative;
-}
+  // Mobile detection
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
-.loginWrapper.mobile {
-  padding: 1rem;
-}
+  const handleModalOk = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    setShowModal(false);
+    navigate("/otp");
+  };
 
-/* TOP MARQUEE - OPTIMIZED */
-.marquee-bar {
-  width: 100%;
-  padding: clamp(10px, 2.5vw, 14px) 0;
-  border-top: 2px solid #ff00ff;
-  border-bottom: 3px solid #ff00ff;
-  background: 
-    linear-gradient(90deg, 
-      rgba(255, 0, 255, 0.15) 0%,
-      rgba(0, 255, 255, 0.1) 50%,
-      rgba(255, 0, 255, 0.15) 100%
-    );
-  position: relative;
-  margin-bottom: clamp(2rem, 5vw, 3rem);
-  z-index: 20;
-  overflow: hidden;
-  height: clamp(38px, 7vw, 48px);
-  box-shadow: 
-    0 0 25px rgba(255, 0, 255, 0.4),
-    0 4px 20px rgba(255, 0, 255, 0.2);
-}
+  const handleModalCancel = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    setShowModal(false);
+  };
 
-.marquee-track {
-  display: flex;
-  white-space: nowrap;
-  animation: marqueeScroll 25s linear infinite;
-  font-size: clamp(12px, 2.5vw, 15px);
-  letter-spacing: clamp(1.5px, 0.7vw, 3px);
-  gap: clamp(2.5rem, 5vw, 4rem);
-  font-weight: 700;
-  line-height: 1.4;
-  font-family: 'Audiowide', 'Orbitron', monospace;
-  will-change: transform;
-  transform: translateZ(0);
-}
+  useEffect(() => {
+    if (!showModal) return;
+    const onKey = (ev) => {
+      if (ev.key === "Escape") {
+        setShowModal(false);
+      } else if (ev.key === "Enter") {
+        handleModalOk(ev);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [showModal]);
 
-.marquee-track:hover {
-  animation-play-state: paused;
-}
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-.marquee-track span {
-  padding: 0 clamp(2rem, 5vw, 4rem);
-  color: #fff;
-  text-shadow: 
-    0 0 10px rgba(255, 0, 255, 0.9),
-    0 0 20px rgba(255, 0, 255, 0.6),
-    0 0 35px rgba(255, 0, 255, 0.4);
-}
+    try {
+      // 1. Verify team exists with this email
+      const { data: team, error: teamError } = await supabase
+        .from('teams')
+        .select('id, team_name, lead_email')
+        .eq('team_name', teamName)
+        .eq('lead_email', email)
+        .single();
 
-@keyframes marqueeScroll {
-  0% { transform: translate3d(0, 0, 0); }
-  100% { transform: translate3d(-50%, 0, 0); }
-}
+      if (teamError || !team) {
+        alert('❌ Team not found. Please check your team name and email.');
+        return;
+      }
 
-/* TERMINAL BOX - ULTRA SMOOTH */
-.terminalBox {
-  max-width: clamp(440px, 92vw, 720px);
-  width: 100%;
-  margin: clamp(3rem, 10vw, 160px) auto clamp(3rem, 8vw, 6rem) auto;
-  background: #000000 !important;
-  backdrop-filter: none;
-  border: 3px solid #ff00ff;
-  border-radius: clamp(14px, 3vw, 20px);
-  padding: clamp(2.5rem, 6vw, 56px);
-  position: relative;
-  box-shadow:
-    0 0 30px rgba(255, 0, 255, 0.5),
-    0 0 60px rgba(255, 0, 255, 0.3),
-    0 20px 60px rgba(0, 0, 0, 0.7),
-    inset 0 0 0 2000px #000000;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  isolation: isolate;
-}
+      // 2. Send OTP to email using Supabase Auth
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        email: email,
+        options: {
+          shouldCreateUser: true, // Create auth user if doesn't exist
+        }
+      });
 
-.terminalBox::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: #000000;
-  border-radius: inherit;
-  z-index: -2;
-}
+      if (otpError) {
+        alert(`❌ Failed to send OTP: ${otpError.message}`);
+        return;
+      }
 
-.terminalBox::before {
-  content: '';
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  bottom: -2px;
-  border-radius: inherit;
-  background: #ff00ff;
-  animation: borderGlow 8s ease infinite;
-  z-index: -1;
-  opacity: 0.4;
-  filter: blur(10px);
-}
+      // 3. Store email in sessionStorage for OTP verification page
+      sessionStorage.setItem('loginEmail', email);
+      sessionStorage.setItem('teamId', team.id);
+      
+      // 4. Show success modal
+      setShowModal(true);
+    } catch (error) {
+      console.error('Login error:', error);
+      alert('❌ An error occurred. Please try again.');
+    }
+  };
 
-@keyframes borderGlow {
-  0%, 100% { 
-    background-position: 0% 50%;
-  }
-  50% { 
-    background-position: 100% 50%;
-  }
-}
+  useEffect(() => {
+    const el = document.getElementById("system-time");
+    if (!el) return;
 
-/* HEADER */
-.terminalHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: clamp(20px, 4vw, 28px);
-  padding-bottom: clamp(16px, 3vw, 24px);
-  border-bottom: 3px solid transparent;
-  border-image: linear-gradient(90deg, 
-    rgba(255, 0, 255, 0.8) 0%,
-    rgba(0, 255, 255, 0.8) 50%,
-    rgba(255, 0, 255, 0.8) 100%
-  ) 1;
-  gap: 1.5rem;
-  position: relative;
-  z-index: 2;
-}
+    const update = () => {
+      const now = new Date();
+      el.textContent = now.toLocaleTimeString("en-GB", { hour12: false });
+    };
 
-.headerLeft {
-  display: flex;
-  align-items: center;
-  gap: clamp(14px, 3vw, 20px);
-  flex: 1;
-}
+    update();
+    const interval = setInterval(update, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
-.headerLogo {
-  width: clamp(46px, 8vw, 56px);
-  height: clamp(46px, 8vw, 56px);
-  border-radius: clamp(8px, 2vw, 10px);
-  object-fit: cover;
-  flex-shrink: 0;
-  border: 3px solid rgba(255, 0, 255, 0.6);
-  box-shadow: 
-    0 0 20px rgba(255, 0, 255, 0.5),
-    0 0 35px rgba(255, 0, 255, 0.25);
-  transform: translateZ(0);
-}
+  return (
+    <div className={`loginWrapper ${isMobile ? 'mobile' : ''}`}>
+      <VortexBackground />
 
-.title {
-  font-family: 'Orbitron', monospace;
-  font-size: clamp(26px, 6vw, 34px);
-  font-weight: 900;
-  color: #fff;
-  text-shadow: 
-    0 0 15px rgba(255, 0, 255, 0.9),
-    0 0 30px rgba(255, 0, 255, 0.5),
-    0 0 50px rgba(0, 255, 255, 0.3);
-  letter-spacing: 0.1em;
-}
+      {/* TOP MARQUEE - Mobile optimized */}
+      <div className="marquee-bar">
+        <div className="marquee-track">
+          <span>
+            ⚡ 24 HOURS TO LEGENDARY STATUS • CODE LIKE YOUR DREAMS DEPEND ON IT • BUILD THE IMPOSSIBLE • SLEEP IS FOR THE WEAK • YOUR SQUAD, YOUR LEGACY • BREAK LIMITS, NOT RULES • INNOVATION NEVER SLEEPS •
+          </span>
+          <span aria-hidden="true">
+            ⚡ 24 HOURS TO LEGENDARY STATUS • CODE LIKE YOUR DREAMS DEPEND ON IT • BUILD THE IMPOSSIBLE • SLEEP IS FOR THE WEAK • YOUR SQUAD, YOUR LEGACY • BREAK LIMITS, NOT RULES • INNOVATION NEVER SLEEPS •
+          </span>
+        </div>
+      </div>
 
-.headerDots {
-  display: flex;
-  gap: clamp(10px, 2.5vw, 16px);
-  flex-shrink: 0;
-}
+      {/* LOGIN BOX */}
+      <div className="terminalBox">
+        {/* HEADER */}
+        <div className="terminalHeader">
+          <div className="headerLeft">
+            <img src={logo} className="headerLogo" alt="V-VORTEX logo" />
+            <span className="title">V-VORTEX</span>
+          </div>
 
-.dot {
-  width: clamp(12px, 3vw, 16px);
-  height: clamp(12px, 3vw, 16px);
-  border-radius: 50%;
-  border: 3px solid currentColor;
-  animation: dotPulse 3s ease-in-out infinite;
-  position: relative;
-  will-change: transform, opacity;
-  transform: translateZ(0);
-}
+          <div className="headerDots">
+            <div className="dot d1"></div>
+            <div className="dot d2"></div>
+            <div className="dot d3"></div>
+          </div>
+        </div>
 
-.d1 { 
-  color: #00ffff;
-  animation-delay: 0s;
-}
+        <div className="sectionSubtitle">
+          ⟨ WARRIORS ASSEMBLE • THE ARENA AWAITS ⟩
+        </div>
 
-.d2 { 
-  color: #ff00ff;
-  animation-delay: 0.5s;
-}
+        {/* FORM */}
+        <form onSubmit={handleSubmit}>
+          {/* ROLE DROPDOWN */}
+          <label className="fieldLabel">▸ WARRIOR CLASS</label>
+          <select
+            className="inputField"
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            required
+          >
+            <option value="Team Leader">Team Leader</option>
+            <option value="Team Member">Team Member</option>
+          </select>
+          <p className="helper">– Your designation in the squad</p>
 
-.d3 { 
-  color: #ffaa00;
-  animation-delay: 1s;
-}
+          {/* EMAIL - Dynamic label based on role */}
+          <label className="fieldLabel">
+            {role === "Team Leader" ? "▸ TEAM LEADER EMAIL ID" : "▸ MEMBER EMAIL ID"}
+          </label>
+          <input
+            className="inputField"
+            type="email"
+            placeholder="champion@institute.edu"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
+            required
+          />
+          <p className="helper">– Your official battle credentials</p>
 
-@keyframes dotPulse {
-  0%, 100% { 
-    opacity: 0.7; 
-    transform: scale(1) translateZ(0);
-    box-shadow: 0 0 8px currentColor;
-  }
-  50% { 
-    opacity: 1; 
-    transform: scale(1.15) translateZ(0);
-    box-shadow: 0 0 15px currentColor;
-  }
-}
+          {/* NAME - Dynamic label based on role */}
+          <label className="fieldLabel">
+            {role === "Team Leader" ? "▸ TEAM LEADER NAME" : "▸ MEMBER NAME"}
+          </label>
+          <input
+            className="inputField"
+            type="text"
+            placeholder="Enter your warrior name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+          <p className="helper">– Your battle identity</p>
 
-/* SUBTITLE */
-.sectionSubtitle {
-  text-align: center;
-  margin: clamp(20px, 4vw, 32px) 0 clamp(2.5rem, 6vw, 42px);
-  color: #fff;
-  letter-spacing: clamp(2px, 0.6vw, 3.5px);
-  font-size: clamp(1rem, 3vw, 1.2rem);
-  font-weight: 700;
-  font-family: 'Audiowide', 'Orbitron', monospace;
-  text-shadow: 
-    0 0 12px rgba(0, 255, 255, 0.7),
-    0 0 25px rgba(0, 255, 255, 0.3);
-  position: relative;
-  z-index: 2;
-}
+          {/* TEAM NAME */}
+          <label className="fieldLabel">▸ TEAM CALL SIGN (TEAM NAME)</label>
+          <input
+            className="inputField"
+            placeholder="Enter your legendary squad name"
+            value={teamName}
+            onChange={(e) => setTeamName(e.target.value)}
+            required
+          />
+          <p className="helper">
+            – The name that will echo through V-VORTEX history
+          </p>
 
-/* FORM */
-form {
-  display: flex;
-  flex-direction: column;
-  gap: clamp(1.8rem, 4vw, 2.5rem);
-  position: relative;
-  z-index: 2;
-}
+          {/* BUTTON */}
+          <button className="submitBtn" type="submit">
+            ⚡ ENTER THE ARENA • SEND BATTLE CODE ⚡
+          </button>
+        </form>
+      </div>
 
-.fieldLabel {
-  display: block;
-  margin: clamp(14px, 3.5vw, 20px) 0 clamp(8px, 2vw, 12px);
-  color: #a0b5c5;
-  font-size: clamp(12px, 2.5vw, 15px);
-  letter-spacing: clamp(1.2px, 0.4vw, 2px);
-  font-weight: 700;
-  text-transform: uppercase;
-  font-family: 'Rajdhani', monospace;
-  text-shadow: none;
-}
+      {/* STATUS BAR */}
+      <div className="statusBar">
+        <div className="statusItem">
+          <div className="statusDot"></div> ARENA STATUS: LIVE & ELECTRIC
+        </div>
+        <div className="statusItem">
+          SYSTEM TIME: <span id="system-time"></span>
+        </div>
+        <div className="statusItem">LEGENDS IN THE MAKING: LOADING…</div>
+      </div>
 
-.inputField {
-  width: 100%;
-  padding: clamp(16px, 4vw, 18px) clamp(1.5rem, 4vw, 1.8rem);
-  background: rgba(20, 20, 30, 0.6);
-  border: 2px solid rgba(100, 100, 150, 0.3);
-  border-radius: clamp(12px, 3vw, 14px);
-  color: #d5e0eb;
-  font-size: clamp(16px, 3.8vw, 17px);
-  font-family: 'Rajdhani', monospace;
-  font-weight: 600;
-  line-height: 1.5;
-  outline: none;
-  transition: all 0.25s ease-out;
-  min-height: clamp(56px, 10vw, 64px);
-  box-shadow: 
-    inset 0 2px 10px rgba(0, 0, 0, 0.3),
-    0 4px 15px rgba(0, 0, 0, 0.1);
-  transform: translateZ(0);
-  backface-visibility: hidden;
-}
-
-.inputField:focus {
-  border-color: rgba(120, 140, 180, 0.6);
-  box-shadow: 
-    0 0 0 3px rgba(120, 140, 180, 0.1),
-    0 0 15px rgba(120, 140, 180, 0.15),
-    inset 0 2px 10px rgba(0, 0, 0, 0.3);
-  background: rgba(25, 25, 38, 0.7);
-  transform: translateY(-1px) translateZ(0);
-  color: #fff;
-}
-
-.inputField::placeholder {
-  color: rgba(150, 160, 180, 0.4);
-  font-weight: 500;
-}
-
-/* SELECT DROPDOWN */
-select.inputField {
-  cursor: pointer;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23a0b5c5' d='M8 12L2 5h12z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right clamp(16px, 4vw, 20px) center;
-  padding-right: clamp(3.5rem, 8vw, 4rem);
-  font-weight: 600;
-}
-
-select.inputField:hover {
-  border-color: rgba(120, 140, 180, 0.5);
-}
-
-select.inputField option {
-  background: rgba(20, 20, 30, 0.98);
-  color: #d5e0eb;
-  padding: 16px;
-  font-weight: 600;
-}
-
-.helper {
-  margin-top: clamp(8px, 2vw, 10px);
-  color: #a0c5d9;
-  font-size: clamp(12px, 2.3vw, 14px);
-  font-style: italic;
-  letter-spacing: 0.04em;
-  line-height: 1.6;
-  opacity: 0.95;
-  font-weight: 600;
-}
-
-/* BUTTON - ULTRA SMOOTH */
-.submitBtn {
-  width: 100%;
-  margin-top: clamp(2rem, 6vw, 40px);
-  padding: clamp(16px, 5vw, 20px) clamp(2.5rem, 6vw, 3rem);
-  background: linear-gradient(135deg, 
-    rgba(255, 0, 255, 0.3) 0%,
-    rgba(255, 0, 255, 0.2) 50%,
-    rgba(255, 0, 255, 0.3) 100%
+      {/* Mobile-optimized Modal */}
+      {showModal && (
+        <div
+          className="mobile-modal-overlay"
+          onClick={() => setShowModal(false)}
+        >
+          <div
+            className="mobile-modal-content"
+            onClick={(e) => e.stopPropagation()}
+            ref={modalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modalVerifyTitle"
+          >
+            <h2 id="modalVerifyTitle" className="modal-title">Verify</h2>
+            <p className="modal-text">
+              A battle code has been dispatched. Click OK to enter the auth gate.
+            </p>
+            <div className="modal-buttons">
+              <button
+                type="button"
+                className="authBtn primary"
+                onClick={handleModalOk}
+              >
+                OK
+              </button>
+              <button
+                type="button"
+                className="authBtn secondary"
+                onClick={handleModalCancel}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
-  border: 4px solid #ff00ff;
-  color: #fff;
-  font-size: clamp(15px, 3.5vw, 18px);
-  cursor: pointer;
-  transition: all 0.25s ease-out;
-  font-weight: 700;
-  font-family: 'Audiowide', 'Orbitron', monospace;
-  letter-spacing: clamp(2px, 0.6vw, 3.5px);
-  text-transform: uppercase;
-  min-height: clamp(62px, 10vw, 72px);
-  border-radius: clamp(12px, 3vw, 14px);
-  position: relative;
-  overflow: hidden;
-  text-shadow: 0 0 12px rgba(255, 0, 255, 0.7);
-  box-shadow: 
-    0 5px 25px rgba(255, 0, 255, 0.35),
-    0 0 40px rgba(255, 0, 255, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
-  transform: translateZ(0);
-  backface-visibility: hidden;
 }
-
-.submitBtn::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, 
-    transparent,
-    rgba(255, 255, 255, 0.25),
-    transparent
-  );
-  transform: translateX(-100%);
-  transition: transform 0.6s ease-out;
-}
-
-.submitBtn:hover::before {
-  transform: translateX(100%);
-}
-
-.submitBtn:hover {
-  background: linear-gradient(135deg, 
-    rgba(0, 255, 255, 0.35) 0%,
-    rgba(0, 255, 255, 0.25) 50%,
-    rgba(0, 255, 255, 0.35) 100%
-  );
-  border-color: #00ffff;
-  box-shadow: 
-    0 0 35px rgba(0, 255, 255, 0.7),
-    0 0 60px rgba(0, 255, 255, 0.4),
-    0 8px 35px rgba(0, 255, 255, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.25);
-  transform: translateY(-2px) translateZ(0);
-  text-shadow: 0 0 18px rgba(0, 255, 255, 0.9);
-}
-
-.submitBtn:active {
-  transform: translateY(0) translateZ(0);
-  transition: all 0.1s ease-out;
-}
-
-/* STATUS BAR */
-.statusBar {
-  width: 100%;
-  position: relative;
-  background: linear-gradient(180deg, 
-    rgba(255, 0, 255, 0.12) 0%,
-    rgba(255, 0, 255, 0.06) 100%
-  );
-  border-top: 3px solid rgba(255, 0, 255, 0.6);
-  border-bottom: 2px solid rgba(255, 0, 255, 0.4);
-  padding: clamp(12px, 3vw, 16px) clamp(2rem, 5vw, 28px);
-  font-size: clamp(12px, 2.5vw, 15px);
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: clamp(2rem, 5vw, 3rem);
-  align-items: center;
-  margin-top: clamp(3.5rem, 8vw, 5rem);
-  color: #a0f8ff;
-  letter-spacing: clamp(1.2px, 0.4vw, 2px);
-  font-weight: 700;
-  font-family: 'Rajdhani', monospace;
-  box-shadow: 0 -5px 25px rgba(255, 0, 255, 0.15);
-  z-index: 2;
-}
-
-.statusItem {
-  display: flex;
-  align-items: center;
-  gap: clamp(10px, 2.5vw, 14px);
-  flex: 1;
-  min-width: 200px;
-  justify-content: center;
-  text-shadow: 0 0 8px rgba(0, 255, 255, 0.3);
-}
-
-.statusDot {
-  width: clamp(10px, 2.5vw, 14px);
-  height: clamp(10px, 2.5vw, 14px);
-  background: #00ffff;
-  border-radius: 50%;
-  box-shadow: 
-    0 0 12px #00ffff,
-    0 0 25px rgba(0, 255, 255, 0.5);
-  animation: statusBlink 2s ease-in-out infinite;
-  will-change: opacity;
-  transform: translateZ(0);
-}
-
-@keyframes statusBlink {
-  0%, 50% { 
-    opacity: 1;
-  }
-  51%, 100% { 
-    opacity: 0.5;
-  }
-}
-
-/* MOBILE MODAL */
-.mobile-modal-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.95);
-  backdrop-filter: blur(15px);
-  padding: clamp(2rem, 6vw, 3rem);
-  animation: modalFadeIn 0.25s ease-out;
-}
-
-@keyframes modalFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.mobile-modal-content {
-  background: linear-gradient(145deg, 
-    rgba(5, 0, 15, 0.98) 0%,
-    rgba(15, 0, 30, 0.96) 50%,
-    rgba(5, 0, 15, 0.98) 100%
-  );
-  backdrop-filter: blur(20px);
-  color: #fff;
-  width: min(95vw, 500px);
-  max-width: 100%;
-  border-radius: clamp(16px, 4vw, 22px);
-  padding: clamp(2.5rem, 7vw, 40px);
-  box-shadow:
-    0 0 50px rgba(255, 0, 255, 0.6),
-    0 0 90px rgba(0, 255, 255, 0.3),
-    0 25px 80px rgba(0, 0, 0, 0.8);
-  border: 4px solid rgba(255, 0, 255, 0.6);
-  animation: modalSlideUp 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  max-height: 90vh;
-  overflow-y: auto;
-  position: relative;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-}
-
-@keyframes modalSlideUp {
-  from {
-    opacity: 0;
-    transform: translateY(25px) scale(0.96) translateZ(0);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1) translateZ(0);
-  }
-}
-
-.modal-title {
-  font-family: 'Orbitron', monospace;
-  font-size: clamp(1.5rem, 5vw, 1.9rem);
-  margin-bottom: clamp(18px, 4vw, 24px);
-  color: #fff;
-  font-weight: 900;
-  text-shadow: 
-    0 0 18px rgba(255, 0, 255, 0.9),
-    0 0 35px rgba(255, 0, 255, 0.5);
-  letter-spacing: 2px;
-  text-transform: uppercase;
-}
-
-.modal-text {
-  font-size: clamp(1.05rem, 3.5vw, 1.2rem);
-  line-height: 1.7;
-  color: #d4e5ff;
-  margin-bottom: clamp(2rem, 6vw, 2.5rem);
-  font-weight: 600;
-  font-family: 'Rajdhani', monospace;
-}
-
-.modal-buttons {
-  display: flex;
-  gap: clamp(1.2rem, 3vw, 2rem);
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.authBtn {
-  flex: 1;
-  padding: clamp(14px, 4vw, 16px) clamp(2.5rem, 6vw, 3rem);
-  border: 3px solid #ff00ff;
-  border-radius: clamp(12px, 3vw, 14px);
-  font-size: clamp(1rem, 3vw, 1.15rem);
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.25s ease-out;
-  min-height: clamp(52px, 9vw, 58px);
-  letter-spacing: 1.5px;
-  backdrop-filter: blur(8px);
-  min-width: 140px;
-  text-transform: uppercase;
-  font-family: 'Rajdhani', monospace;
-  position: relative;
-  overflow: hidden;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-}
-
-.authBtn::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, 
-    transparent,
-    rgba(255, 255, 255, 0.2),
-    transparent
-  );
-  transform: translateX(-100%);
-  transition: transform 0.5s ease-out;
-}
-
-.authBtn:hover::before {
-  transform: translateX(100%);
-}
-
-.authBtn.primary {
-  background: linear-gradient(135deg, 
-    rgba(255, 0, 255, 0.3) 0%,
-    rgba(255, 0, 255, 0.2) 100%
-  );
-  color: #fff;
-  box-shadow: 
-    0 0 22px rgba(255, 0, 255, 0.45),
-    0 4px 18px rgba(255, 0, 255, 0.25);
-  text-shadow: 0 0 12px rgba(255, 0, 255, 0.5);
-}
-
-.authBtn.primary:hover {
-  background: linear-gradient(135deg, 
-    rgba(0, 255, 255, 0.35) 0%,
-    rgba(0, 255, 255, 0.25) 100%
-  );
-  border-color: #00ffff;
-  box-shadow: 
-    0 0 30px rgba(0, 255, 255, 0.7),
-    0 6px 25px rgba(0, 255, 255, 0.4);
-  transform: translateY(-2px) translateZ(0);
-  text-shadow: 0 0 18px rgba(0, 255, 255, 0.9);
-}
-
-.authBtn.primary:active {
-  transform: translateY(0) translateZ(0);
-}
-
-.authBtn.secondary {
-  background: transparent;
-  color: #b8e6ff;
-  border-color: rgba(0, 255, 255, 0.5);
-}
-
-.authBtn.secondary:hover {
-  background: rgba(255, 0, 255, 0.12);
-  color: #fff;
-  border-color: rgba(255, 0, 255, 0.7);
-  box-shadow: 0 0 22px rgba(255, 0, 255, 0.35);
-  transform: translateY(-2px) translateZ(0);
-}
-
-.authBtn.secondary:active {
-  transform: translateY(0) translateZ(0);
-}
-
-/* RESPONSIVE BREAKPOINTS */
-@media (max-width: 768px) {
-  .loginWrapper.mobile {
-    padding: clamp(1rem, 4vw, 1.5rem);
-  }
-  
-  .marquee-track {
-    animation-duration: 20s;
-    gap: 2.5rem;
-  }
-  
-  .statusBar {
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-  
-  .statusItem {
-    min-width: auto;
-    width: 100%;
-    justify-content: center;
-  }
-  
-  .terminalHeader {
-    flex-direction: column;
-    gap: 1.5rem;
-    text-align: center;
-  }
-  
-  .headerLeft {
-    order: 2;
-  }
-  
-  .headerDots {
-    order: 1;
-  }
-}
-
-@media (max-width: 480px) {
-  .terminalBox {
-    margin-top: clamp(2rem, 8vw, 3rem);
-    padding: clamp(2rem, 6vw, 2.5rem);
-  }
-  
-  .sectionSubtitle {
-    font-size: clamp(0.9rem, 4vw, 1rem) !important;
-  }
-  
-  .modal-buttons {
-    flex-direction: column;
-  }
-  
-  .authBtn {
-    width: 100%;
-  }
-}
-
-@media (max-height: 600px) and (orientation: landscape) {
-  .loginWrapper {
-    padding: 1rem;
-  }
-  
-  .terminalBox {
-    margin: clamp(1.5rem, 6vw, 2.5rem) auto;
-    padding: clamp(2rem, 6vw, 2.5rem);
-  }
-  
-  .statusBar {
-    position: relative;
-    margin-top: 2.5rem;
-    margin-bottom: 1rem;
-  }
-}
-
-/* High DPI Optimization */
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .terminalBox, .mobile-modal-content {
-    backdrop-filter: blur(20px);
-  }
-}
-
-/* Custom Scrollbar */
-.mobile-modal-content::-webkit-scrollbar {
-  width: 8px;
-}
-.mobile-modal-content::-webkit-scrollbar-track {
-  background: rgba(255, 0, 255, 0.1);
-  border-radius: 4px;
-}
-.mobile-modal-content::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #ff00ff, #00ffff);
-  border-radius: 4px;
-  box-shadow: 0 0 8px rgba(0, 255, 255, 0.4);
-}
-.mobile-modal-content::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #00ffff, #ff00ff);
-}
-
-/* Prevent body scroll during modal */
-.mobile-modal-overlay {
-  overscroll-behavior: contain;
-}
-
-/* Accessibility - Focus Visible */
-.inputField:focus-visible,
-.submitBtn:focus-visible,
-.authBtn:focus-visible {
-  outline: 3px solid rgba(0, 255, 255, 0.6);
-  outline-offset: 2px;
-}
-
-/* Performance: Reduce motion for users who prefer it */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-/* Hardware Acceleration for Smooth Performance */
-.marquee-track,
-.dot,
-.statusDot,
-.terminalBox::before,
-.inputField,
-.submitBtn,
-.authBtn {
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  perspective: 1000px;
-}
-
-/* Prevent flickering on animations */
-.terminalBox,
-.mobile-modal-content {
-  -webkit-font-smoothing: subpixel-antialiased;
-  -moz-osx-font
