@@ -1,4 +1,4 @@
-/* src/styles/login.css - EXACT REPLICA OF UPLOADED HTML */
+/* src/styles/login.css - FINAL CORRECTED VERSION */
 * {
   margin: 0;
   padding: 0;
@@ -45,14 +45,13 @@ body, #root {
   font-family: 'Courier New', monospace;
   background: #000;
   color: #00f7ff;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   position: relative;
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
   padding: 20px;
+  padding-top: 70px;
+  padding-bottom: 60px;
 }
 
 /* SCANLINE EFFECT */
@@ -84,7 +83,7 @@ body, #root {
   animation: flicker 0.15s infinite;
 }
 
-/* TOP MARQUEE */
+/* TOP MARQUEE - FIXED */
 .marquee-bar {
   position: fixed;
   top: 0;
@@ -94,8 +93,9 @@ body, #root {
   border-bottom: 2px solid #ff00ff;
   padding: 10px 0;
   overflow: hidden;
-  z-index: 10;
+  z-index: 100;
   box-shadow: 0 0 20px rgba(255, 0, 255, 0.3);
+  height: auto;
 }
 
 .marquee-track {
@@ -117,7 +117,7 @@ body, #root {
   animation: pulse 3s ease-in-out infinite;
 }
 
-/* TERMINAL BOX */
+/* TERMINAL BOX - CENTERED WITH PROPER SPACING */
 .terminalBox {
   background: rgba(10, 0, 20, 0.95);
   border: 3px solid #ff00ff;
@@ -129,7 +129,7 @@ body, #root {
   max-width: 600px;
   width: 100%;
   position: relative;
-  margin-top: 60px;
+  margin: 0 auto;
   z-index: 3;
 }
 
@@ -229,21 +229,30 @@ form {
   flex-direction: column;
 }
 
-.input-group,
-form > * {
-  margin-bottom: 25px;
+form > div,
+form > label,
+form > input,
+form > select,
+form > p,
+form > button {
+  margin-bottom: 0;
 }
 
 .fieldLabel {
   display: block;
   margin-bottom: 8px;
+  margin-top: 20px;
   font-size: 12px;
   letter-spacing: 1px;
   text-transform: uppercase;
   opacity: 0.9;
 }
 
-/* KEEP YOUR INPUT FIELDS AS THEY ARE */
+.fieldLabel:first-of-type {
+  margin-top: 0;
+}
+
+/* INPUT FIELDS */
 .inputField,
 input[type="email"],
 input[type="text"],
@@ -284,6 +293,7 @@ select {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%2300f7ff' d='M8 12L2 5h12z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 15px center;
+  background-color: rgba(0, 0, 0, 0.8);
   padding-right: 40px;
 }
 
@@ -292,17 +302,16 @@ select option {
   color: #00f7ff;
 }
 
-.helper,
-.helper-text {
+.helper {
   font-size: 11px;
   opacity: 0.6;
   margin-top: 5px;
+  margin-bottom: 0;
   letter-spacing: 1px;
 }
 
 /* BUTTON */
-.submitBtn,
-.btn {
+.submitBtn {
   width: 100%;
   padding: 15px;
   background: transparent;
@@ -317,11 +326,10 @@ select option {
   position: relative;
   overflow: hidden;
   transition: all 0.3s;
-  margin-top: 10px;
+  margin-top: 20px;
 }
 
-.submitBtn::before,
-.btn::before {
+.submitBtn::before {
   content: '';
   position: absolute;
   top: 50%;
@@ -334,14 +342,12 @@ select option {
   transition: width 0.6s, height 0.6s;
 }
 
-.submitBtn:hover::before,
-.btn:hover::before {
+.submitBtn:hover::before {
   width: 300px;
   height: 300px;
 }
 
-.submitBtn:hover,
-.btn:hover {
+.submitBtn:hover {
   border-color: #00f7ff;
   color: #ff00ff;
   box-shadow: 
@@ -350,20 +356,17 @@ select option {
   transform: translateY(-2px);
 }
 
-.submitBtn:active,
-.btn:active {
+.submitBtn:active {
   transform: translateY(0);
 }
 
-.submitBtn span,
-.btn span {
+.submitBtn span {
   position: relative;
   z-index: 1;
 }
 
-/* STATUS BAR */
-.statusBar,
-.status-bar {
+/* STATUS BAR - FIXED BOTTOM */
+.statusBar {
   position: fixed;
   bottom: 0;
   left: 0;
@@ -374,18 +377,17 @@ select option {
   font-size: 11px;
   display: flex;
   justify-content: space-between;
-  z-index: 10;
+  align-items: center;
+  z-index: 100;
 }
 
-.statusItem,
-.status-item {
+.statusItem {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.statusDot,
-.status-dot {
+.statusDot {
   width: 8px;
   height: 8px;
   background: #00f7ff;
@@ -476,6 +478,8 @@ select option {
   position: relative;
   overflow: hidden;
   letter-spacing: 1px;
+  background: transparent;
+  color: #00f7ff;
 }
 
 .authBtn::before {
@@ -496,9 +500,9 @@ select option {
   height: 300px;
 }
 
-.authBtn.primary {
-  background: transparent;
-  color: #00f7ff;
+.authBtn span {
+  position: relative;
+  z-index: 1;
 }
 
 .authBtn.primary:hover {
@@ -515,8 +519,6 @@ select option {
 }
 
 .authBtn.secondary {
-  background: transparent;
-  color: #00f7ff;
   border-color: rgba(255, 0, 255, 0.5);
   opacity: 0.8;
 }
@@ -528,9 +530,14 @@ select option {
 
 /* RESPONSIVE */
 @media (max-width: 768px) {
+  .loginWrapper {
+    padding: 10px;
+    padding-top: 80px;
+    padding-bottom: 70px;
+  }
+
   .terminalBox {
     padding: 20px;
-    margin-top: 80px;
   }
 
   .title {
@@ -550,10 +557,15 @@ select option {
 
   .marquee-track {
     font-size: 9px;
+    animation-duration: 40s;
   }
 
   .marquee-bar {
     padding: 8px 0;
+  }
+
+  .marquee-track span {
+    padding: 0 24px;
   }
 
   .fieldLabel {
@@ -561,13 +573,13 @@ select option {
   }
 
   .inputField,
-  input {
+  input,
+  select {
     padding: 12px;
     font-size: 13px;
   }
 
-  .submitBtn,
-  .btn {
+  .submitBtn {
     padding: 12px;
     font-size: 12px;
   }
@@ -581,8 +593,7 @@ select option {
     height: 10px;
   }
 
-  .statusBar,
-  .status-bar {
+  .statusBar {
     font-size: 9px;
     padding: 8px 15px;
     flex-wrap: wrap;
@@ -590,9 +601,9 @@ select option {
     gap: 10px;
   }
 
-  .statusItem,
-  .status-item {
+  .statusItem {
     gap: 8px;
+    font-size: 9px;
   }
 
   .modal-buttons {
@@ -607,7 +618,6 @@ select option {
 @media (max-width: 480px) {
   .terminalBox {
     padding: 15px;
-    margin-top: 90px;
   }
 
   .title {
@@ -622,6 +632,7 @@ select option {
 
   .sectionSubtitle {
     font-size: 10px;
+    padding: 0 4px;
   }
 
   .marquee-track {
@@ -629,56 +640,17 @@ select option {
   }
 
   .inputField,
-  input {
+  input,
+  select {
     font-size: 12px;
   }
 
-  .submitBtn,
-  .btn {
+  .submitBtn {
     font-size: 11px;
   }
-}
 
-/* Extra tweaks for mobile */
-@media (max-width: 768px) {
-  body {
-    padding: 0 6px;
-  }
-
-  .loginWrapper {
-    align-items: stretch;
-    padding: 10px 4px 70px;
-  }
-
-  .terminalBox {
-    max-width: 100%;
-  }
-
-  .marquee-bar {
-    white-space: normal;
-  }
-
-  .marquee-track {
-    animation-duration: 40s;
-  }
-
-  .marquee-track span {
-    padding: 0 24px;
-  }
-}
-
-@media (max-width: 480px) {
-  .sectionSubtitle {
-    padding: 0 4px;
-  }
-
-  form > * {
-    margin-bottom: 18px;
-  }
-
-  .statusBar,
-  .status-bar {
-    padding-bottom: 12px;
+  .fieldLabel {
+    margin-top: 15px;
   }
 }
 
