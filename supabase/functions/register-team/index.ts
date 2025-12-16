@@ -106,6 +106,7 @@ Deno.serve(async (req) => {
       const memberRecords = members.map((m: any) => ({
         team_id: team.id,
         member_name: m.name,
+        member_email: m.email || null,
         member_reg_no: m.reg || null,
         institution: m.institution || null,
       }));
