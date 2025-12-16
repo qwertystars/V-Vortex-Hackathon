@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import "../styles/login.css";
-import VortexBackground from "../components/VortexBackground";
+// import VortexBackground from "../components/VortexBackground"; // Commented out - CSS now handles background effects
 import logo from "/logo.jpg";
 
 export default function Login({ setTransition }) {
@@ -106,7 +106,7 @@ export default function Login({ setTransition }) {
 
   return (
     <div className={`loginWrapper ${isMobile ? 'mobile' : ''}`}>
-      <VortexBackground />
+      {/* VortexBackground removed - CSS now handles background effects with scanline and noise */}
 
       {/* TOP MARQUEE - Mobile optimized */}
       <div className="marquee-bar">
