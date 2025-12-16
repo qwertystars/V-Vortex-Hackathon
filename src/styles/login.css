@@ -88,7 +88,7 @@ body, #root {
   max-width: clamp(440px, 92vw, 720px);
   width: 100%;
   margin: clamp(3rem, 10vw, 160px) auto clamp(3rem, 8vw, 6rem) auto;
-  background: #000000;
+  background: #000000 !important;
   backdrop-filter: none;
   border: 3px solid #ff00ff;
   border-radius: clamp(14px, 3vw, 20px);
@@ -97,9 +97,20 @@ body, #root {
   box-shadow:
     0 0 30px rgba(255, 0, 255, 0.5),
     0 0 60px rgba(255, 0, 255, 0.3),
-    0 20px 60px rgba(0, 0, 0, 0.7);
+    0 20px 60px rgba(0, 0, 0, 0.7),
+    inset 0 0 0 2000px #000000;
   transform: translateZ(0);
   backface-visibility: hidden;
+  isolation: isolate;
+}
+
+.terminalBox::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #000000;
+  border-radius: inherit;
+  z-index: -2;
 }
 
 .terminalBox::before {
