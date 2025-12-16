@@ -46,7 +46,7 @@ export default function Login({ setTransition }) {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [showModal]);
+  }, [showModal, handleModalOk]); // Added handleModalOk to dependencies
 
   const handleSubmit = async (e) => {
     e.preventDefault();
