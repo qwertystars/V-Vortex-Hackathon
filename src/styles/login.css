@@ -1,4 +1,4 @@
-/* src/styles/login.css - ULTRA SMOOTH OPTIMIZED EDITION */
+/* src/styles/login.css - ENHANCED READABILITY EDITION */
 @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@700;900&family=Audiowide&display=swap');
 
 * {
@@ -83,22 +83,27 @@ body, #root {
   100% { transform: translate3d(-50%, 0, 0); }
 }
 
-/* TERMINAL BOX - ULTRA SMOOTH */
+/* TERMINAL BOX - ENHANCED READABILITY */
 .terminalBox {
   max-width: clamp(440px, 92vw, 720px);
   width: 100%;
   margin: clamp(3rem, 10vw, 160px) auto clamp(3rem, 8vw, 6rem) auto;
-  background: #000000 !important;
-  backdrop-filter: none;
+  background: 
+    linear-gradient(145deg, 
+      rgba(8, 10, 20, 0.98) 0%,
+      rgba(12, 15, 25, 0.96) 50%,
+      rgba(8, 10, 20, 0.98) 100%
+    ) !important;
+  backdrop-filter: blur(30px);
   border: 3px solid #ff00ff;
   border-radius: clamp(14px, 3vw, 20px);
   padding: clamp(2.5rem, 6vw, 56px);
   position: relative;
   box-shadow:
-    0 0 30px rgba(255, 0, 255, 0.5),
-    0 0 60px rgba(255, 0, 255, 0.3),
-    0 20px 60px rgba(0, 0, 0, 0.7),
-    inset 0 0 0 2000px #000000;
+    0 0 40px rgba(255, 0, 255, 0.6),
+    0 0 80px rgba(255, 0, 255, 0.3),
+    0 25px 70px rgba(0, 0, 0, 0.9),
+    inset 0 0 60px rgba(0, 0, 0, 0.5);
   transform: translateZ(0);
   backface-visibility: hidden;
   isolation: isolate;
@@ -108,9 +113,14 @@ body, #root {
   content: '';
   position: absolute;
   inset: 0;
-  background: #000000;
+  background: 
+    radial-gradient(circle at 50% 0%, 
+      rgba(255, 0, 255, 0.03) 0%,
+      transparent 70%
+    );
   border-radius: inherit;
-  z-index: -2;
+  z-index: -1;
+  pointer-events: none;
 }
 
 .terminalBox::before {
@@ -121,11 +131,12 @@ body, #root {
   right: -2px;
   bottom: -2px;
   border-radius: inherit;
-  background: #ff00ff;
+  background: linear-gradient(135deg, #ff00ff, #00ffff, #ff00ff);
   animation: borderGlow 8s ease infinite;
-  z-index: -1;
-  opacity: 0.4;
-  filter: blur(10px);
+  background-size: 200% 200%;
+  z-index: -2;
+  opacity: 0.5;
+  filter: blur(12px);
 }
 
 @keyframes borderGlow {
@@ -260,22 +271,26 @@ form {
 .fieldLabel {
   display: block;
   margin: clamp(14px, 3.5vw, 20px) 0 clamp(8px, 2vw, 12px);
-  color: #a0b5c5;
+  color: #c0d8f0;
   font-size: clamp(12px, 2.5vw, 15px);
   letter-spacing: clamp(1.2px, 0.4vw, 2px);
   font-weight: 700;
   text-transform: uppercase;
   font-family: 'Rajdhani', monospace;
-  text-shadow: none;
+  text-shadow: 0 0 8px rgba(192, 216, 240, 0.3);
 }
 
 .inputField {
   width: 100%;
   padding: clamp(16px, 4vw, 18px) clamp(1.5rem, 4vw, 1.8rem);
-  background: rgba(20, 20, 30, 0.6);
-  border: 2px solid rgba(100, 100, 150, 0.3);
+  background: 
+    linear-gradient(135deg, 
+      rgba(15, 18, 30, 0.95) 0%,
+      rgba(20, 25, 40, 0.92) 100%
+    );
+  border: 2px solid rgba(100, 120, 200, 0.4);
   border-radius: clamp(12px, 3vw, 14px);
-  color: #d5e0eb;
+  color: #ffffff;
   font-size: clamp(16px, 3.8vw, 17px);
   font-family: 'Rajdhani', monospace;
   font-weight: 600;
@@ -284,25 +299,31 @@ form {
   transition: all 0.25s ease-out;
   min-height: clamp(56px, 10vw, 64px);
   box-shadow: 
-    inset 0 2px 10px rgba(0, 0, 0, 0.3),
-    0 4px 15px rgba(0, 0, 0, 0.1);
+    inset 0 2px 15px rgba(0, 0, 0, 0.6),
+    0 4px 20px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset;
   transform: translateZ(0);
   backface-visibility: hidden;
 }
 
 .inputField:focus {
-  border-color: rgba(120, 140, 180, 0.6);
+  border-color: rgba(0, 255, 255, 0.7);
   box-shadow: 
-    0 0 0 3px rgba(120, 140, 180, 0.1),
-    0 0 15px rgba(120, 140, 180, 0.15),
-    inset 0 2px 10px rgba(0, 0, 0, 0.3);
-  background: rgba(25, 25, 38, 0.7);
+    0 0 0 3px rgba(0, 255, 255, 0.15),
+    0 0 25px rgba(0, 255, 255, 0.25),
+    inset 0 2px 15px rgba(0, 0, 0, 0.6),
+    inset 0 0 30px rgba(0, 255, 255, 0.05);
+  background: 
+    linear-gradient(135deg, 
+      rgba(20, 25, 40, 0.98) 0%,
+      rgba(25, 30, 50, 0.95) 100%
+    );
   transform: translateY(-1px) translateZ(0);
   color: #fff;
 }
 
 .inputField::placeholder {
-  color: rgba(150, 160, 180, 0.4);
+  color: rgba(160, 180, 210, 0.5);
   font-weight: 500;
 }
 
@@ -310,7 +331,7 @@ form {
 select.inputField {
   cursor: pointer;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23a0b5c5' d='M8 12L2 5h12z'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23c0d8f0' d='M8 12L2 5h12z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right clamp(16px, 4vw, 20px) center;
   padding-right: clamp(3.5rem, 8vw, 4rem);
@@ -318,25 +339,26 @@ select.inputField {
 }
 
 select.inputField:hover {
-  border-color: rgba(120, 140, 180, 0.5);
+  border-color: rgba(120, 160, 220, 0.6);
 }
 
 select.inputField option {
-  background: rgba(20, 20, 30, 0.98);
-  color: #d5e0eb;
+  background: rgba(15, 18, 30, 0.98);
+  color: #ffffff;
   padding: 16px;
   font-weight: 600;
 }
 
 .helper {
   margin-top: clamp(8px, 2vw, 10px);
-  color: #a0c5d9;
+  color: #b0d5f0;
   font-size: clamp(12px, 2.3vw, 14px);
   font-style: italic;
   letter-spacing: 0.04em;
   line-height: 1.6;
   opacity: 0.95;
   font-weight: 600;
+  text-shadow: 0 0 5px rgba(176, 213, 240, 0.2);
 }
 
 /* BUTTON - ULTRA SMOOTH */
@@ -467,7 +489,7 @@ select.inputField option {
   }
 }
 
-/* MOBILE MODAL */
+/* MOBILE MODAL - ENHANCED READABILITY */
 .mobile-modal-overlay {
   position: fixed;
   inset: 0;
@@ -487,22 +509,24 @@ select.inputField option {
 }
 
 .mobile-modal-content {
-  background: linear-gradient(145deg, 
-    rgba(5, 0, 15, 0.98) 0%,
-    rgba(15, 0, 30, 0.96) 50%,
-    rgba(5, 0, 15, 0.98) 100%
-  );
-  backdrop-filter: blur(20px);
+  background: 
+    linear-gradient(145deg, 
+      rgba(10, 12, 22, 0.98) 0%,
+      rgba(15, 18, 30, 0.96) 50%,
+      rgba(10, 12, 22, 0.98) 100%
+    );
+  backdrop-filter: blur(30px);
   color: #fff;
   width: min(95vw, 500px);
   max-width: 100%;
   border-radius: clamp(16px, 4vw, 22px);
   padding: clamp(2.5rem, 7vw, 40px);
   box-shadow:
-    0 0 50px rgba(255, 0, 255, 0.6),
-    0 0 90px rgba(0, 255, 255, 0.3),
-    0 25px 80px rgba(0, 0, 0, 0.8);
-  border: 4px solid rgba(255, 0, 255, 0.6);
+    0 0 60px rgba(255, 0, 255, 0.7),
+    0 0 100px rgba(0, 255, 255, 0.4),
+    0 30px 90px rgba(0, 0, 0, 0.9),
+    inset 0 0 50px rgba(0, 0, 0, 0.5);
+  border: 4px solid rgba(255, 0, 255, 0.7);
   animation: modalSlideUp 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   max-height: 90vh;
   overflow-y: auto;
@@ -538,7 +562,7 @@ select.inputField option {
 .modal-text {
   font-size: clamp(1.05rem, 3.5vw, 1.2rem);
   line-height: 1.7;
-  color: #d4e5ff;
+  color: #e0f0ff;
   margin-bottom: clamp(2rem, 6vw, 2.5rem);
   font-weight: 600;
   font-family: 'Rajdhani', monospace;
@@ -619,13 +643,13 @@ select.inputField option {
 }
 
 .authBtn.secondary {
-  background: transparent;
+  background: rgba(20, 25, 40, 0.6);
   color: #b8e6ff;
   border-color: rgba(0, 255, 255, 0.5);
 }
 
 .authBtn.secondary:hover {
-  background: rgba(255, 0, 255, 0.12);
+  background: rgba(255, 0, 255, 0.15);
   color: #fff;
   border-color: rgba(255, 0, 255, 0.7);
   box-shadow: 0 0 22px rgba(255, 0, 255, 0.35);
@@ -712,7 +736,7 @@ select.inputField option {
 /* High DPI Optimization */
 @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
   .terminalBox, .mobile-modal-content {
-    backdrop-filter: blur(20px);
+    backdrop-filter: blur(30px);
   }
 }
 
