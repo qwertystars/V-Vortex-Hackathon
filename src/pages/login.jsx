@@ -199,7 +199,7 @@ export default function Login({ setTransition }) {
 
           {/* BUTTON */}
           <button className="submitBtn" type="submit">
-            ⚡ ENTER THE ARENA • SEND BATTLE CODE ⚡
+            <span>⚡ ENTER THE ARENA • SEND BATTLE CODE ⚡</span>
           </button>
         </form>
       </div>
@@ -239,14 +239,14 @@ export default function Login({ setTransition }) {
                 className="authBtn primary"
                 onClick={handleModalOk}
               >
-                OK
+                <span>OK</span>
               </button>
               <button
                 type="button"
                 className="authBtn secondary"
                 onClick={handleModalCancel}
               >
-                Cancel
+                <span>Cancel</span>
               </button>
             </div>
           </div>
