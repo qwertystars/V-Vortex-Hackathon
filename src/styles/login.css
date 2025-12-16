@@ -133,18 +133,7 @@ body, #root {
   z-index: 3;
 }
 
-.terminalBox::before {
-  content: '';
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  bottom: -2px;
-  background: linear-gradient(45deg, #00f7ff, #ff00ff, #ff6b35, #00f7ff);
-  z-index: -1;
-  opacity: 0.3;
-  animation: pulse 2s ease-in-out infinite;
-}
+/* Removed the flashing colorful border effect */
 
 /* HEADER */
 .terminalHeader {
@@ -425,18 +414,7 @@ select option {
   position: relative;
 }
 
-.mobile-modal-content::before {
-  content: '';
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  bottom: -2px;
-  background: linear-gradient(45deg, #00f7ff, #ff00ff, #ff6b35, #00f7ff);
-  z-index: -1;
-  opacity: 0.3;
-  animation: pulse 2s ease-in-out infinite;
-}
+/* Removed the flashing colorful border effect from modal */
 
 .modal-title {
   font-family: 'Courier New', monospace;
