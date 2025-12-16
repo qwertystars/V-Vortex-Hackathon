@@ -1,4 +1,4 @@
-/* src/styles/login.css - CLEAN CYBERPUNK EDITION */
+]/* src/styles/login.css - CLEAN CYBERPUNK EDITION */
 @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@700;900&family=Audiowide&display=swap');
 
 * {
@@ -121,7 +121,7 @@ body, #root {
 .marquee-track span {
   padding: 0 50px;
   text-shadow: 0 0 10px #ff00ff;
-  background: linear-gradient(90deg, #00f7ff, #ff00ff, #ff6b35);
+  background: linear-gradient(90deg, #00f7ff, #ff00ff);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -154,7 +154,7 @@ body, #root {
   left: -2px;
   right: -2px;
   bottom: -2px;
-  background: linear-gradient(45deg, #00f7ff, #ff00ff, #ff6b35, #00f7ff);
+  background: linear-gradient(45deg, #00f7ff, #ff00ff, #00f7ff);
   z-index: -1;
   opacity: 0.3;
   animation: pulse 2s ease-in-out infinite;
@@ -196,7 +196,7 @@ body, #root {
   font-weight: bold;
   letter-spacing: 4px;
   animation: glitch 0.5s infinite;
-  background: linear-gradient(90deg, #00f7ff, #ff00ff, #ff6b35);
+  background: linear-gradient(90deg, #00f7ff, #ff00ff);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -233,7 +233,7 @@ body, #root {
 }
 
 .d3 { 
-  color: #ff6b35;
+  color: #00f7ff;
   animation-delay: 1s;
 }
 
@@ -289,12 +289,14 @@ form {
   border-color: #00f7ff;
   box-shadow: 
     0 0 20px rgba(0, 247, 255, 0.5),
-    inset 0 0 15px rgba(0, 247, 255, 0.1);
+    0 0 30px rgba(255, 0, 255, 0.3),
+    inset 0 0 20px rgba(0, 247, 255, 0.1);
   background: rgba(0, 0, 0, 0.9);
+  color: #00f7ff;
 }
 
 .inputField::placeholder {
-  color: rgba(0, 247, 255, 0.4);
+  color: rgba(255, 0, 255, 0.3);
   font-style: italic;
 }
 
@@ -353,32 +355,43 @@ select.inputField option {
 .submitBtn::before {
   content: '';
   position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, 
-    transparent,
-    rgba(255, 0, 255, 0.3),
-    transparent
-  );
-  transform: translateX(-100%);
-  transition: transform 0.6s ease-out;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: radial-gradient(circle, rgba(255, 0, 255, 0.3), rgba(0, 247, 255, 0.2));
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
 }
 
 .submitBtn:hover::before {
-  transform: translateX(100%);
+  width: 300px;
+  height: 300px;
 }
 
 .submitBtn:hover {
-  background: rgba(255, 0, 255, 0.1);
   border-color: #00f7ff;
+  color: #ff00ff;
   box-shadow: 
-    0 0 30px rgba(0, 247, 255, 0.6),
-    inset 0 0 30px rgba(0, 247, 255, 0.1);
+    0 0 20px rgba(0, 247, 255, 0.5),
+    0 0 30px rgba(255, 0, 255, 0.3);
   transform: translateY(-2px) translateZ(0);
 }
 
 .submitBtn:active {
   transform: translateY(0) translateZ(0);
   transition: all 0.1s ease-out;
+}
+
+/* Ensure button text is above hover effect */
+.submitBtn {
+  position: relative;
+}
+
+.submitBtn > * {
+  position: relative;
+  z-index: 1;
 }
 
 /* STATUS BAR */
@@ -471,7 +484,7 @@ select.inputField option {
   left: -2px;
   right: -2px;
   bottom: -2px;
-  background: linear-gradient(45deg, #00f7ff, #ff00ff, #ff6b35, #00f7ff);
+  background: linear-gradient(45deg, #00f7ff, #ff00ff, #00f7ff);
   z-index: -1;
   opacity: 0.3;
   animation: pulse 2s ease-in-out infinite;
@@ -564,9 +577,10 @@ select.inputField option {
 .authBtn.primary:hover {
   background: rgba(0, 247, 255, 0.15);
   border-color: #00f7ff;
+  color: #ff00ff;
   box-shadow: 
     0 0 30px rgba(0, 247, 255, 0.6),
-    inset 0 0 30px rgba(0, 247, 255, 0.1);
+    0 0 30px rgba(255, 0, 255, 0.3);
   transform: translateY(-2px) translateZ(0);
 }
 
