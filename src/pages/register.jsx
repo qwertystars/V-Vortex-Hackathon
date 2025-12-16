@@ -5,11 +5,7 @@ import "../styles/register.css";
 import logo from "/logo.jpg";
 import submitSfxFile from "/vortex_music.m4a";
 
-/**
- * Register page converted from the provided HTML (pixel-perfect).
- */
 export default function Register() {
-  // refs
   const canvasRef = useRef(null);
   const formWrapperRef = useRef(null);
   const vortexMessageRef = useRef(null);
@@ -18,7 +14,6 @@ export default function Register() {
 
   const navigate = useNavigate();
 
-  // UI state
   const [teamSize, setTeamSize] = useState(2);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [teamSizeLabel, setTeamSizeLabel] = useState("2 members");
@@ -27,11 +22,9 @@ export default function Register() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("");
 
-  // VIT Chennai toggle
-  const [isVitChennai, setIsVitChennai] = useState("yes"); // 'yes' | 'no'
+  const [isVitChennai, setIsVitChennai] = useState("yes");
   const [eventHubId, setEventHubId] = useState("");
 
-  // internal refs for animation state (avoids re-renders)
   const stateRef = useRef({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -46,10 +39,8 @@ export default function Register() {
     lastTime: 0,
   });
 
-  // participants are computed from teamSize (leader included)
   const [participants, setParticipants] = useState([]);
 
-  // ---------- PARTICIPANTS (leader counted) ----------
   useEffect(() => {
     const others = Math.max(0, teamSize - 1);
     const arr = [];
@@ -57,14 +48,12 @@ export default function Register() {
     setParticipants(arr);
   }, [teamSize]);
 
-  // ---------- VIT / EVENTHUB FIELD COUPLING ----------
   useEffect(() => {
     if (isVitChennai === "yes") {
       setEventHubId("");
     }
   }, [isVitChennai]);
 
-  // ---------- VORTEX CANVAS ----------
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -174,7 +163,6 @@ export default function Register() {
     };
   }, []);
 
-  // ---------- DROPDOWN HANDLERS ----------
   const toggleDropdown = () => setDropdownOpen((v) => !v);
   const closeDropdown = () => setDropdownOpen(false);
 
@@ -194,7 +182,6 @@ export default function Register() {
     }
   };
 
-  // close dropdown on outside click
   useEffect(() => {
     function onDocClick(e) {
       if (!e.target.closest?.(".dropdown")) closeDropdown();
@@ -203,7 +190,6 @@ export default function Register() {
     return () => document.removeEventListener("click", onDocClick);
   }, []);
 
-  // ---------- PARTICIPANT FIELD CHANGE ----------
   const updateParticipant = (index, field, value) => {
     setParticipants((prev) => {
       const copy = [...prev];
@@ -212,14 +198,11 @@ export default function Register() {
     });
   };
 
-  // ---------- FORM SUBMIT ----------
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Prevent multiple submissions
     if (isSubmitting) return;
 
-    // Clear any existing timeouts
     timeoutsRef.current.forEach((id) => clearTimeout(id));
     timeoutsRef.current = [];
 
@@ -237,13 +220,11 @@ export default function Register() {
       institution: isVitChennai === "no" ? formData.get(`memberInstitution${i + 1}`) : null,
     }));
 
-    // ensure conditional requirement in JS as well
     if (isVitChennai === "no" && !String(eventHubId || "").trim()) {
       alert("Please enter your VIT EventHub Unique ID.");
       return;
     }
 
-    // Validate receipt link format
     if (!receiptLink || !receiptLink.trim()) {
       alert("⚠️ Please provide a payment receipt link.");
       return;
@@ -299,7 +280,6 @@ export default function Register() {
     }
   };
 
-  // ---------- INITIALIZE SUBMIT SFX ----------
   useEffect(() => {
     submitSfxRef.current = new Audio(submitSfxFile);
     submitSfxRef.current.preload = "auto";
@@ -312,7 +292,6 @@ export default function Register() {
     };
   }, []);
 
-  // clear timeouts on unmount
   useEffect(() => {
     return () => {
       timeoutsRef.current.forEach((id) => clearTimeout(id));
@@ -327,7 +306,6 @@ export default function Register() {
 
       <div className={`form-wrapper${sucked ? " sucked" : ""}`} ref={formWrapperRef}>
         <div className="shell">
-          {/* LEFT CARD */}
           <aside className="panel">
             <div className="panel-header">
               <div className="logo-placeholder">
@@ -347,7 +325,6 @@ export default function Register() {
             </ul>
           </aside>
 
-          {/* RIGHT CARD */}
           <section className="panel">
             <form id="teamForm" onSubmit={handleSubmit}>
               <div className="section-label">Team details</div>
@@ -364,7 +341,6 @@ export default function Register() {
                 />
               </div>
 
-              {/* VIT CHENNAI TOGGLE */}
               <div className="field">
                 <label>Are you from VIT Chennai?</label>
 
