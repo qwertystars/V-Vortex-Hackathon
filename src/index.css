@@ -14,6 +14,31 @@ html, body {
   color: #fcfbfb;
 }
 
+:root{
+  --container-padding: 16px;
+  /* responsive base font size */
+  font-size: clamp(14px, 1.6vw, 16px);
+}
+
+/* helpers: fluid container and touch-friendly controls */
+.container{
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--container-padding);
+}
+
+button, .navBtn, input[type="text"], input[type="email"], input[type="password"], .form-control{
+  min-height: 44px;
+  font-size: 1rem;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+input, textarea, select { width: 100%; }
+
+/* make images responsive by default */
+img { max-width: 100%; height: auto; display: block; }
+
 /* ---------------------- */
 /* WRAPPER */
 /* ---------------------- */
