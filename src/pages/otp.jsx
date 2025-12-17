@@ -45,14 +45,19 @@ export default function OTP({ setTransition }) {
       // OTP verified successfully
       alert("🔥 AUTH VERIFIED • WELCOME TO THE VORTEX CHAMPION 🔥");
 
-      // Clear session storage
+      // Clear login email from session storage
       sessionStorage.removeItem('loginEmail');
       
-      // Get team ID to navigate to dashboard
+      const role = sessionStorage.getItem('role') || 'Team Leader';
+      sessionStorage.removeItem('role');
+
+      // Get team ID (may be needed for dashboard)
       const teamId = sessionStorage.getItem('teamId');
       sessionStorage.removeItem('teamId');
 
-      // Navigate to team dashboard
+      // Decide destination based on role
+      const destination = role === 'Team Member' ? '/member' : `/dashboard/${teamId}`;
+
       if (setTransition) {
         setTransition(
           <div className="otpTransition">
@@ -62,10 +67,10 @@ export default function OTP({ setTransition }) {
 
         setTimeout(() => {
           setTransition(null);
-          navigate(`/dashboard/${teamId}`);
+          navigate(destination);
         }, 1200);
       } else {
-        navigate(`/dashboard/${teamId}`);
+        navigate(destination);
       }
     } catch (error) {
       console.error('OTP verification error:', error);
