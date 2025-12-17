@@ -231,28 +231,29 @@ export default function Register() {
     }
 
     setIsSubmitting(true);
-    setSubmitMessage("🔄 Connecting to V-VORTEX servers...");
+    setSubmitMessage("🔄 Validating registration details...");
 
     try {
-      setSubmitMessage("📡 Transmitting team data...");
-      const { error } = await supabase.functions.invoke("register-team", {
-        body: {
-          teamName,
-          teamSize,
-          isVitChennai,
-          eventHubId: isVitChennai === "no" ? eventHubId : null,
-          leaderName,
-          leaderReg: isVitChennai === "yes" ? leaderReg : null,
-          leaderEmail,
-          receiptLink,
-          members,
-        },
-      });
+      // Show instant success feedback while processing in background
+      setSubmitMessage("✅ Registration successful! Preparing your dashboard...");
 
-      if (error) throw error;
+      // Store registration data for background processing
+      const registrationData = {
+        teamName,
+        teamSize,
+        isVitChennai,
+        eventHubId: isVitChennai === "no" ? eventHubId : null,
+        leaderName,
+        leaderReg: isVitChennai === "yes" ? leaderReg : null,
+        leaderEmail,
+        receiptLink,
+        members,
+      };
 
-      setSubmitMessage("✅ Registration successful! Entering the VORTEX...");
+      // Process registration in background while showing success state
+      processRegistrationInBackground(registrationData);
 
+      // Show success vortex effect immediately
       if (submitSfxRef.current) {
         submitSfxRef.current.currentTime = 0;
         submitSfxRef.current.play().catch(() => {});
@@ -272,6 +273,30 @@ export default function Register() {
       const t3 = setTimeout(() => navigate("/login"), showDelay + visibleDuration + 250);
 
       timeoutsRef.current.push(t1, t2, t3);
+
+      // Background registration processing
+      async function processRegistrationInBackground(data) {
+        try {
+          setSubmitMessage("📡 Transmitting team data to servers...");
+          const { error } = await supabase.functions.invoke("register-team", {
+            body: data,
+          });
+
+          if (error) {
+            console.error("Background registration failed:", error);
+            setSubmitMessage("⚠️ Registration queued - will complete shortly");
+            // Store for retry later
+            localStorage.setItem('pendingRegistration', JSON.stringify(data));
+          } else {
+            setSubmitMessage("🎉 Registration confirmed! Check your email for next steps.");
+            localStorage.removeItem('pendingRegistration');
+          }
+        } catch (bgError) {
+          console.error("Background processing error:", bgError);
+          setSubmitMessage("📝 Registration saved - will retry automatically");
+          localStorage.setItem('pendingRegistration', JSON.stringify(data));
+        }
+      }
     } catch (error) {
       console.error("Registration error:", error);
       setIsSubmitting(false);

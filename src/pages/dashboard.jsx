@@ -36,29 +36,51 @@ export default function TeamDashboard() {
       }
 
       try {
-        const { data: teamData } = await supabase
-          .from("teams")
-          .select("*")
-          .eq("id", teamId)
-          .single();
+        // Parallel queries instead of sequential loading
+        const [teamDataPromise, scoreDataPromise, leaderboardDataPromise] = [
+          supabase.from("teams").select("*").eq("id", teamId).single(),
+          supabase.from("scorecards").select("*").eq("team_id", teamId).single(),
+          supabase.from("leaderboard_view").select("*").order("position", { ascending: true })
+        ];
 
-        const { data: scoreData } = await supabase
-          .from("scorecards")
-          .select("*")
-          .eq("team_id", teamId)
-          .single();
+        const [teamResult, scoreResult, leaderboardResult] = await Promise.allSettled([
+          teamDataPromise,
+          scoreDataPromise,
+          leaderboardDataPromise
+        ]);
 
-        const { data: leaderboardData } = await supabase
-          .from("leaderboard_view")
-          .select("*")
-          .order("position", { ascending: true });
+        // Update UI as data arrives - progressive loading
+        let teamDataLoaded = false;
+        let criticalError = false;
 
-        setTeam(teamData);
-        setScorecard(scoreData || null);
-        setLeaderboard(leaderboardData || []);
+        if (teamResult.status === 'fulfilled') {
+          setTeam(teamResult.value.data);
+          teamDataLoaded = true;
+        } else {
+          console.error("Critical team data loading failed:", teamResult.reason);
+          criticalError = true;
+        }
+
+        // Load optional data regardless of team data status
+        if (scoreResult.status === 'fulfilled') {
+          setScorecard(scoreResult.value.data || null);
+        } else if (scoreResult.reason?.code !== 'PGRST116') { // Ignore "not found" errors
+          console.warn("Scorecard loading:", scoreResult.reason);
+        }
+
+        if (leaderboardResult.status === 'fulfilled') {
+          setLeaderboard(leaderboardResult.value.data || []);
+        } else {
+          console.warn("Leaderboard loading:", leaderboardResult.reason);
+        }
+
+        // Only set loading to false once, after all critical operations complete
+        if (teamDataLoaded || criticalError) {
+          setLoading(false);
+        }
+
       } catch (err) {
-        console.error("Dashboard error:", err);
-      } finally {
+        console.error("Dashboard parallel loading error:", err);
         setLoading(false);
       }
     };
@@ -82,6 +104,65 @@ export default function TeamDashboard() {
     const i = setInterval(tick, 1000);
     return () => clearInterval(i);
   }, []);
+
+  /* ===============================
+     REAL-TIME LEADERBOARD
+  =============================== */
+  useEffect(() => {
+    const connectToLeaderboardStream = () => {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      // Use Edge Function for real-time updates
+      const eventSource = new EventSource(
+        `${supabaseUrl}/functions/v1/leaderboard-stream`,
+        {
+          headers: {
+            'Authorization': `Bearer ${supabaseAnonKey}`,
+            'apikey': supabaseAnonKey
+          }
+        }
+      );
+
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === "leaderboard_update" && data.data) {
+            console.log("📊 Live leaderboard update received:", data.count, "teams");
+            setLeaderboard(data.data);
+          }
+        } catch (error) {
+          console.error("Error parsing leaderboard data:", error);
+        }
+      };
+
+      eventSource.onerror = (error) => {
+        console.warn("Leaderboard stream connection error, will retry...", error);
+        eventSource.close();
+
+        // Retry connection after 10 seconds
+        setTimeout(connectToLeaderboardStream, 10000);
+      };
+
+      eventSource.onopen = () => {
+        console.log("🔗 Connected to real-time leaderboard stream");
+      };
+
+      return eventSource;
+    };
+
+    // Only connect if we have a valid team
+    if (team && teamId) {
+      const eventSource = connectToLeaderboardStream();
+
+      return () => {
+        if (eventSource) {
+          eventSource.close();
+          console.log("📴 Disconnected from leaderboard stream");
+        }
+      };
+    }
+  }, [team, teamId]);
 
   /* ===============================
      LOGOUT
