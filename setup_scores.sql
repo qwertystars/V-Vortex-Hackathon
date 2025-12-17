@@ -62,3 +62,32 @@ END $$;
 
 -- Step 4: Verify the leaderboard
 SELECT * FROM leaderboard_view LIMIT 10;
+
+-- Step 5: (OPTIONAL) Add some historical data to see delta changes
+-- This simulates score updates to show delta in action
+-- Uncomment to create fake score progression:
+
+/*
+-- Wait a moment then update some scores to create history
+DO $$
+DECLARE
+  team_record RECORD;
+BEGIN
+  -- Update scores for top 3 teams to simulate progression
+  FOR team_record IN 
+    SELECT id FROM scorecards ORDER BY total_score DESC LIMIT 3
+  LOOP
+    -- Small score increase (simulate improvement)
+    UPDATE scorecards 
+    SET 
+      innovation_score = LEAST(100, innovation_score + FLOOR(RANDOM() * 10)::integer),
+      implementation_score = LEAST(100, implementation_score + FLOOR(RANDOM() * 10)::integer)
+    WHERE team_id = team_record.id;
+  END LOOP;
+  
+  RAISE NOTICE 'Score updates applied - deltas should now show changes!';
+END $$;
+
+-- Check the leaderboard again to see deltas
+SELECT position, team_name, score, delta FROM leaderboard_view LIMIT 10;
+*/

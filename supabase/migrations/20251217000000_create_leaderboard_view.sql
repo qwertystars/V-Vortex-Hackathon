@@ -1,7 +1,10 @@
+-- Drop existing view if it exists
+DROP VIEW IF EXISTS leaderboard_view;
+
 -- Create a view for the leaderboard that combines teams and scorecards
-CREATE OR REPLACE VIEW leaderboard_view AS
+CREATE VIEW leaderboard_view AS
 SELECT 
-  ROW_NUMBER() OVER (ORDER BY s.total_score DESC, t.team_name ASC) as position,
+  ROW_NUMBER() OVER (ORDER BY COALESCE(s.total_score, 0) DESC, t.team_name ASC) as position,
   t.id as team_id,
   t.team_name,
   COALESCE(s.total_score, 0) as total_score,
@@ -11,7 +14,7 @@ SELECT
   s.impact_score
 FROM teams t
 LEFT JOIN scorecards s ON t.id = s.team_id
-ORDER BY s.total_score DESC NULLS LAST, t.team_name ASC;
+ORDER BY COALESCE(s.total_score, 0) DESC, t.team_name ASC;
 
 -- Grant access to the view
 GRANT SELECT ON leaderboard_view TO authenticated;
