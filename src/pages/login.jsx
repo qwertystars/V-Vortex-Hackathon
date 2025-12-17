@@ -51,17 +51,47 @@ export default function Login({ setTransition }) {
     e.preventDefault();
 
     try {
-      // 1. Verify team exists with this email
-      const { data: team, error: teamError } = await supabase
-        .from('teams')
-        .select('id, team_name, lead_email')
-        .eq('team_name', teamName)
-        .eq('lead_email', email)
-        .single();
+      // 1. Verify team exists with this email (different checks for leader vs member)
+      let team = null;
+      if (role === "Team Leader") {
+        const { data: t, error: teamError } = await supabase
+          .from('teams')
+          .select('id, team_name, lead_email')
+          .eq('team_name', teamName)
+          .eq('lead_email', email)
+          .single();
 
-      if (teamError || !team) {
-        alert('❌ Team not found. Please check your team name and email.');
-        return;
+        if (teamError || !t) {
+          alert('❌ Team not found or leader email mismatch. Please check your team name and email.');
+          return;
+        }
+
+        team = t;
+      } else {
+        // Team Member login - verify member exists and belongs to the team
+        const { data: member, error: memberError } = await supabase
+          .from('team_members')
+          .select('team_id')
+          .eq('member_email', email)
+          .single();
+
+        if (memberError || !member) {
+          alert('❌ Member not found. Please check your member email.');
+          return;
+        }
+
+        const { data: t, error: teamError2 } = await supabase
+          .from('teams')
+          .select('id, team_name')
+          .eq('id', member.team_id)
+          .single();
+
+        if (teamError2 || !t || t.team_name !== teamName) {
+          alert('❌ Team name does not match the member account. Please check the team name.');
+          return;
+        }
+
+        team = t;
       }
 
       // 2. Send OTP to email using Supabase Auth
@@ -77,9 +107,10 @@ export default function Login({ setTransition }) {
         return;
       }
 
-      // 3. Store email in sessionStorage for OTP verification page
+      // 3. Store email and role in sessionStorage for OTP verification page
       sessionStorage.setItem('loginEmail', email);
       sessionStorage.setItem('teamId', team.id);
+      sessionStorage.setItem('role', role);
       
       // 4. Show success modal
       setShowModal(true);
