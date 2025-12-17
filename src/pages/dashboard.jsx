@@ -15,6 +15,13 @@ export default function TeamDashboard() {
   const [time, setTime] = useState("");
   const [activeTab, setActiveTab] = useState("vortex");
   const [showSidebar, setShowSidebar] = useState(false);
+  
+  // Calculated stats
+  const myRank = leaderboard.find(row => row.team_name === team?.team_name)?.position ?? "—";
+  const totalTeams = leaderboard.length;
+  const topScore = leaderboard[0]?.score ?? 0;
+  const myScore = scorecard?.total_score ?? 0;
+  const gapToAlpha = myRank === 1 ? 0 : Math.max(0, topScore - myScore);
 
 
   /* ===============================
@@ -224,7 +231,7 @@ export default function TeamDashboard() {
               <div className="statsGrid">
                 <div className="statCard">
                   <div className="statLabel">TACTICAL RANK</div>
-                  <div className="statValue">02 <span className="statSub">/150</span></div>
+                  <div className="statValue">{myRank} <span className="statSub">/{totalTeams}</span></div>
                 </div>
                 <div className="statCard">
                   <div className="statLabel">ACCUMULATED DATA</div>
@@ -232,7 +239,7 @@ export default function TeamDashboard() {
                 </div>
                 <div className="statCard">
                   <div className="statLabel">GAP TO ALPHA</div>
-                  <div className="statValue">91 <span className="statSub">PTS</span></div>
+                  <div className="statValue">{gapToAlpha} <span className="statSub">PTS</span></div>
                 </div>
               </div>
 
