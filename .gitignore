@@ -24,3 +24,5 @@ dist-ssr
 *.sw?
 *.vercel
 *.env
+# Claude Code and AI-related files
+CLAUDE.md
