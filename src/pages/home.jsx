@@ -44,7 +44,7 @@ export default function Home({ setTransition }) {
     },
     r2: {
       title: "ROUND 2: CONSTRUCTION",
-      desc: "The hackathon will commence offline at VIT Chennai on January 9, 2025 from 9 AM onwards. Participants are requested to report to MG Auditorium before 8:30 AM in order to facilitate smooth registrations!!! You must have paid the VIT Chennai Event Venue Entry Fee via https://eventhubcc.vit.ac.in/",
+      desc: "The hackathon will commence offline at VIT Chennai on January 9, 2025 from 9 AM onwards. Participants are requested to report to MG Auditorium before 8:30 AM in order to facilitate smooth registrations!!!",
       blocks: {
         Rules: ["No pre-written code", "Any tech stack allowed", "Mentors available"],
         Evaluation: ["Working Prototype (35%)", "Code Quality (25%)", "UX/UI (20%)"],
@@ -402,6 +402,7 @@ export default function Home({ setTransition }) {
     </div>
   );
 }
+
 
 
 
