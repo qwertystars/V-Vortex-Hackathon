@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../supabaseClient";
+import authService from "../services/authService";
+import { useToast } from "../components/ui/CyberpunkToast";
+import CyberpunkLoader from "../components/ui/CyberpunkLoader";
 import "../styles/login.css";
 import logo from "/logo.jpg";
 
-export default function Login({ setTransition }) {
+export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
@@ -12,8 +14,12 @@ export default function Login({ setTransition }) {
   const [role, setRole] = useState("Team Leader");
   const [showModal, setShowModal] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingStage, setLoadingStage] = useState("");
+  const [formErrors, setFormErrors] = useState({});
 
   const modalRef = useRef(null);
+  const { success, error, warning } = useToast();
 
   // Mobile detection
   useEffect(() => {
@@ -47,76 +53,119 @@ export default function Login({ setTransition }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [showModal, handleModalOk]);
 
+  // Form validation
+  const validateForm = () => {
+    const errors = {};
+
+    if (!email.trim()) {
+      errors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errors.email = 'Invalid email format';
+    }
+
+    if (!teamName.trim()) {
+      errors.teamName = 'Team name is required';
+    }
+
+    if (!role.trim()) {
+      errors.role = 'Please select a role';
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!validateForm()) {
+      warning('Please fix the form errors');
+      return;
+    }
+
+    setIsLoading(true);
+    setLoadingStage("Verifying credentials...");
+
     try {
-      // 1. Verify team exists with this email (different checks for leader vs member)
-      let team = null;
-      if (role === "Team Leader") {
-        const { data: t, error: teamError } = await supabase
-          .from('teams')
-          .select('id, team_name, lead_email')
-          .eq('team_name', teamName)
-          .eq('lead_email', email)
-          .single();
+      // Use optimized authService for verification
+      setLoadingStage("Authenticating team access...");
 
-        if (teamError || !t) {
-          alert('❌ Team not found or leader email mismatch. Please check your team name and email.');
-          return;
+      const result = await authService.verifyTeamAndMember(
+        teamName.trim(),
+        email.trim().toLowerCase(),
+        role.toLowerCase().replace(' ', '_')
+      );
+
+      setLoadingStage("Dispatching authentication code...");
+
+      // Send OTP using optimized service
+      const otpResult = await authService.sendOTP(
+        email.trim().toLowerCase(),
+        {
+          userData: {
+            team_id: result.team.id,
+            role: role.toLowerCase().replace(' ', '_'),
+            team_name: result.team.team_name
+          }
         }
+      );
 
-        team = t;
-      } else {
-        // Team Member login - verify member exists and belongs to the team
-        const { data: member, error: memberError } = await supabase
-          .from('team_members')
-          .select('team_id')
-          .eq('member_email', email)
-          .single();
+      setLoadingStage("Securing session...");
 
-        if (memberError || !member) {
-          alert('❌ Member not found. Please check your member email.');
-          return;
-        }
-
-        const { data: t, error: teamError2 } = await supabase
-          .from('teams')
-          .select('id, team_name')
-          .eq('id', member.team_id)
-          .single();
-
-        if (teamError2 || !t || t.team_name !== teamName) {
-          alert('❌ Team name does not match the member account. Please check the team name.');
-          return;
-        }
-
-        team = t;
-      }
-
-      // 2. Send OTP to email using Supabase Auth
-      const { error: otpError } = await supabase.auth.signInWithOtp({
-        email: email,
-        options: {
-          shouldCreateUser: true,
-        }
-      });
-
-      if (otpError) {
-        alert(`❌ Failed to send OTP: ${otpError.message}`);
-        return;
-      }
-
-      // 3. Store email and role in sessionStorage for OTP verification page
-      sessionStorage.setItem('loginEmail', email);
-      sessionStorage.setItem('teamId', team.id);
+      // Store session data for OTP page
+      sessionStorage.setItem('loginEmail', email.trim().toLowerCase());
+      sessionStorage.setItem('teamId', result.team.id);
       sessionStorage.setItem('role', role);
-      
-      // 4. Show success modal
-      setShowModal(true);
-    } catch (error) {
-      console.error('Login error:', error);
-      alert('❌ An error occurred. Please try again.');
+      sessionStorage.setItem('memberEmail', email.trim().toLowerCase());
+      sessionStorage.setItem('memberRole', role.toLowerCase().replace(' ', '_'));
+
+      setLoadingStage("");
+      setIsLoading(false);
+
+      // Show success feedback
+      success(otpResult.message);
+
+      // Brief delay before navigation for better UX
+      setTimeout(() => {
+        setShowModal(true);
+      }, 500);
+
+    } catch (err) {
+      console.error('Login error:', err);
+      setLoadingStage("");
+      setIsLoading(false);
+
+      // Provide specific error messages
+      if (err.message.includes('credentials')) {
+        error('Invalid credentials: Email does not match team records');
+      } else if (err.message.includes('Team not found')) {
+        error('Team not found. Please check your team name and try again.');
+      } else if (err.message.includes('Member not found')) {
+        error('Member not found. Please check your member email.');
+      } else if (err.message.includes('OTP')) {
+        error('Failed to send authentication code. Please try again.');
+      } else {
+        error('Authentication failed. Please try again.');
+      }
+    }
+  };
+
+  // Handle input changes with immediate validation feedback
+  const handleInputChange = (field, value) => {
+    setFormErrors(prev => ({ ...prev, [field]: '' }));
+
+    switch(field) {
+      case 'email':
+        setEmail(value);
+        break;
+      case 'teamName':
+        setTeamName(value);
+        break;
+      case 'role':
+        setRole(value);
+        break;
+      default:
+        break;
     }
   };
 
@@ -138,15 +187,15 @@ export default function Login({ setTransition }) {
     <>
       {/* TOP MARQUEE - FIXED */}
       <div className="marquee-bar">
-        <div className="marquee-track">
-          <span>
-            ⚡ 24 HOURS TO LEGENDARY STATUS • CODE LIKE YOUR DREAMS DEPEND ON IT • BUILD THE IMPOSSIBLE • SLEEP IS FOR THE WEAK • YOUR SQUAD, YOUR LEGACY • BREAK LIMITS, NOT RULES • INNOVATION NEVER SLEEPS •
-          </span>
-          <span aria-hidden="true">
-            ⚡ 24 HOURS TO LEGENDARY STATUS • CODE LIKE YOUR DREAMS DEPEND ON IT • BUILD THE IMPOSSIBLE • SLEEP IS FOR THE WEAK • YOUR SQUAD, YOUR LEGACY • BREAK LIMITS, NOT RULES • INNOVATION NEVER SLEEPS •
-          </span>
-        </div>
+      <div className="marquee-track">
+        <span>
+          ⚡ 24 HOURS TO LEGENDARY STATUS • CODE LIKE YOUR DREAMS DEPEND ON IT • BUILD THE IMPOSSIBLE • SLEEP IS FOR THE WEAK • YOUR SQUAD, YOUR LEGACY • BREAK LIMITS, NOT RULES • INNOVATION NEVER SLEEPS •
+        </span>
+        <span aria-hidden="true">
+          ⚡ 24 HOURS TO LEGENDARY STATUS • CODE LIKE YOUR DREAMS DEPEND ON IT • BUILD THE IMPOSSIBLE • SLEEP IS FOR THE WEAK • YOUR SQUAD, YOUR LEGACY • BREAK LIMITS, NOT RULES • INNOVATION NEVER SLEEPS •
+        </span>
       </div>
+    </div>
 
       <div className={`loginWrapper ${isMobile ? 'mobile' : ''}`}>
         {/* LOGIN BOX */}
@@ -173,29 +222,37 @@ export default function Login({ setTransition }) {
           <form onSubmit={handleSubmit}>
             <label className="fieldLabel">▸ WARRIOR CLASS</label>
             <select
-              className="inputField"
+              className={`inputField ${formErrors.role ? 'error' : ''}`}
               value={role}
-              onChange={(e) => setRole(e.target.value)}
+              onChange={(e) => handleInputChange('role', e.target.value)}
               required
+              disabled={isLoading}
             >
               <option value="Team Leader">Team Leader</option>
               <option value="Team Member">Team Member</option>
             </select>
             <p className="helper">– Your designation in the squad</p>
+            {formErrors.role && (
+              <p className="error-message">{formErrors.role}</p>
+            )}
 
             <label className="fieldLabel">
               {role === "Team Leader" ? "▸ TEAM LEADER EMAIL ID" : "▸ MEMBER EMAIL ID"}
             </label>
             <input
-              className="inputField"
+              className={`inputField ${formErrors.email ? 'error' : ''}`}
               type="email"
               placeholder="champion@institute.edu"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => handleInputChange('email', e.target.value)}
               autoComplete="email"
               required
+              disabled={isLoading}
             />
             <p className="helper">– Your official battle credentials</p>
+            {formErrors.email && (
+              <p className="error-message">{formErrors.email}</p>
+            )}
 
             <label className="fieldLabel">
               {role === "Team Leader" ? "▸ TEAM LEADER NAME" : "▸ MEMBER NAME"}
@@ -207,23 +264,43 @@ export default function Login({ setTransition }) {
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
+              disabled={isLoading}
             />
             <p className="helper">– Your battle identity</p>
 
             <label className="fieldLabel">▸ TEAM CALL SIGN (TEAM NAME)</label>
             <input
-              className="inputField"
+              className={`inputField ${formErrors.teamName ? 'error' : ''}`}
               placeholder="Enter your legendary squad name"
               value={teamName}
-              onChange={(e) => setTeamName(e.target.value)}
+              onChange={(e) => handleInputChange('teamName', e.target.value)}
               required
+              disabled={isLoading}
             />
             <p className="helper">
               – The name that will echo through V-VORTEX history
             </p>
+            {formErrors.teamName && (
+              <p className="error-message">{formErrors.teamName}</p>
+            )}
 
-            <button className="submitBtn" type="submit">
-              <span>⚡ ENTER THE ARENA • SEND BATTLE CODE ⚡</span>
+            <button
+              className={`submitBtn ${isLoading ? 'loading' : ''}`}
+              type="submit"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <span className="btn-content">
+                  <CyberpunkLoader
+                    message={loadingStage || "PROCESSING..."}
+                    type="dots"
+                    inline={true}
+                    size="small"
+                  />
+                </span>
+              ) : (
+                <span>⚡ ENTER THE ARENA • SEND BATTLE CODE ⚡</span>
+              )}
             </button>
           </form>
         </div>

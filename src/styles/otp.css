@@ -234,3 +234,67 @@
   border-radius: 50%;
   box-shadow: 0 0 8px cyan;
 }
+
+/* OTP Error and Loading States */
+.otpInput.error {
+  border-color: #ff2fe6 !important;
+  box-shadow: 0 0 20px rgba(255, 47, 230, 0.5) !important;
+  background: rgba(255, 47, 230, 0.1) !important;
+  animation: errorPulse 1s ease-in-out infinite;
+}
+
+.otp-error {
+  color: #ff2fe6;
+  font-size: 12px;
+  margin: 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: bold;
+  text-align: center;
+  animation: errorPulse 2s ease-in-out infinite;
+}
+
+@keyframes errorPulse {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; text-shadow: 0 0 10px currentColor; }
+}
+
+.otpInput:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: rgba(0, 0, 0, 0.3) !important;
+}
+
+.verifyBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.verifyBtn.ready {
+  animation: readyPulse 2s ease-in-out infinite;
+}
+
+@keyframes readyPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 20px rgba(0, 247, 255, 0.3);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 0 30px rgba(0, 247, 255, 0.6);
+  }
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  min-height: 60px;
+}
+
+.backBtn:active {
+  transform: scale(0.95);
+}

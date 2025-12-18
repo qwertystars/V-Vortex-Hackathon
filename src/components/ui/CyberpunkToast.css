@@ -1,0 +1,244 @@
+/* CyberpunkToast CSS */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 400px;
+  width: 100%;
+}
+
+.cyberpunk-toast {
+  background: rgba(10, 4, 14, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+  transform: translateX(100%);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+
+.cyberpunk-toast.visible {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.cyberpunk-toast.exiting {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+/* Type-specific styling */
+.toast-success {
+  border-color: #00ff88;
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+}
+
+.toast-success .toast-icon {
+  color: #00ff88;
+  text-shadow: 0 0 10px currentColor;
+}
+
+.toast-error {
+  border-color: #ff2fe6;
+  box-shadow: 0 0 20px rgba(255, 47, 230, 0.3);
+}
+
+.toast-error .toast-icon {
+  color: #ff2fe6;
+  text-shadow: 0 0 10px currentColor;
+}
+
+.toast-warning {
+  border-color: #ffaa00;
+  box-shadow: 0 0 20px rgba(255, 170, 0, 0.3);
+}
+
+.toast-warning .toast-icon {
+  color: #ffaa00;
+  text-shadow: 0 0 10px currentColor;
+}
+
+.toast-info {
+  border-color: #00e6ff;
+  box-shadow: 0 0 20px rgba(0, 230, 255, 0.3);
+}
+
+.toast-info .toast-icon {
+  color: #00e6ff;
+  text-shadow: 0 0 10px currentColor;
+}
+
+/* Toast content */
+.toast-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  position: relative;
+  z-index: 2;
+}
+
+.toast-icon {
+  font-size: 18px;
+  font-weight: bold;
+  min-width: 24px;
+  text-align: center;
+  margin-top: 2px;
+}
+
+.toast-message {
+  flex: 1;
+  color: #e8fefe;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.toast-description {
+  color: #bfeffb;
+  font-size: 12px;
+  margin-top: 4px;
+  opacity: 0.8;
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  color: #bfeffb;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 8px;
+  opacity: 0.6;
+  transition: opacity 0.2s, color 0.2s;
+  line-height: 1;
+}
+
+.toast-close:hover {
+  opacity: 1;
+  color: #00e6ff;
+}
+
+/* Progress bar */
+.toast-progress {
+  position: relative;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.toast-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #00e6ff, #ff2fe6);
+  animation: progressBar linear;
+  transform-origin: left;
+}
+
+@keyframes progressBar {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+/* Glitch effect */
+.toast-glitch {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(0, 230, 255, 0.1), transparent);
+  opacity: 0;
+  animation: toastGlitch 4s infinite;
+  pointer-events: none;
+}
+
+@keyframes toastGlitch {
+  0%, 100% { opacity: 0; }
+  10%, 15% { opacity: 0.3; transform: translateX(-2px); }
+  20%, 25% { opacity: 0.2; transform: translateX(2px); }
+}
+
+/* Scanline effect */
+.cyberpunk-toast::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 230, 255, 0.5), transparent);
+  animation: scanline 3s linear infinite;
+}
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .toast-container {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    max-width: none;
+  }
+
+  .toast-content {
+    padding: 12px;
+  }
+
+  .toast-message {
+    font-size: 13px;
+  }
+
+  .toast-description {
+    font-size: 11px;
+  }
+}
+
+/* Stacking multiple toasts */
+.cyberpunk-toast:nth-child(1) { z-index: 100; }
+.cyberpunk-toast:nth-child(2) { z-index: 99; }
+.cyberpunk-toast:nth-child(3) { z-index: 98; }
+.cyberpunk-toast:nth-child(4) { z-index: 97; }
+.cyberpunk-toast:nth-child(n+5) {
+  display: none; /* Hide toasts beyond 4 */
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .cyberpunk-toast {
+    background: rgba(5, 2, 8, 0.98);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .cyberpunk-toast {
+    transition: opacity 0.3s ease;
+  }
+
+  .toast-glitch,
+  .toast-progress-bar,
+  .cyberpunk-toast::before {
+    animation: none;
+  }
+
+  .toast-progress-bar {
+    transform: scaleX(1);
+    transition: transform 0.3s linear;
+  }
+}

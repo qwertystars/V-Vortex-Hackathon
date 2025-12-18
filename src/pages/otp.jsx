@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
-import { supabase } from "../supabaseClient";
+import authService from "../services/authService";
+import { useToast } from "../components/ui/CyberpunkToast";
+import CyberpunkLoader from "../components/ui/CyberpunkLoader";
 import "../styles/otp.css";
 import VortexBackground from "../components/VortexBackground";
 import logo from "/logo.jpg";
@@ -8,73 +10,120 @@ import { useNavigate } from "react-router-dom";
 export default function OTP({ setTransition }) {
   const [otp, setOtp] = useState("");
   const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingStage, setLoadingStage] = useState("");
+  const [otpError, setOtpError] = useState("");
   const navigate = useNavigate();
+  const { success, error, warning } = useToast();
 
   // Get email from sessionStorage
   useEffect(() => {
     const storedEmail = sessionStorage.getItem('loginEmail');
     if (!storedEmail) {
-      alert('❌ No login session found. Please login again.');
+      error('No login session found. Please login again.');
       navigate('/login');
       return;
     }
     setEmail(storedEmail);
-  }, [navigate]);
+  }, [navigate, error]);
 
   const handleVerify = async (e) => {
     e.preventDefault();
 
+    // Reset error state
+    setOtpError("");
+
     if (otp.length !== 6) {
-      alert("⚠ INVALID BATTLE CODE • MUST BE 6 DIGITS ⚠");
+      setOtpError("Invalid battle code: Must be exactly 6 digits");
+      warning('Battle code must be exactly 6 digits');
       return;
     }
 
+    setIsLoading(true);
+    setLoadingStage("Verifying battle code...");
+
     try {
-      // Verify OTP with Supabase
-      const { data, error } = await supabase.auth.verifyOtp({
-        email: email,
-        token: otp,
-        type: 'email'
+      // Use optimized authService for OTP verification
+      setLoadingStage("Authenticating credentials...");
+
+      const result = await authService.verifyOTP(email, otp, {
+        type: 'email',
+        createProfile: true
       });
 
-      if (error) {
-        alert(`❌ INVALID CODE: ${error.message}`);
-        return;
-      }
+      setLoadingStage("Initializing secure session...");
 
-      // OTP verified successfully
-      alert("🔥 AUTH VERIFIED • WELCOME TO THE VORTEX CHAMPION 🔥");
-
-      // Clear login email from session storage
-      sessionStorage.removeItem('loginEmail');
-      
+      // Get session data
       const role = sessionStorage.getItem('role') || 'Team Leader';
-      sessionStorage.removeItem('role');
-
-      // Get team ID (may be needed for dashboard)
       const teamId = sessionStorage.getItem('teamId');
+
+      // Clean up session storage
+      sessionStorage.removeItem('loginEmail');
+      sessionStorage.removeItem('role');
       sessionStorage.removeItem('teamId');
 
       // Decide destination based on role
       const destination = role === 'Team Member' ? '/member' : `/dashboard/${teamId}`;
 
-      if (setTransition) {
-        setTransition(
-          <div className="otpTransition">
-            <span>Entering The Vortex...</span>
-          </div>
-        );
+      setLoadingStage("Entering The Vortex...");
 
-        setTimeout(() => {
-          setTransition(null);
+      // Show success message
+      success(result.message);
+
+      // Brief delay for better UX before navigation
+      setTimeout(() => {
+        if (setTransition) {
+          setTransition(
+            <div className="otpTransition">
+              <CyberpunkLoader
+                message="Entering The Vortex..."
+                type="pulse"
+                fullscreen={true}
+                size="large"
+              />
+            </div>
+          );
+
+          setTimeout(() => {
+            setTransition(null);
+            navigate(destination);
+          }, 2000);
+        } else {
           navigate(destination);
-        }, 1200);
+        }
+      }, 1000);
+
+    } catch (err) {
+      console.error('OTP verification error:', err);
+      setLoadingStage("");
+      setIsLoading(false);
+
+      // Provide specific error messages
+      if (err.message.includes('invalid') || err.message.includes('Invalid')) {
+        setOtpError("Invalid battle code: Please check and try again");
+        error('Invalid authentication code. Please check your email and try again.');
+      } else if (err.message.includes('expired')) {
+        setOtpError("Battle code expired: Please request a new one");
+        error('Authentication code has expired. Please login again to get a new code.');
       } else {
-        navigate(destination);
+        setOtpError("Verification failed: Please try again");
+        error('Verification failed. Please try again or contact support.');
       }
-    } catch (error) {
-      console.error('OTP verification error:', error);
-      alert('❌ An error occurred. Please try again.');
+    }
+  };
+
+  // Handle OTP input with validation
+  const handleOtpChange = (e) => {
+    const value = e.target.value.replace(/\D/g, ''); // Only allow digits
+    setOtp(value.slice(0, 6)); // Limit to 6 digits
+    setOtpError(""); // Clear error when user types
+  };
+
+  // Handle backspace key for OTP input
+  const handleKeyDown = (e) => {
+    if (e.key === 'Backspace' && otp.length === 0) {
+      // Allow navigation back to login if OTP is empty
+      navigate('/login');
     }
   };
 
@@ -126,20 +175,47 @@ export default function OTP({ setTransition }) {
         <form onSubmit={handleVerify}>
           <label className="fieldLabel">▸ BATTLE AUTH CODE</label>
           <input
-            className="otpInput"
+            className={`otpInput ${otpError ? 'error' : ''}`}
             placeholder="XXXXXX"
             maxLength={6}
             value={otp}
-            onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+            onChange={handleOtpChange}
+            onKeyDown={handleKeyDown}
+            disabled={isLoading}
+            autoComplete="one-time-code"
+            autoFocus
           />
+
+          {otpError && (
+            <p className="otp-error">{otpError}</p>
+          )}
 
           <p className="helper">– Found in your mission control center</p>
 
-          <button className="verifyBtn">🌀 VERIFY & DIVE INTO THE VORTEX 🌀</button>
+          {isLoading ? (
+            <div className="loading-container">
+              <CyberpunkLoader
+                message={loadingStage || "VERIFYING..."}
+                type="spinner"
+                inline={true}
+                size="small"
+              />
+            </div>
+          ) : (
+            <button
+              type="submit"
+              className={`verifyBtn ${otp.length === 6 ? 'ready' : ''}`}
+              disabled={otp.length !== 6}
+            >
+              🌀 VERIFY & DIVE INTO THE VORTEX 🌀
+            </button>
+          )}
 
-          <div className="backBtn" onClick={() => navigate("/login")}>
-            ⟨ REGROUP • GO BACK ⟩
-          </div>
+          {!isLoading && (
+            <div className="backBtn" onClick={() => navigate("/login")}>
+              ⟨ REGROUP • GO BACK ⟩
+            </div>
+          )}
         </form>
       </div>
 
