@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../supabaseClient";
+// import { supabase } from "../supabaseClient";
 import "../styles/login.css";
 import logo from "/logo.jpg";
 
@@ -52,7 +52,9 @@ export default function Login({ setTransition }) {
 
     try {
       // 1. Verify team exists with this email (different checks for leader vs member)
-      let team = null;
+      let team = { id: 'mock-team-id', team_name: teamName }; // MOCK TEAM
+      
+      /* MOCK REPLACEMENT FOR SUPABASE
       if (role === "Team Leader") {
         const { data: t, error: teamError } = await supabase
           .from('teams')
@@ -106,6 +108,9 @@ export default function Login({ setTransition }) {
         alert(`❌ Failed to send OTP: ${otpError.message}`);
         return;
       }
+      */
+      
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Mock delay
 
       // 3. Store email and role in sessionStorage for OTP verification page
       sessionStorage.setItem('loginEmail', email);

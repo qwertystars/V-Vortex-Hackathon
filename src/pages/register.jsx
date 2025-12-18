@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../supabaseClient";
+// import { supabase } from "../supabaseClient";
 import "../styles/register.css";
 import logo from "/logo.jpg";
 import submitSfxFile from "/vortex_music.m4a";
@@ -235,21 +235,23 @@ export default function Register() {
 
     try {
       setSubmitMessage("📡 Transmitting team data...");
-      const { error } = await supabase.functions.invoke("register-team", {
-        body: {
-          teamName,
-          teamSize,
-          isVitChennai,
-          eventHubId: isVitChennai === "no" ? eventHubId : null,
-          leaderName,
-          leaderReg: isVitChennai === "yes" ? leaderReg : null,
-          leaderEmail,
-          receiptLink,
-          members,
-        },
-      });
+      // MOCK REPLACEMENT FOR SUPABASE
+      // const { error } = await supabase.functions.invoke("register-team", {
+      //   body: {
+      //     teamName,
+      //     teamSize,
+      //     isVitChennai,
+      //     eventHubId: isVitChennai === "no" ? eventHubId : null,
+      //     leaderName,
+      //     leaderReg: isVitChennai === "yes" ? leaderReg : null,
+      //     leaderEmail,
+      //     receiptLink,
+      //     members,
+      //   },
+      // });
+      await new Promise(resolve => setTimeout(resolve, 1500)); // Mock network delay
 
-      if (error) throw error;
+      // if (error) throw error;
 
       setSubmitMessage("✅ Registration successful! Entering the VORTEX...");
 

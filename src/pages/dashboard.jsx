@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { supabase } from "../supabaseClient";
+// import { supabase } from "../supabaseClient";
 import "../styles/dashboard.css";
 import logo from "/logo.jpg";
 
@@ -29,29 +29,44 @@ export default function TeamDashboard() {
   =============================== */
   useEffect(() => {
     const init = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      // MOCK REPLACEMENT FOR SUPABASE
+      // const { data: { user } } = await supabase.auth.getUser();
+      const user = { id: 'mock-user-id' }; // Mock user
       if (!user) {
         navigate("/login");
         return;
       }
 
       try {
-        const { data: teamData } = await supabase
-          .from("teams")
-          .select("*")
-          .eq("id", teamId)
-          .single();
+        // const { data: teamData } = await supabase
+        //   .from("teams")
+        //   .select("*")
+        //   .eq("id", teamId)
+        //   .single();
+        const teamData = {
+          id: teamId || "123",
+          team_name: "CyberNinjas",
+          lead_name: "Neo",
+        };
 
-        const { data: scoreData } = await supabase
-          .from("scorecards")
-          .select("*")
-          .eq("team_id", teamId)
-          .single();
+        // const { data: scoreData } = await supabase
+        //   .from("scorecards")
+        //   .select("*")
+        //   .eq("team_id", teamId)
+        //   .single();
+        const scoreData = {
+          total_score: 1500,
+        };
 
-        const { data: leaderboardData } = await supabase
-          .from("leaderboard_view")
-          .select("*")
-          .order("position", { ascending: true });
+        // const { data: leaderboardData } = await supabase
+        //   .from("leaderboard_view")
+        //   .select("*")
+        //   .order("position", { ascending: true });
+        const leaderboardData = [
+           { team_name: "CyberNinjas", score: 1500, position: 1, delta: 100 },
+           { team_name: "CodeWarriors", score: 1200, position: 2, delta: 50 },
+           { team_name: "ByteBusters", score: 900, position: 3, delta: -20 },
+        ];
 
         setTeam(teamData);
         setScorecard(scoreData || null);
@@ -87,7 +102,7 @@ export default function TeamDashboard() {
      LOGOUT
   =============================== */
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    // await supabase.auth.signOut();
     navigate("/");
   };
 

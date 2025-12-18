@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "../supabaseClient";
+// import { supabase } from "../supabaseClient";
 import "../styles/otp.css";
 import VortexBackground from "../components/VortexBackground";
 import logo from "/logo.jpg";
@@ -31,11 +31,14 @@ export default function OTP({ setTransition }) {
 
     try {
       // Verify OTP with Supabase
-      const { data, error } = await supabase.auth.verifyOtp({
-        email: email,
-        token: otp,
-        type: 'email'
-      });
+      // MOCK REPLACEMENT FOR SUPABASE
+      // const { data, error } = await supabase.auth.verifyOtp({
+      //   email: email,
+      //   token: otp,
+      //   type: 'email'
+      // });
+      await new Promise(resolve => setTimeout(resolve, 800)); // Mock delay
+      const error = null;
 
       if (error) {
         alert(`❌ INVALID CODE: ${error.message}`);
