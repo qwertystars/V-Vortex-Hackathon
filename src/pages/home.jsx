@@ -203,7 +203,9 @@ export default function Home({ setTransition }) {
             </div>
             <div className="info-card">
               <h3>📅 DATES</h3>
-              <p>8th - 9th January</p>
+              <p>07th Jan 2026 - 08th Jan 2026 -- IdeaVortex</p>
+              <p>09th Jan 2026 - 10th Jan 2026 -- HackVortex</p>
+              <p>10th Jan 2026 -- PitchVortex</p>
             </div>
             <div className="info-card">
               <h3>⚡LEVEL</h3>
@@ -402,6 +404,7 @@ export default function Home({ setTransition }) {
     </div>
   );
 }
+
 
 
 
