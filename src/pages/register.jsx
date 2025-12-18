@@ -204,10 +204,10 @@ export default function Register() {
     }
 
     setIsSubmitting(true);
-    setSubmitMessage("🔄 Connecting to V-VORTEX servers...");
+    setSubmitMessage("⚡ Connecting to V-VORTEX mainframe...");
 
     try {
-      setSubmitMessage("📡 Transmitting team data...");
+      setSubmitMessage("🔥 Your legion is being forged in digital fire...");
       const { error } = await supabase.functions.invoke("register-team", {
         body: {
           teamName,
@@ -222,7 +222,7 @@ export default function Register() {
 
       if (error) throw error;
 
-      setSubmitMessage("✅ Registration successful! Entering the VORTEX...");
+      setSubmitMessage("✅ LEGION REGISTERED! Prepare for battle...");
 
       if (submitSfxRef.current) {
         submitSfxRef.current.currentTime = 0;
@@ -284,32 +284,32 @@ export default function Register() {
               <div className="logo-placeholder">
                 <img src={logo} alt="V-VORTEX logo" className="logo-img" />
               </div>
-              <div className="tagline">Lead Your Squad</div>
+              <div className="tagline">Commander Registration Portal</div>
               <div className="title">V-VORTEX</div>
               <p className="subtitle">
-                You are the commander. Rally your warriors. The vortex awaits those who dare to innovate.
+                You stand at the threshold of legends. As commander, you will forge warriors into champions. Rally your elite squad and breach the vortex. Greatness is not given—it is seized.
               </p>
             </div>
 
             <ul className="bullet-list">
-              <li>Forge your team's identity in the digital battleground.</li>
-              <li>Lead with vision. Command with purpose.</li>
-              <li>Only the bold enter. Only the brave survive.</li>
+              <li>Every empire begins with a single command. This is yours.</li>
+              <li>Lead with fire. Code with fury. Conquer with innovation.</li>
+              <li>The vortex devours the weak. Only legends emerge victorious.</li>
             </ul>
           </aside>
 
           <section className="panel">
             <form id="teamForm" onSubmit={handleSubmit}>
-              <div className="section-label">Your Battle Identity</div>
+              <div className="section-label">⚔️ Forge Your Legion's Identity</div>
 
               <div className="field">
-                <label htmlFor="teamName">Team name</label>
+                <label htmlFor="teamName">Legion Name</label>
                 <input
                   id="teamName"
                   name="teamName"
                   type="text"
                   className="input-base"
-                  placeholder="e.g. Quantum Overdrive"
+                  placeholder="e.g. Quantum Reapers, Code Titans, Digital Warlords"
                   required
                 />
               </div>
@@ -367,30 +367,30 @@ export default function Register() {
               )}
 
               <div className="section-label" style={{ marginTop: "0.6rem" }}>
-                Commander Details
+                🛡️ Commander Credentials
               </div>
 
               <div className="field-row">
                 <div className="field">
-                  <label htmlFor="leaderName">Commander name</label>
+                  <label htmlFor="leaderName">Your Name, Commander</label>
                   <input
                     id="leaderName"
                     name="leaderName"
                     type="text"
                     className="input-base"
-                    placeholder="Full name"
+                    placeholder="The one who leads the charge"
                     required
                   />
                 </div>
                 {isVitChennai === "yes" && (
                   <div className="field">
-                    <label htmlFor="leaderReg">Commander registration no.</label>
+                    <label htmlFor="leaderReg">Battle ID</label>
                     <input
                       id="leaderReg"
                       name="leaderReg"
                       type="text"
                       className="input-base"
-                      placeholder="VIT reg. no."
+                      placeholder="Your VIT warrior code"
                       required={isVitChennai === "yes"}
                     />
                   </div>
@@ -398,19 +398,19 @@ export default function Register() {
               </div>
 
               <div className="field">
-                <label htmlFor="leaderEmail">Commander Email Address</label>
+                <label htmlFor="leaderEmail">Command Center Contact</label>
                 <input
                   id="leaderEmail"
                   name="leaderEmail"
                   type="email"
                   className="input-base"
-                  placeholder="commander@institute.edu"
+                  placeholder="commander@warzone.com"
                   required
                 />
               </div>
 
               <div className="field">
-                <label htmlFor="receiptLink">Payment Receipt (Google Drive Link) *</label>
+                <label htmlFor="receiptLink">⚡ Battle Entry Pass (Payment Proof)</label>
                 <input
                   id="receiptLink"
                   name="receiptLink"
@@ -420,7 +420,7 @@ export default function Register() {
                   required
                 />
                 <p className="hint" style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: '#00ffff' }}>
-                  Upload your payment receipt to Google Drive and paste the shareable link here. Ensure the link is set to "Anyone with the link can view".
+                  Upload your payment receipt to Google Drive. Share the link with view access. This is your key to the battlefield.
                 </p>
               </div>
 
@@ -444,7 +444,7 @@ export default function Register() {
                 opacity: isSubmitting ? 0.6 : 1,
                 cursor: isSubmitting ? 'not-allowed' : 'pointer'
               }}>
-                {isSubmitting ? '⏳ Processing...' : '⚔️ CLAIM YOUR DESTINY'}
+                {isSubmitting ? '⚡ INITIALIZING...' : '⚔️ ENTER THE ARENA'}
               </button>
             </form>
           </section>
@@ -457,9 +457,9 @@ export default function Register() {
         ref={vortexMessageRef}
       >
         <div className="vortex-message-inner">
-          <h2>COMMANDER RECOGNIZED</h2>
+          <h2>🔥 COMMANDER INITIATED 🔥</h2>
           <p>
-            Your legion has been registered in the <strong>VORTEX</strong>. Now gather your warriors and prepare for <strong>battle</strong>. Victory awaits the bold.
+            Your <strong>LEGION</strong> has been inscribed in the annals of the VORTEX. The arena trembles at your approach. Assemble your warriors. The battle for <strong>GLORY</strong> begins now. <strong>VICTORY OR VALHALLA.</strong>
           </p>
         </div>
       </div>
