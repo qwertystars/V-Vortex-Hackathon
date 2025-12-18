@@ -39,15 +39,6 @@ export default function Register() {
     lastTime: 0,
   });
 
-  const [participants, setParticipants] = useState([]);
-
-  useEffect(() => {
-    const others = Math.max(0, teamSize - 1);
-    const arr = [];
-    for (let i = 1; i <= others; i++) arr.push({ name: "", reg: "", institution: "", email: "" });
-    setParticipants(arr);
-  }, [teamSize]);
-
   useEffect(() => {
     if (isVitChennai === "yes") {
       setEventHubId("");
@@ -190,14 +181,6 @@ export default function Register() {
     return () => document.removeEventListener("click", onDocClick);
   }, []);
 
-  const updateParticipant = (index, field, value) => {
-    setParticipants((prev) => {
-      const copy = [...prev];
-      copy[index] = { ...copy[index], [field]: value };
-      return copy;
-    });
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -212,13 +195,6 @@ export default function Register() {
     const leaderReg = formData.get("leaderReg");
     const leaderEmail = formData.get("leaderEmail");
     const receiptLink = formData.get("receiptLink");
-
-    const members = participants.map((p, i) => ({
-      name: formData.get(`memberName${i + 1}`),
-      email: formData.get(`memberEmail${i + 1}`),
-      reg: isVitChennai === "yes" ? formData.get(`memberReg${i + 1}`) : null,
-      institution: isVitChennai === "no" ? formData.get(`memberInstitution${i + 1}`) : null,
-    }));
 
     if (isVitChennai === "no" && !String(eventHubId || "").trim()) {
       alert("Please enter your VIT EventHub Unique ID.");
@@ -245,7 +221,6 @@ export default function Register() {
           leaderReg: isVitChennai === "yes" ? leaderReg : null,
           leaderEmail,
           receiptLink,
-          members,
         },
       });
 
@@ -438,23 +413,8 @@ export default function Register() {
                 />
               </div>
 
-              <div className="field">
-                <label htmlFor="receiptLink">Payment Receipt (Google Drive Link) *</label>
-                <input
-                  id="receiptLink"
-                  name="receiptLink"
-                  type="url"
-                  className="input-base"
-                  placeholder="https://drive.google.com/file/..."
-                  required
-                />
-                <p className="hint" style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: '#00ffff' }}>
-                  Upload your payment receipt to Google Drive and paste the shareable link here. Ensure the link is set to "Anyone with the link can view".
-                </p>
-              </div>
-
               <div className="section-label" style={{ marginTop: "0.8rem" }}>
-                Team size & members
+                Team size
               </div>
 
               <div className="team-size-row">
@@ -496,73 +456,22 @@ export default function Register() {
               </div>
 
               <p className="hint">
-                Leader is counted in team size. Maximum team size is 4. Add details for other members below.
+                Leader is counted in team size. Maximum team size is 4.
               </p>
 
-              <div className="participant-grid" id="participantsContainer">
-                {participants.map((p, i) => (
-                  <div className="participant-card" key={i}>
-                    <div className="participant-title">Member {i + 1}</div>
-
-                    <div className="field">
-                      <label htmlFor={`memberName${i + 1}`}>Name</label>
-                      <input
-                        id={`memberName${i + 1}`}
-                        name={`memberName${i + 1}`}
-                        type="text"
-                        className="input-base"
-                        placeholder="Full name"
-                        required
-                        value={participants[i]?.name || ""}
-                        onChange={(e) => updateParticipant(i, "name", e.target.value)}
-                      />
-                    </div>
-
-                    <div className="field">
-                      <label htmlFor={`memberEmail${i + 1}`}>Email</label>
-                      <input
-                        id={`memberEmail${i + 1}`}
-                        name={`memberEmail${i + 1}`}
-                        type="email"
-                        className="input-base"
-                        placeholder="member@institute.edu"
-                        required
-                        value={participants[i]?.email || ""}
-                        onChange={(e) => updateParticipant(i, "email", e.target.value)}
-                      />
-                    </div>
-
-                    {isVitChennai === "yes" ? (
-                      <div className="field">
-                        <label htmlFor={`memberReg${i + 1}`}>Registration no.</label>
-                        <input
-                          id={`memberReg${i + 1}`}
-                          name={`memberReg${i + 1}`}
-                          type="text"
-                          className="input-base"
-                          placeholder="VIT reg. no."
-                          required={isVitChennai === "yes"}
-                          value={participants[i]?.reg || ""}
-                          onChange={(e) => updateParticipant(i, "reg", e.target.value)}
-                        />
-                      </div>
-                    ) : (
-                      <div className="field">
-                        <label htmlFor={`memberInstitution${i + 1}`}>Institution</label>
-                        <input
-                          id={`memberInstitution${i + 1}`}
-                          name={`memberInstitution${i + 1}`}
-                          type="text"
-                          className="input-base"
-                          placeholder="College/University name"
-                          required={isVitChennai === "no"}
-                          value={participants[i]?.institution || ""}
-                          onChange={(e) => updateParticipant(i, "institution", e.target.value)}
-                        />
-                      </div>
-                    )}
-                  </div>
-                ))}
+              <div className="field">
+                <label htmlFor="receiptLink">Payment Receipt (Google Drive Link) *</label>
+                <input
+                  id="receiptLink"
+                  name="receiptLink"
+                  type="url"
+                  className="input-base"
+                  placeholder="https://drive.google.com/file/..."
+                  required
+                />
+                <p className="hint" style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: '#00ffff' }}>
+                  Upload your payment receipt to Google Drive and paste the shareable link here. Ensure the link is set to "Anyone with the link can view".
+                </p>
               </div>
 
               {isSubmitting && (
