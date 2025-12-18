@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import "../styles/login.css";
@@ -12,6 +12,8 @@ export default function Login({ setTransition }) {
   const [role, setRole] = useState("Team Leader");
   const [showModal, setShowModal] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState("");
 
   const modalRef = useRef(null);
 
@@ -23,11 +25,11 @@ export default function Login({ setTransition }) {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  const handleModalOk = (e) => {
+  const handleModalOk = useCallback((e) => {
     if (e && e.preventDefault) e.preventDefault();
     setShowModal(false);
     navigate("/otp");
-  };
+  }, [navigate]);
 
   const handleModalCancel = (e) => {
     if (e && e.preventDefault) e.preventDefault();
@@ -240,7 +242,7 @@ export default function Login({ setTransition }) {
               – The name that will echo through V-VORTEX history
             </p>
 
-            <button className="submitBtn" type="submit">
+            <button className="submitBtn" type="submit" disabled={isSubmitting}>
               <span>⚡ ENTER THE ARENA • SEND BATTLE CODE ⚡</span>
             </button>
           </form>

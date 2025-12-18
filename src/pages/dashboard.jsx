@@ -19,7 +19,7 @@ export default function TeamDashboard() {
   // Calculated stats
   const myRank = leaderboard.find(row => row.team_name === team?.team_name)?.position ?? "—";
   const totalTeams = leaderboard.length;
-  const topScore = leaderboard[0]?.score ?? 0;
+  const topScore = leaderboard[0]?.total_score ?? 0;
   const myScore = scorecard?.total_score ?? 0;
   const gapToAlpha = myRank === 1 ? 0 : Math.max(0, topScore - myScore);
 
@@ -174,6 +174,10 @@ export default function TeamDashboard() {
 
   if (loading) {
     return <div className="loading">SYNCING VORTEX DATA…</div>;
+  }
+
+  if (!team) {
+    return <div className="error">Failed to load team data</div>;
   }
 
   return (
@@ -361,7 +365,7 @@ export default function TeamDashboard() {
                       </div>
 
                       <div className="payload">
-                        <strong>{row.score}</strong>
+                        <strong>{row.total_score}</strong>
                         <div className={row.delta >= 0 ? "deltaUp" : "deltaDown"}>
                           {row.delta >= 0 ? "+" : ""}{row.delta} PTS
                         </div>
