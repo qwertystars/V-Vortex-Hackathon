@@ -60,18 +60,84 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Check for duplicate leader email
-    const { data: existingEmail } = await supabase
+    // Check for duplicate leader email in teams table
+    const { data: existingLeadEmail } = await supabase
       .from("teams")
       .select("id")
       .eq("lead_email", leaderEmail)
       .maybeSingle();
 
-    if (existingEmail) {
+    if (existingLeadEmail) {
       return new Response(
-        JSON.stringify({ error: "This email is already registered. If you need to update your registration, please contact support." }),
+        JSON.stringify({ error: "This email is already registered as a team leader. Each email can only be used once." }),
         { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+
+    // Check if leader email exists in team_members table
+    const { data: existingMemberEmail } = await supabase
+      .from("team_members")
+      .select("id")
+      .eq("member_email", leaderEmail)
+      .maybeSingle();
+
+    if (existingMemberEmail) {
+      return new Response(
+        JSON.stringify({ error: "This email is already registered as a team member. Each email can only be used once." }),
+        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Collect all emails to validate (leader + all members)
+    const allEmails = [leaderEmail];
+    if (members && members.length > 0) {
+      members.forEach((m: any) => {
+        if (m.email) {
+          allEmails.push(m.email);
+        }
+      });
+    }
+
+    // Check for duplicate emails within the registration itself
+    const emailSet = new Set(allEmails);
+    if (emailSet.size !== allEmails.length) {
+      return new Response(
+        JSON.stringify({ error: "Duplicate emails detected in your team. Each member must have a unique email address." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Check each member email against existing records
+    for (const member of members || []) {
+      if (!member.email) continue;
+
+      // Check in teams table
+      const { data: existingInTeams } = await supabase
+        .from("teams")
+        .select("id")
+        .eq("lead_email", member.email)
+        .maybeSingle();
+
+      if (existingInTeams) {
+        return new Response(
+          JSON.stringify({ error: `Email ${member.email} is already registered as a team leader. Each email can only be used once.` }),
+          { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Check in team_members table
+      const { data: existingInMembers } = await supabase
+        .from("team_members")
+        .select("id")
+        .eq("member_email", member.email)
+        .maybeSingle();
+
+      if (existingInMembers) {
+        return new Response(
+          JSON.stringify({ error: `Email ${member.email} is already registered as a team member. Each email can only be used once.` }),
+          { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
     }
 
     // 1. Insert team into database
