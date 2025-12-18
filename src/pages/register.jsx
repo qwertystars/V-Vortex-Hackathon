@@ -14,9 +14,6 @@ export default function Register() {
 
   const navigate = useNavigate();
 
-  const [teamSize, setTeamSize] = useState(2);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [teamSizeLabel, setTeamSizeLabel] = useState("2 members");
   const [sucked, setSucked] = useState(false);
   const [vortexVisible, setVortexVisible] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -214,7 +211,6 @@ export default function Register() {
       const { error } = await supabase.functions.invoke("register-team", {
         body: {
           teamName,
-          teamSize,
           isVitChennai,
           eventHubId: isVitChennai === "no" ? eventHubId : null,
           leaderName,
@@ -412,52 +408,6 @@ export default function Register() {
                   required
                 />
               </div>
-
-              <div className="section-label" style={{ marginTop: "0.8rem" }}>
-                Team size
-              </div>
-
-              <div className="team-size-row">
-                <span>Team size:</span>
-                <div className="field" style={{ marginBottom: 0 }}>
-                  <div className="dropdown" id="teamSizeDropdown">
-                    <div
-                      className="input-base dropdown-toggle"
-                      tabIndex={0}
-                      role="button"
-                      onClick={toggleDropdown}
-                      onKeyDown={handleDropdownKey}
-                      aria-expanded={dropdownOpen}
-                      id="dropdownToggle"
-                    >
-                      <span id="teamSizeLabel">{teamSizeLabel}</span>
-                      <span className="chevron">▾</span>
-                    </div>
-
-                    <ul
-                      className={`dropdown-menu${dropdownOpen ? " open" : ""}`}
-                      id="teamSizeMenu"
-                      role="menu"
-                    >
-                      <li className="dropdown-item" data-value="2" onClick={() => handlePickTeamSize(2)}>
-                        <span>2 members</span>
-                      </li>
-                      <li className="dropdown-item" data-value="3" onClick={() => handlePickTeamSize(3)}>
-                        <span>3 members</span>
-                      </li>
-                      <li className="dropdown-item" data-value="4" onClick={() => handlePickTeamSize(4)}>
-                        <span>4 members (max)</span>
-                      </li>
-                    </ul>
-                  </div>
-
-                  <input type="hidden" id="teamSize" name="teamSize" value={teamSize} readOnly />
-                </div>
-              </div>
-
-              <p className="hint">
-                Leader is counted in team size. Maximum team size is 4.
-              </p>
 
               <div className="field">
                 <label htmlFor="receiptLink">Payment Receipt (Google Drive Link) *</label>
