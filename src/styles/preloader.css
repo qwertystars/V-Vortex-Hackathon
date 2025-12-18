@@ -3,7 +3,7 @@ html, body {
   margin: 0;
   padding: 0;
   width: 100%;
-  height:  100%;
+  height: 100%;
   overflow: hidden;
 }
 
@@ -17,7 +17,7 @@ html, body {
   width: 100vw;
   height: 100vh;
 
-  background:  black;
+  background: black;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -26,24 +26,14 @@ html, body {
   cursor: pointer;
   z-index: 500;
   transition: transform 0.4s ease;
-  padding: 20px;
-  box-sizing: border-box;
-  overflow: hidden;
 }
 
 #enterText {
   font-size: 38px;
   margin-bottom: 12px;
   color: #00ff9d;
-  animation: pulse 1. 6s infinite alternate ease;
+  animation: pulse 1.6s infinite alternate ease;
   text-shadow: 0 0 12px #00ff9d;
-  text-align: center;
-  word-wrap: break-word;
-  word-break: break-word;
-  overflow-wrap: break-word;
-  line-height: 1.4;
-  max-width: 90vw;
-  white-space: normal;
 }
 
 #arrow {
@@ -55,99 +45,20 @@ html, body {
 /* Pulse animation */
 @keyframes pulse {
   from { opacity: 0.4; transform: scale(0.97); }
-  to { opacity: 1; transform: scale(1. 06); }
+  to { opacity: 1; transform: scale(1.06); }
 }
 
-/* Desktop and tablet */
-@media (min-width:  601px) {
-  #enterText {
-    font-size: 38px;
-  }
-  #arrow {
-    font-size:  26px;
-  }
-}
-
-/* Tablet devices */
-@media (max-width: 768px) {
-  #enterText {
-    font-size: 28px;
-    margin-bottom: 20px;
-  }
-  #arrow {
-    font-size:  22px;
-  }
-}
-
-/* Mobile devices */
 @media (max-width: 600px) {
-  #enterScreen {
-    padding: 30px 16px;
-    justify-content: center;
-  }
-
   #enterText {
-    font-size: 22px;
-    margin-bottom:  16px;
-    max-width: 85vw;
-    line-height: 1.5;
+    font-size: 24px;
   }
-
   #arrow {
-    font-size: 18px;
-  }
-}
-
-/* Small mobile devices */
-@media (max-width: 480px) {
-  #enterScreen {
-    padding: 20px 12px;
-  }
-
-  #enterText {
-    font-size: 18px;
-    margin-bottom:  14px;
-    max-width:  80vw;
-    line-height: 1.5;
-  }
-
-  #arrow {
-    font-size: 16px;
-  }
-}
-
-/* Extra small devices */
-@media (max-width: 360px) {
-  #enterText {
-    font-size: 16px;
-    margin-bottom: 12px;
-    max-width:  75vw;
-  }
-
-  #arrow {
-    font-size: 14px;
-  }
-}
-
-/* Landscape mode adjustments */
-@media (max-height: 500px) and (orientation: landscape) {
-  #enterScreen {
-    padding: 10px 16px;
-    justify-content:  center;
-  }
-
-  #enterText {
-    font-size:  18px;
-    margin-bottom:  8px;
-  }
-
-  #arrow {
-    font-size: 14px;
+    font-size: 20px;
   }
 }
 
 /* Zoom-in cinematic effect */
-. tapZoom {
+.tapZoom {
   transform: scale(1.2);
   opacity: 0;
 }
@@ -158,7 +69,7 @@ html, body {
 .glitchLayer {
   position: absolute;
   width: 100%;
-  height:  100%;
+  height: 100%;
   background: repeating-linear-gradient(
     transparent,
     rgba(0,255,157,0.03) 2px
@@ -181,17 +92,16 @@ html, body {
   top: 0;
   left: 0;
 
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   object-fit: cover;
-  object-position: center;
 
   opacity: 0;
-  transition:  opacity 1. 2s ease-in-out;
+  transition: opacity 1.2s ease-in-out;
   z-index: 900;
 }
 
-. videoFadeOut {
+.videoFadeOut {
   opacity: 0 !important;
 }
 
@@ -202,8 +112,8 @@ html, body {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height:  100%;
+  width: 100vw;
+  height: 100vh;
   background: white;
   opacity: 0;
   pointer-events: none;
@@ -223,8 +133,8 @@ html, body {
   top: 0;
   left: 0;
 
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
 
   background: repeating-linear-gradient(
     transparent 0,
@@ -233,6 +143,6 @@ html, body {
 
   mix-blend-mode: overlay;
   opacity: 0.08;
+  z-index: 1500;
   pointer-events: none;
-  z-index: 1000;
 }
