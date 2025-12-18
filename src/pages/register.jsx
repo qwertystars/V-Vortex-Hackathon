@@ -284,23 +284,23 @@ export default function Register() {
               <div className="logo-placeholder">
                 <img src={logo} alt="V-VORTEX logo" className="logo-img" />
               </div>
-              <div className="tagline">Hackathon Registration</div>
+              <div className="tagline">Lead Your Squad</div>
               <div className="title">V-VORTEX</div>
               <p className="subtitle">
-                Assemble your crew. Enter the vortex. Build something the future will remember.
+                You are the commander. Rally your warriors. The vortex awaits those who dare to innovate.
               </p>
             </div>
 
             <ul className="bullet-list">
-              <li>Register a team of 2–4 innovators.</li>
-              <li>One team leader per team with valid registration number.</li>
-              <li>Use official institute names and registration numbers.</li>
+              <li>Forge your team's identity in the digital battleground.</li>
+              <li>Lead with vision. Command with purpose.</li>
+              <li>Only the bold enter. Only the brave survive.</li>
             </ul>
           </aside>
 
           <section className="panel">
             <form id="teamForm" onSubmit={handleSubmit}>
-              <div className="section-label">Team details</div>
+              <div className="section-label">Your Battle Identity</div>
 
               <div className="field">
                 <label htmlFor="teamName">Team name</label>
@@ -367,12 +367,12 @@ export default function Register() {
               )}
 
               <div className="section-label" style={{ marginTop: "0.6rem" }}>
-                Team leader
+                Commander Details
               </div>
 
               <div className="field-row">
                 <div className="field">
-                  <label htmlFor="leaderName">Leader name</label>
+                  <label htmlFor="leaderName">Commander name</label>
                   <input
                     id="leaderName"
                     name="leaderName"
@@ -384,7 +384,7 @@ export default function Register() {
                 </div>
                 {isVitChennai === "yes" && (
                   <div className="field">
-                    <label htmlFor="leaderReg">Leader registration no.</label>
+                    <label htmlFor="leaderReg">Commander registration no.</label>
                     <input
                       id="leaderReg"
                       name="leaderReg"
@@ -398,13 +398,13 @@ export default function Register() {
               </div>
 
               <div className="field">
-                <label htmlFor="leaderEmail">Leader Email Address</label>
+                <label htmlFor="leaderEmail">Commander Email Address</label>
                 <input
                   id="leaderEmail"
                   name="leaderEmail"
                   type="email"
                   className="input-base"
-                  placeholder="leader@institute.edu"
+                  placeholder="commander@institute.edu"
                   required
                 />
               </div>
@@ -444,7 +444,7 @@ export default function Register() {
                 opacity: isSubmitting ? 0.6 : 1,
                 cursor: isSubmitting ? 'not-allowed' : 'pointer'
               }}>
-                {isSubmitting ? '⏳ Processing...' : 'Enter the V-VORTEX'}
+                {isSubmitting ? '⏳ Processing...' : '⚔️ CLAIM YOUR DESTINY'}
               </button>
             </form>
           </section>
@@ -457,10 +457,9 @@ export default function Register() {
         ref={vortexMessageRef}
       >
         <div className="vortex-message-inner">
-          <h2>VORTEX ENGAGED</h2>
+          <h2>COMMANDER RECOGNIZED</h2>
           <p>
-            Your squad has been swallowed by the <strong>VORTEX</strong>. The only way out is{" "}
-            <strong>victory</strong>. Suit up.
+            Your legion has been registered in the <strong>VORTEX</strong>. Now gather your warriors and prepare for <strong>battle</strong>. Victory awaits the bold.
           </p>
         </div>
       </div>
