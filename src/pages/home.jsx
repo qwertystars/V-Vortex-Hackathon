@@ -25,13 +25,14 @@ export default function Home({ setTransition }) {
   const rounds = {
     r1: {
       title: "ROUND 1: CONCEPTUALIZATION",
-      desc: "Online PPT Submission – Showcase your revolutionary idea and initial game plan.",
+      desc: "The Ideathon will be conducted by the V-Vortex team via a dedicated platform. The problem statements will be displayed on January 7, 2026; with the problem statements for IOT and Robotics to be revealed sooner (by a week sooner) for better preparation.",
       blocks: {
         Rules: [
           "10–15 slides maximum",
           "Clear problem & solution",
           "Market & feasibility analysis",
-          "Deadline: 3 Jan 2026",
+          "Timeline: 07th Jan 2026 - 08th Jan 2026",
+          "Mode: Online"
         ],
         Evaluation: [
           "Innovation (30%)",
@@ -43,7 +44,7 @@ export default function Home({ setTransition }) {
     },
     r2: {
       title: "ROUND 2: CONSTRUCTION",
-      desc: "Offline Hackathon – 24 hours of non-stop coding, building and creating.",
+      desc: "The hackathon will commence offline at VIT Chennai on January 9, 2025 from 9 AM onwards. Participants are requested to report to MG Auditorium before 8:30 AM in order to facilitate smooth registrations!!! You must have paid the VIT Chennai Event Venue Entry Fee via https://eventhubcc.vit.ac.in/",
       blocks: {
         Rules: ["No pre-written code", "Any tech stack allowed", "Mentors available"],
         Evaluation: ["Working Prototype (35%)", "Code Quality (25%)", "UX/UI (20%)"],
@@ -51,10 +52,10 @@ export default function Home({ setTransition }) {
     },
     r3: {
       title: "ROUND 3: VALIDATION",
-      desc: "Shark Tank – Pitch your creation to industry experts.",
+      desc: "On January 10, 2026; the finalists will be selected for a exclusive investor pitch with the director of V-Nest and a team of industry domain experts.",
       blocks: {
-        Pitch: ["10 min pitch + Q&A", "Live demo required", "Business model"],
-        Rewards: ["₹1,00,000 Winner", "₹50,000 Runner-up", "Internships"],
+        Pitch: ["10 min pitch + Q&A", "Selected teams pitch to Industry Entrepreneurs for feedback, mentorship & opportunities."],
+        Rewards: ["₹ 15,000 Winner","₹ 7,000 First Runner-Up","₹ 5,000 Second Runner-Up","₹ 3,000 Special Mentions","Participation certificate For every participant in the finale", "Internships"],
       },
     },
   };
@@ -401,6 +402,7 @@ export default function Home({ setTransition }) {
     </div>
   );
 }
+
 
 
 
