@@ -21,6 +21,9 @@ export default function Register() {
   const [vortexVisible, setVortexVisible] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("");
+  const [registrationStatus, setRegistrationStatus] = useState("idle"); // idle | pending | finalizing | success | error
+  const [registrationError, setRegistrationError] = useState("");
+  const [registrationResult, setRegistrationResult] = useState(null);
 
   const [isVitChennai, setIsVitChennai] = useState("yes");
   const [eventHubId, setEventHubId] = useState("");
@@ -40,6 +43,7 @@ export default function Register() {
   });
 
   const [participants, setParticipants] = useState([]);
+  const submissionIdRef = useRef(null);
 
   useEffect(() => {
     const others = Math.max(0, teamSize - 1);
@@ -230,17 +234,48 @@ export default function Register() {
       return;
     }
 
+    const submissionId = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    submissionIdRef.current = submissionId;
+
+    setRegistrationError("");
+    setRegistrationResult(null);
+    setRegistrationStatus("pending");
+
     setIsSubmitting(true);
-    setSubmitMessage("🔄 Connecting to V-VORTEX servers...");
+    setSubmitMessage("✅ Registration received. Entering the VORTEX...");
+
+    if (submitSfxRef.current) {
+      submitSfxRef.current.currentTime = 0;
+      submitSfxRef.current.play().catch(() => {});
+    }
+
+    // Start the animation immediately (backend continues in parallel)
+    stateRef.current.targetSpeedFactor = 28;
+    setSucked(true);
 
     try {
-      setSubmitMessage("📡 Transmitting team data...");
-      const { error } = await supabase.functions.invoke("register-team", {
+      const showDelay = 2200;
+      const visibleDuration = 6000;
+      const minTotalDuration = showDelay + visibleDuration;
+      const startedAt = Date.now();
+
+      const t1 = setTimeout(() => setVortexVisible(true), showDelay);
+      const t2 = setTimeout(() => {
+        if (submissionIdRef.current === submissionId) {
+          setRegistrationStatus((prev) => (prev === "pending" ? "finalizing" : prev));
+        }
+      }, minTotalDuration);
+
+      timeoutsRef.current.push(t1, t2);
+
+      // Backend registration runs while the animation plays
+      const { data, error } = await supabase.functions.invoke("register-team", {
         body: {
           teamName,
           teamSize,
           isVitChennai,
-          eventHubId: isVitChennai === "no" ? eventHubId : null,
+          institution: isVitChennai === "no" ? eventHubId : null,
+          eventHubId: isVitChennai === "no" ? eventHubId : null, // backwards compat for older functions
           leaderName,
           leaderReg: isVitChennai === "yes" ? leaderReg : null,
           leaderEmail,
@@ -249,34 +284,38 @@ export default function Register() {
         },
       });
 
+      if (submissionIdRef.current !== submissionId) return;
       if (error) throw error;
 
-      setSubmitMessage("✅ Registration successful! Entering the VORTEX...");
+      setRegistrationResult(data || null);
+      setRegistrationStatus("success");
 
-      if (submitSfxRef.current) {
-        submitSfxRef.current.currentTime = 0;
-        submitSfxRef.current.play().catch(() => {});
-      }
+      // Ensure the animation has had time to play before navigating away.
+      const elapsed = Date.now() - startedAt;
+      const remaining = Math.max(0, minTotalDuration - elapsed);
 
-      stateRef.current.targetSpeedFactor = 28;
-      setSucked(true);
+      const t3 = setTimeout(() => {
+        if (submissionIdRef.current === submissionId) {
+          setVortexVisible(false);
+          setSucked(false);
+          navigate("/login");
+        }
+      }, remaining + 250);
 
-      const showDelay = 2200;
-      const visibleDuration = 6000;
-
-      const t1 = setTimeout(() => setVortexVisible(true), showDelay);
-      const t2 = setTimeout(() => {
-        setVortexVisible(false);
-        setSucked(false);
-      }, showDelay + visibleDuration);
-      const t3 = setTimeout(() => navigate("/login"), showDelay + visibleDuration + 250);
-
-      timeoutsRef.current.push(t1, t2, t3);
+      timeoutsRef.current.push(t3);
     } catch (error) {
       console.error("Registration error:", error);
+      if (submissionIdRef.current !== submissionId) return;
+
       setIsSubmitting(false);
       setSubmitMessage("");
-      alert("❌ Registration failed. Please try again.");
+      setRegistrationStatus("error");
+      setRegistrationError(error?.message || "Registration failed. Please try again.");
+
+      // Bring the form back and show the overlay with the error
+      stateRef.current.targetSpeedFactor = 1;
+      setSucked(false);
+      setVortexVisible(true);
     }
   };
 
@@ -598,11 +637,48 @@ export default function Register() {
         ref={vortexMessageRef}
       >
         <div className="vortex-message-inner">
-          <h2>VORTEX ENGAGED</h2>
-          <p>
-            Your squad has been swallowed by the <strong>VORTEX</strong>. The only way out is{" "}
-            <strong>victory</strong>. Suit up.
-          </p>
+          {registrationStatus === "error" ? (
+            <>
+              <h2 style={{ background: "linear-gradient(135deg, #fecaca 0%, #fb7185 45%, #ef4444 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                REGISTRATION FAILED
+              </h2>
+              <p style={{ color: "#fecdd3" }}>
+                {registrationError || "Something went wrong while registering your team."}
+              </p>
+              <div style={{ marginTop: "1.5rem", display: "flex", gap: "0.8rem", justifyContent: "center", flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  className="submit-btn"
+                  onClick={() => {
+                    setVortexVisible(false);
+                    setRegistrationStatus("idle");
+                    setRegistrationError("");
+                  }}
+                  style={{ width: "auto", padding: "0.9rem 1.4rem", fontSize: "0.9rem" }}
+                >
+                  Back to form
+                </button>
+              </div>
+            </>
+          ) : registrationStatus === "finalizing" ? (
+            <>
+              <h2>FINALIZING</h2>
+              <p>
+                The VORTEX is still syncing your squad… hang tight. Do not close this window.
+              </p>
+            </>
+          ) : (
+            <>
+              <h2>VORTEX ENGAGED</h2>
+              <p>
+                Your squad has been swallowed by the <strong>VORTEX</strong>. The only way out is{" "}
+                <strong>victory</strong>. Suit up.
+                {registrationResult?.insertedMemberCount ? (
+                  <> <br /> <strong>{registrationResult.insertedMemberCount}</strong> members locked in.</>
+                ) : null}
+              </p>
+            </>
+          )}
         </div>
       </div>
     </>

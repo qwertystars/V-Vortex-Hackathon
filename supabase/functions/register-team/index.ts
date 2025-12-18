@@ -6,6 +6,24 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function jsonResponse(body: unknown, init: ResponseInit = {}) {
+  return new Response(JSON.stringify(body), {
+    ...init,
+    headers: { ...corsHeaders, "Content-Type": "application/json", ...(init.headers || {}) },
+  });
+}
+
+function asString(value: unknown) {
+  if (typeof value === "string") return value;
+  return null;
+}
+
+function asNumber(value: unknown) {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim() !== "" && Number.isFinite(Number(value))) return Number(value);
+  return null;
+}
+
 Deno.serve(async (req) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
@@ -13,146 +31,123 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-    );
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY") ??
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
-    const { teamName, teamSize, isVitChennai, institution, leaderName, leaderReg, leaderEmail, receiptLink, members } = await req.json();
-    
-    console.log("Received registration:", { teamName, leaderEmail, isVitChennai, receiptLink });
+    if (!supabaseUrl || !supabaseKey) {
+      return jsonResponse({ error: "Supabase environment not configured" }, { status: 500 });
+    }
 
-    // Validate input - conditional validation based on VIT Chennai status
-    if (!teamName || !leaderName || !leaderEmail || !receiptLink) {
-      return new Response(
-        JSON.stringify({ error: "Missing required fields" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    const authorization = req.headers.get("authorization") ?? "";
+
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      global: {
+        headers: authorization ? { authorization } : {},
+      },
+    });
+
+    const payload = await req.json();
+
+    const teamName = asString(payload?.teamName);
+    const teamSize = asNumber(payload?.teamSize);
+    const isVitChennai = asString(payload?.isVitChennai);
+    const leaderName = asString(payload?.leaderName);
+    const leaderReg = asString(payload?.leaderReg);
+    const leaderEmail = asString(payload?.leaderEmail);
+    const receiptLink = asString(payload?.receiptLink);
+    const members = Array.isArray(payload?.members) ? payload.members : [];
+
+    // Backwards-compat: frontend currently sends `eventHubId` for non-VIT.
+    const institution =
+      asString(payload?.institution) ??
+      asString(payload?.eventHubId) ??
+      null;
+
+    const isVit = isVitChennai === "yes";
+
+    console.log("Received registration:", {
+      teamName,
+      leaderEmail,
+      teamSize,
+      isVitChennai,
+      membersCount: members?.length ?? 0,
+    });
+
+    const { data: registered, error: registerError } = await supabase.rpc("register_team_v1", {
+      p_team_name: teamName,
+      p_team_size: teamSize,
+      p_is_vit_chennai: isVit,
+      p_institution: institution,
+      p_leader_name: leaderName,
+      p_leader_reg_no: leaderReg,
+      p_leader_email: leaderEmail,
+      p_receipt_link: receiptLink,
+      p_members: members,
+    });
+
+    if (registerError) {
+      const status =
+        registerError.code === "23505" ? 409 :
+        registerError.code === "22023" ? 400 :
+        500;
+
+      return jsonResponse(
+        { error: registerError.message, code: registerError.code },
+        { status },
       );
     }
 
-    // Validate VIT Chennai students have reg numbers
-    if (isVitChennai === "yes" && !leaderReg) {
-      return new Response(
-        JSON.stringify({ error: "VIT Chennai students must provide registration number" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Validate non-VIT students have institution
-    if (isVitChennai === "no" && !institution) {
-      return new Response(
-        JSON.stringify({ error: "Non-VIT students must provide institution name" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Check for duplicate team name
-    const { data: existingTeamName } = await supabase
-      .from("teams")
-      .select("id")
-      .eq("team_name", teamName)
-      .maybeSingle();
-
-    if (existingTeamName) {
-      return new Response(
-        JSON.stringify({ error: "Team name already registered. Please choose a different team name." }),
-        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Check for duplicate leader email
-    const { data: existingEmail } = await supabase
-      .from("teams")
-      .select("id")
-      .eq("lead_email", leaderEmail)
-      .maybeSingle();
-
-    if (existingEmail) {
-      return new Response(
-        JSON.stringify({ error: "This email is already registered. If you need to update your registration, please contact support." }),
-        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // 1. Insert team into database
-    const teamData = {
-      team_name: teamName,
-      team_size: teamSize,
-      lead_name: leaderName,
-      lead_reg_no: isVitChennai === "yes" ? leaderReg : null,
-      institution: isVitChennai === "no" ? institution : null,
-      lead_email: leaderEmail,
-      receipt_link: receiptLink,
-      is_vit_chennai: isVitChennai === "yes",
-    };
-    
-    console.log("Inserting team data:", teamData);
-    
-    const { data: team, error: teamError } = await supabase
-      .from("teams")
-      .insert(teamData)
-      .select()
-      .single();
-
-    if (teamError) {
-      console.error("Database error:", teamError);
-      throw new Error(`Database error: ${teamError.message}`);
-    }
-    
-    console.log("Team inserted successfully:", team.id);
-
-    // 2. Insert team members if any
-    if (members && members.length > 0) {
-      const memberRecords = members.map((m: any) => ({
-        team_id: team.id,
-        member_name: m.name,
-        member_email: m.email || null,
-        member_reg_no: m.reg || null,
-        institution: m.institution || null,
-      }));
-
-      const { error: membersError } = await supabase
-        .from("team_members")
-        .insert(memberRecords);
-
-      if (membersError) {
-        throw new Error(`Members insert error: ${membersError.message}`);
-      }
-    }
+    const resultRow = Array.isArray(registered) ? registered[0] : null;
+    const teamId = resultRow?.team_id ?? null;
+    const insertedMemberCount = resultRow?.inserted_member_count ?? null;
 
     // 3. Send to Google Sheets
     const GOOGLE_SHEETS_URL = Deno.env.get("GOOGLE_SHEETS_WEBHOOK_URL");
     
+    let sheetsOk = true;
     if (GOOGLE_SHEETS_URL) {
-      const sheetData = {
-        teamName,
-        teamSize,
-        isVitChennai,
-        institution: isVitChennai === "no" ? institution : "VIT Chennai",
-        leaderName,
-        leaderReg: isVitChennai === "yes" ? leaderReg : "N/A",
-        leaderEmail,
-        receiptLink,
-        members: members || [],
-        timestamp: new Date().toISOString(),
-      };
+      try {
+        const sheetData = {
+          teamName,
+          teamSize,
+          isVitChennai,
+          institution: isVit ? "VIT Chennai" : institution,
+          leaderName,
+          leaderReg: isVit ? leaderReg : "N/A",
+          leaderEmail,
+          receiptLink,
+          members: members || [],
+          timestamp: new Date().toISOString(),
+        };
 
-      await fetch(GOOGLE_SHEETS_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(sheetData),
-      });
+        const resp = await fetch(GOOGLE_SHEETS_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(sheetData),
+        });
+
+        if (!resp.ok) {
+          sheetsOk = false;
+          console.warn("Google Sheets webhook failed:", resp.status, await resp.text());
+        }
+      } catch (err) {
+        sheetsOk = false;
+        console.warn("Google Sheets webhook error:", err);
+      }
     }
 
-    return new Response(
-      JSON.stringify({ success: true, teamId: team.id }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return jsonResponse({
+      success: true,
+      teamId,
+      insertedMemberCount,
+      sheetsOk,
+    });
   } catch (error) {
     console.error("Registration error:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    return jsonResponse(
+      { error: error?.message ?? "Unknown error" },
+      { status: 500 },
     );
   }
 });
