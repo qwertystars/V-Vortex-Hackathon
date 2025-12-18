@@ -1,25 +1,27 @@
 import { useState, useEffect } from "react";
-// import { supabase } from "../supabaseClient";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { authService } from "../services/auth";
 import "../styles/otp.css";
 import VortexBackground from "../components/VortexBackground";
 import logo from "/logo.jpg";
-import { useNavigate } from "react-router-dom";
 
 export default function OTP({ setTransition }) {
   const [otp, setOtp] = useState("");
-  const [email, setEmail] = useState("");
   const navigate = useNavigate();
+  const { user, team } = useAuth(); // Using context state
 
-  // Get email from sessionStorage
   useEffect(() => {
-    const storedEmail = sessionStorage.getItem('loginEmail');
-    if (!storedEmail) {
-      alert('❌ No login session found. Please login again.');
-      navigate('/login');
-      return;
+    // If no user in context/session, redirect
+    if (!user) {
+       // Check session manually if context reload is pending (handled by AuthProvider, but safe guard here)
+       const stored = sessionStorage.getItem('loginEmail');
+       if (!stored) {
+         alert('❌ No login session found. Please login again.');
+         navigate('/login');
+       }
     }
-    setEmail(storedEmail);
-  }, [navigate]);
+  }, [user, navigate]);
 
   const handleVerify = async (e) => {
     e.preventDefault();
@@ -30,35 +32,17 @@ export default function OTP({ setTransition }) {
     }
 
     try {
-      // Verify OTP with Supabase
-      // MOCK REPLACEMENT FOR SUPABASE
-      // const { data, error } = await supabase.auth.verifyOtp({
-      //   email: email,
-      //   token: otp,
-      //   type: 'email'
-      // });
-      await new Promise(resolve => setTimeout(resolve, 800)); // Mock delay
-      const error = null;
-
-      if (error) {
-        alert(`❌ INVALID CODE: ${error.message}`);
-        return;
-      }
+      // Use service
+      await authService.verifyOtp(user?.email || sessionStorage.getItem('loginEmail'), otp);
 
       // OTP verified successfully
       alert("🔥 AUTH VERIFIED • WELCOME TO THE VORTEX CHAMPION 🔥");
 
-      // Clear login email from session storage
-      sessionStorage.removeItem('loginEmail');
-      
-      const role = sessionStorage.getItem('role') || 'Team Leader';
-      sessionStorage.removeItem('role');
-
-      // Get team ID (may be needed for dashboard)
-      const teamId = sessionStorage.getItem('teamId');
-      sessionStorage.removeItem('teamId');
-
       // Decide destination based on role
+      // Prefer context data, fallback to session storage
+      const role = user?.role || sessionStorage.getItem('role') || 'Team Leader';
+      const teamId = team?.id || sessionStorage.getItem('teamId');
+
       const destination = role === 'Team Member' ? '/member' : `/dashboard/${teamId}`;
 
       if (setTransition) {
@@ -77,7 +61,7 @@ export default function OTP({ setTransition }) {
       }
     } catch (error) {
       console.error('OTP verification error:', error);
-      alert('❌ An error occurred. Please try again.');
+      alert(`❌ INVALID CODE: ${error.message || 'Unknown error'}`);
     }
   };
 

@@ -1,12 +1,22 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-// import { supabase } from "../supabaseClient";
+import { useAuth } from "../context/AuthContext";
+import { teamService } from "../services/team";
+
+// Components
+import Sidebar from "../components/dashboard/Sidebar";
+import DashboardHeader from "../components/dashboard/DashboardHeader";
+import VortexHub from "../components/dashboard/VortexHub";
+import Leaderboard from "../components/dashboard/Leaderboard";
+import NexusEntry from "../components/dashboard/NexusEntry";
+import Mission from "../components/dashboard/Mission";
+
 import "../styles/dashboard.css";
-import logo from "/logo.jpg";
 
 export default function TeamDashboard() {
   const { teamId } = useParams();
   const navigate = useNavigate();
+  const { user, logout } = useAuth(); // Using context
 
   const [team, setTeam] = useState(null);
   const [scorecard, setScorecard] = useState(null);
@@ -29,44 +39,22 @@ export default function TeamDashboard() {
   =============================== */
   useEffect(() => {
     const init = async () => {
-      // MOCK REPLACEMENT FOR SUPABASE
-      // const { data: { user } } = await supabase.auth.getUser();
-      const user = { id: 'mock-user-id' }; // Mock user
-      if (!user) {
+      // Check auth via context or redirect
+      // (The useAuth hook handles initial session load, but we double check here)
+      const currentEmail = sessionStorage.getItem('loginEmail');
+      
+      if (!currentEmail) {
         navigate("/login");
         return;
       }
 
       try {
-        // const { data: teamData } = await supabase
-        //   .from("teams")
-        //   .select("*")
-        //   .eq("id", teamId)
-        //   .single();
-        const teamData = {
-          id: teamId || "123",
-          team_name: "CyberNinjas",
-          lead_name: "Neo",
-        };
-
-        // const { data: scoreData } = await supabase
-        //   .from("scorecards")
-        //   .select("*")
-        //   .eq("team_id", teamId)
-        //   .single();
-        const scoreData = {
-          total_score: 1500,
-        };
-
-        // const { data: leaderboardData } = await supabase
-        //   .from("leaderboard_view")
-        //   .select("*")
-        //   .order("position", { ascending: true });
-        const leaderboardData = [
-           { team_name: "CyberNinjas", score: 1500, position: 1, delta: 100 },
-           { team_name: "CodeWarriors", score: 1200, position: 2, delta: 50 },
-           { team_name: "ByteBusters", score: 900, position: 3, delta: -20 },
-        ];
+        // Fetch Data in parallel
+        const [teamData, scoreData, leaderboardData] = await Promise.all([
+           teamService.getTeamDetails(teamId),
+           teamService.getScorecard(teamId),
+           teamService.getLeaderboard()
+        ]);
 
         setTeam(teamData);
         setScorecard(scoreData || null);
@@ -102,7 +90,7 @@ export default function TeamDashboard() {
      LOGOUT
   =============================== */
   const handleLogout = async () => {
-    // await supabase.auth.signOut();
+    await logout();
     navigate("/");
   };
 
@@ -113,265 +101,52 @@ export default function TeamDashboard() {
   return (
     <div className="dashboardWrapper">
 
-      {/* ================= SIDEBAR ================= */}
-      <aside className={`sidebar ${showSidebar ? 'open' : ''}`}>
-        <div className="sidebarLogo">
-          <img src={logo} alt="V-VORTEX logo" className="sidebarLogoImg" />
-          <span>HACKVORTEX</span>
-        </div>
-        <div className="sidebarSub">ALPHA SECTOR</div>
-
-        <div className="sidebarNav">
-          <button
-            className={activeTab === "vortex" ? "active" : ""}
-            onClick={() => { setActiveTab("vortex"); setShowSidebar(false); }}
-          >
-            Vortex Hub
-          </button>
-
-          <button
-            className={activeTab === "leaderboard" ? "active" : ""}
-            onClick={() => { setActiveTab("leaderboard"); setShowSidebar(false); }}
-          >
-            Leaderboard
-          </button>
-
-          <button
-            className={activeTab === "nexus" ? "active" : ""}
-            onClick={() => { setActiveTab("nexus"); setShowSidebar(false); }}
-          >
-            Nexus Entry
-          </button>
-
-          <button
-            className={activeTab === "mission" ? "active" : ""}
-            onClick={() => { setActiveTab("mission"); setShowSidebar(false); }}
-          >
-            The Mission
-          </button>
-        </div>
-
-        <div className="sidebarFooter">
-          <div className="userCard">
-            <strong>{team.lead_name}</strong>
-            <div style={{ fontSize: "11px", color: "#e879f9" }}>
-              Team Leader
-            </div>
-          </div>
-
-          <button className="disconnectBtn" onClick={handleLogout}>
-            DISCONNECT
-          </button>
-        </div>
-      </aside>
-
-      {showSidebar && <div className="sidebarOverlay" onClick={() => setShowSidebar(false)} /> }
+      <Sidebar 
+        showSidebar={showSidebar}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        team={team}
+        handleLogout={handleLogout}
+        closeSidebar={() => setShowSidebar(false)}
+      />
 
       {/* ================= MAIN ================= */}
       <div className="mainArea">
 
-        {/* HEADER */}
-        <header className="mainHeader">
-          <div className="headerLeft">
-            <button className="menuBtn" onClick={() => setShowSidebar(s => !s)} aria-label="Toggle sidebar">☰</button>
-
-            <div>
-              <div className="headerTitle">
-                {activeTab === "vortex" && "Vortex Hub"}
-                {activeTab === "leaderboard" && "Leaderboard"}
-                {activeTab === "nexus" && "Nexus Entry"}
-                {activeTab === "mission" && "The Mission"}
-              </div>
-
-              <div className="headerSub">
-                OPERATIONAL OBJECTIVE DECRYPTION
-              </div>
-            </div>
-          </div>
-
-          <div style={{ textAlign: "right" }}>
-            <div className="systemLabel">SYSTEM TIME</div>
-            <div className="systemTime">{time}</div>
-          </div>
-        </header>
+        <DashboardHeader 
+          activeTab={activeTab}
+          setShowSidebar={setShowSidebar}
+          time={time}
+        />
 
         {/* ================= CONTENT ================= */}
         <div className="pageContent">
 
-          {/* ===== VORTEX HUB ===== */}
           {activeTab === "vortex" && (
-            <div className="vortexHub">
-              <div className="vortexGrid">
-                <div className="vortexCard" onClick={() => setActiveTab("leaderboard")}>
-                  <div className="vortexIcon">↗</div>
-                  <h3>Leaderboard</h3>
-                  <p>Analyze the competitive landscape and track your climb.</p>
-                </div>
-
-                <div className="vortexCard" onClick={() => setActiveTab("nexus")}>
-                  <div className="vortexIcon">⌁</div>
-                  <h3>Nexus Entry</h3>
-                  <p>Generate encrypted access credentials.</p>
-                </div>
-
-                <div className="vortexCard" onClick={() => setActiveTab("mission")}>
-                  <div className="vortexIcon">💡</div>
-                  <h3>The Mission</h3>
-                  <p>Decrypt objectives and evaluation matrix.</p>
-                </div>
-              </div>
-
-              <div className="teamSummary">
-                <div className="teamLeft">
-                  <div className="teamBadge">
-                    {team.team_name.slice(0, 2).toUpperCase()}
-                  </div>
-                  <div>
-                    <h2>{team.team_name}</h2>
-                    <p>ELITE SQUAD · LIVE RANKING</p>
-                  </div>
-                </div>
-
-                <div className="teamRight">
-                  <span>CURRENT YIELD</span>
-                  <strong>{scorecard?.total_score ?? "—"} PTS</strong>
-                </div>
-              </div>
-            </div>
+            <VortexHub 
+              setActiveTab={setActiveTab} 
+              team={team} 
+              scorecard={scorecard} 
+            />
           )}
 
-          {/* ===== LEADERBOARD ===== */}
           {activeTab === "leaderboard" && (
-            <>
-              <div className="statsGrid">
-                <div className="statCard">
-                  <div className="statLabel">TACTICAL RANK</div>
-                  <div className="statValue">{myRank} <span className="statSub">/{totalTeams}</span></div>
-                </div>
-                <div className="statCard">
-                  <div className="statLabel">ACCUMULATED DATA</div>
-                  <div className="statValue">{scorecard?.total_score ?? "—"}</div>
-                </div>
-                <div className="statCard">
-                  <div className="statLabel">GAP TO ALPHA</div>
-                  <div className="statValue">{gapToAlpha} <span className="statSub">PTS</span></div>
-                </div>
-              </div>
-
-              <div className="leaderboardTable">
-                <div className="lbHeader">
-                  <div>POSITION</div>
-                  <div>SQUAD DESIGNATION</div>
-                  <div style={{ textAlign: "right" }}>PAYLOAD</div>
-                </div>
-
-                {leaderboard.map((row) => {
-                  const isYou = row.team_name === team.team_name;
-
-                  const rankText =
-                    row.position === 1 ? "ULTRA-1" :
-                    row.position === 2 ? "ELITE-2" :
-                    row.position === 3 ? "APEX-3" :
-                    `#${row.position}`;
-
-                  const rankClass =
-                    row.position === 1 ? "rank-ultra" :
-                    row.position === 2 ? "rank-elite" :
-                    row.position === 3 ? "rank-apex" :
-                    "rankDefault";
-
-                  return (
-                    <div key={row.team_name} className={`lbRow ${isYou ? "you" : ""}`}>
-                      <div className={`rankBadge ${rankClass}`}>{rankText}</div>
-
-                      <div className="teamCell">
-                        <div className="teamIcon">
-                          {row.team_name.slice(0, 2).toUpperCase()}
-                        </div>
-                        <div className="teamMeta">
-                          <strong>{row.team_name}</strong>
-                          <span>{isYou ? "YOUR SQUAD" : "ACTIVE"}</span>
-                        </div>
-                      </div>
-
-                      <div className="payload">
-                        <strong>{row.score}</strong>
-                        <div className={row.delta >= 0 ? "deltaUp" : "deltaDown"}>
-                          {row.delta >= 0 ? "+" : ""}{row.delta} PTS
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </>
+            <Leaderboard 
+              leaderboard={leaderboard} 
+              team={team}
+              myRank={myRank}
+              totalTeams={totalTeams}
+              gapToAlpha={gapToAlpha}
+              scorecard={scorecard}
+            />
           )}
 
-          {/* ===== NEXUS ENTRY ===== */}
           {activeTab === "nexus" && (
-            <div className="nexusWrapper">
-              <div className="nexusCard">
-                <div className="qrBox">
-                  <div className="lockIcon">🔒</div>
-                </div>
-
-                <div className="nexusTitle">SQUAD: {team.team_name}</div>
-
-                <div className="nexusDesc">
-                  Authorized personnel must scan this encrypted vortex key
-                  to gain access to the secure development environment.
-                </div>
-
-                <div className="nexusCodeBar">
-                  HCK-2024-{team.team_name.slice(0, 2).toUpperCase()}-{team.id}-EPSILON
-                </div>
-              </div>
-            </div>
+            <NexusEntry team={team} />
           )}
 
-          {/* ===== THE MISSION ===== */}
           {activeTab === "mission" && (
-            <div className="missionWrapper">
-
-              <div className="missionTag">OBJECTIVE PRIMARY</div>
-
-              <div className="missionTitle">
-                Synthesize AI-Powered <br />
-                <span>Eco-Intelligence</span>
-              </div>
-
-              <div className="missionGrid">
-
-                <div className="missionCard">
-                  <div className="reqTitle">Requirements</div>
-                  <ul className="reqList">
-                    <li><span className="reqDot">✓</span> Real-time neural tracking of carbon outputs</li>
-                    <li><span className="reqDot">✓</span> Autonomous green-protocol recommendations</li>
-                    <li><span className="reqDot">✓</span> IoT Matrix integration for global analytics</li>
-                  </ul>
-                </div>
-
-                <div className="missionCard">
-                  <div className="reqTitle">Evaluation Matrix</div>
-
-                  <div className="evalRow">
-                    <div className="evalHeader"><span>INNOVATION ALPHA</span><span>30%</span></div>
-                    <div className="evalBar"><div className="evalFill" style={{ width: "30%" }} /></div>
-                  </div>
-
-                  <div className="evalRow">
-                    <div className="evalHeader"><span>TECH EXECUTION</span><span>40%</span></div>
-                    <div className="evalBar"><div className="evalFill" style={{ width: "40%" }} /></div>
-                  </div>
-
-                  <div className="evalRow">
-                    <div className="evalHeader"><span>UI SYNAPSE</span><span>30%</span></div>
-                    <div className="evalBar"><div className="evalFill" style={{ width: "30%" }} /></div>
-                  </div>
-                </div>
-
-              </div>
-            </div>
+            <Mission />
           )}
 
         </div>
