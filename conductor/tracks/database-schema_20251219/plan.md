@@ -16,5 +16,5 @@ This plan covers the creation of the core database schema for users and teams, i
 
 ## Phase 3: Security (RLS) & Documentation
 - [x] Task: Enable RLS and define policies for `users`, `teams`, and `team_members`. eeec3fe
-- [ ] Task: Create `docs/database_schema.md` with complete schema documentation.
+- [x] Task: Create `docs/database_schema.md` with complete schema documentation. 7e7666b
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Security (RLS) & Documentation' (Protocol in workflow.md)
