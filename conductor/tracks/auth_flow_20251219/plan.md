@@ -1,6 +1,6 @@
 # Plan: Authentication & Registration Flow
 
-## Phase 1: Supabase & Project Configuration
+## Phase 1: Supabase & Project Configuration [checkpoint: 6d25503]
 - [x] Task: Initialize Supabase client and AuthContext [57d9c9a]
     - [x] Subtask: Configure `supabaseClient.js` with environment variables.
     - [x] Subtask: Create/Update `AuthContext.jsx` to handle session persistence and exposure of auth state.
