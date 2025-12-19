@@ -48,7 +48,19 @@ To provide a seamless, secure, and user-friendly platform for V-Vortex hackathon
     *   Prevent accept re-use.
     *   One active OTP per email.
 
-### 5. Technical Constraints (Hard Rules)
+### 5. Database Schema & Automation
+*   **Core Tables:**
+    *   `users`: Extended profile linked to Supabase Auth.
+    *   `teams`: Stores team names, auto-generated unique `team_code`, and payment status.
+    *   `team_members`: Junction table linking users to teams.
+    *   `domains` & `problem_statements`: Lookup tables for hackathon tracks.
+*   **Automation (Triggers):**
+    *   **Team Codes:** Automatically generated 6-character alphanumeric codes.
+    *   **Team Size:** Database-level enforcement of a 4-member maximum per team.
+    *   **Timestamps:** Automated `updated_at` tracking for all team modifications.
+*   **Security:** Row Level Security (RLS) ensures users can only access their own profiles and their own team's data.
+
+### 6. Technical Constraints (Hard Rules)
 *   **Backend:** 100% Supabase (Auth, DB, RLS, Edge Functions). No external backend server.
 *   **Auth:** No passwords, no social login.
 *   **Data Integrity:** No team data created before authentication. No registration without verified email.
