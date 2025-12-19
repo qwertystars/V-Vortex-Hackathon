@@ -27,4 +27,25 @@ describe('Phase 1: Database Schema', () => {
     const { data, error } = await supabase.from('team_members').select('*').limit(1);
     expect(error).toBeNull();
   });
+
+  it('should auto-generate team_code on insertion', async () => {
+    const teamName = `Test Team ${Date.now()}`;
+    const { data, error } = await supabase
+      .from('teams')
+      .insert([{ team_name: teamName }])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Insert error:', error);
+    }
+    
+    expect(error).toBeNull();
+    expect(data.team_code).toBeDefined();
+    expect(data.team_code).not.toBeNull();
+    expect(data.team_code.length).toBeGreaterThan(0);
+
+    // Cleanup
+    await supabase.from('teams').delete().eq('id', data.id);
+  });
 });
