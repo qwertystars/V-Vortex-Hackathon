@@ -2,7 +2,7 @@
 
 This plan covers the creation of the core database schema for users and teams, including lookup tables, automation triggers, and RLS policies.
 
-## Phase 1: Core Schema & Lookup Tables
+## Phase 1: Core Schema & Lookup Tables [checkpoint: a2b0467]
 - [x] Task: Create `domains` and `problem_statements` tables. 4f9ae63
 - [x] Task: Create `users` table with link to `auth.users`. e51a6a3
 - [x] Task: Create `teams` table and `team_members` junction table. d40dc06
