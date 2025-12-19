@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { teamService } from "../services/team";
+import { supabase } from "../supabaseClient";
 import "../styles/register.css";
 import logo from "/logo.jpg";
 import submitSfxFile from "/vortex_music.m4a";
@@ -14,9 +14,6 @@ export default function Register() {
 
   const navigate = useNavigate();
 
-  const [teamSize, setTeamSize] = useState(2);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [teamSizeLabel, setTeamSizeLabel] = useState("2 members");
   const [sucked, setSucked] = useState(false);
   const [vortexVisible, setVortexVisible] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -38,15 +35,6 @@ export default function Register() {
     rotationAngle: 0,
     lastTime: 0,
   });
-
-  const [participants, setParticipants] = useState([]);
-
-  useEffect(() => {
-    const others = Math.max(0, teamSize - 1);
-    const arr = [];
-    for (let i = 1; i <= others; i++) arr.push({ name: "", reg: "", institution: "", email: "" });
-    setParticipants(arr);
-  }, [teamSize]);
 
   useEffect(() => {
     if (isVitChennai === "yes") {
@@ -190,20 +178,11 @@ export default function Register() {
     return () => document.removeEventListener("click", onDocClick);
   }, []);
 
-  const updateParticipant = (index, field, value) => {
-    setParticipants((prev) => {
-      const copy = [...prev];
-      copy[index] = { ...copy[index], [field]: value };
-      return copy;
-    });
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (isSubmitting) return;
 
-    // Clear previous timeouts
     timeoutsRef.current.forEach((id) => clearTimeout(id));
     timeoutsRef.current = [];
 
@@ -213,13 +192,6 @@ export default function Register() {
     const leaderReg = formData.get("leaderReg");
     const leaderEmail = formData.get("leaderEmail");
     const receiptLink = formData.get("receiptLink");
-
-    const members = participants.map((p, i) => ({
-      name: formData.get(`memberName${i + 1}`),
-      email: formData.get(`memberEmail${i + 1}`),
-      reg: isVitChennai === "yes" ? formData.get(`memberReg${i + 1}`) : null,
-      institution: isVitChennai === "no" ? formData.get(`memberInstitution${i + 1}`) : null,
-    }));
 
     if (isVitChennai === "no" && !String(eventHubId || "").trim()) {
       alert("Please enter your VIT EventHub Unique ID.");
@@ -232,26 +204,25 @@ export default function Register() {
     }
 
     setIsSubmitting(true);
-    setSubmitMessage("🔄 Connecting to V-VORTEX servers...");
+    setSubmitMessage("⚡ Connecting to V-VORTEX mainframe...");
 
     try {
-      setSubmitMessage("📡 Transmitting team data...");
-      
-      const registrationData = {
+      setSubmitMessage("🔥 Your legion is being forged in digital fire...");
+      const { error } = await supabase.functions.invoke("register-team", {
+        body: {
           teamName,
-          teamSize,
           isVitChennai,
           eventHubId: isVitChennai === "no" ? eventHubId : null,
           leaderName,
           leaderReg: isVitChennai === "yes" ? leaderReg : null,
           leaderEmail,
           receiptLink,
-          members,
-      };
+        },
+      });
 
-      await teamService.registerTeam(registrationData);
+      if (error) throw error;
 
-      setSubmitMessage("✅ Registration successful! Entering the VORTEX...");
+      setSubmitMessage("✅ LEGION REGISTERED! Prepare for battle...");
 
       if (submitSfxRef.current) {
         submitSfxRef.current.currentTime = 0;
@@ -313,32 +284,32 @@ export default function Register() {
               <div className="logo-placeholder">
                 <img src={logo} alt="V-VORTEX logo" className="logo-img" />
               </div>
-              <div className="tagline">Hackathon Registration</div>
+              <div className="tagline">Commander Registration Portal</div>
               <div className="title">V-VORTEX</div>
               <p className="subtitle">
-                Assemble your crew. Enter the vortex. Build something the future will remember.
+                You stand at the threshold of legends. As commander, you will forge warriors into champions. Rally your elite squad and breach the vortex. Greatness is not given—it is seized.
               </p>
             </div>
 
             <ul className="bullet-list">
-              <li>Register a team of 2–4 innovators.</li>
-              <li>One team leader per team with valid registration number.</li>
-              <li>Use official institute names and registration numbers.</li>
+              <li>Every empire begins with a single command. This is yours.</li>
+              <li>Lead with fire. Code with fury. Conquer with innovation.</li>
+              <li>The vortex devours the weak. Only legends emerge victorious.</li>
             </ul>
           </aside>
 
           <section className="panel">
             <form id="teamForm" onSubmit={handleSubmit}>
-              <div className="section-label">Team details</div>
+              <div className="section-label">⚔️ Forge Your Legion's Identity</div>
 
               <div className="field">
-                <label htmlFor="teamName">Team name</label>
+                <label htmlFor="teamName">Legion Name</label>
                 <input
                   id="teamName"
                   name="teamName"
                   type="text"
                   className="input-base"
-                  placeholder="e.g. Quantum Overdrive"
+                  placeholder="e.g. Quantum Reapers, Code Titans, Digital Warlords"
                   required
                 />
               </div>
@@ -396,30 +367,30 @@ export default function Register() {
               )}
 
               <div className="section-label" style={{ marginTop: "0.6rem" }}>
-                Team leader
+                🛡️ Commander Credentials
               </div>
 
               <div className="field-row">
                 <div className="field">
-                  <label htmlFor="leaderName">Leader name</label>
+                  <label htmlFor="leaderName">Your Name, Commander</label>
                   <input
                     id="leaderName"
                     name="leaderName"
                     type="text"
                     className="input-base"
-                    placeholder="Full name"
+                    placeholder="The one who leads the charge"
                     required
                   />
                 </div>
                 {isVitChennai === "yes" && (
                   <div className="field">
-                    <label htmlFor="leaderReg">Leader registration no.</label>
+                    <label htmlFor="leaderReg">Battle ID</label>
                     <input
                       id="leaderReg"
                       name="leaderReg"
                       type="text"
                       className="input-base"
-                      placeholder="VIT reg. no."
+                      placeholder="Your VIT warrior code"
                       required={isVitChennai === "yes"}
                     />
                   </div>
@@ -427,19 +398,19 @@ export default function Register() {
               </div>
 
               <div className="field">
-                <label htmlFor="leaderEmail">Leader Email Address</label>
+                <label htmlFor="leaderEmail">Command Center Contact</label>
                 <input
                   id="leaderEmail"
                   name="leaderEmail"
                   type="email"
                   className="input-base"
-                  placeholder="leader@institute.edu"
+                  placeholder="commander@warzone.com"
                   required
                 />
               </div>
 
               <div className="field">
-                <label htmlFor="receiptLink">Payment Receipt (Google Drive Link) *</label>
+                <label htmlFor="receiptLink">⚡ Battle Entry Pass (Payment Proof)</label>
                 <input
                   id="receiptLink"
                   name="receiptLink"
@@ -449,120 +420,8 @@ export default function Register() {
                   required
                 />
                 <p className="hint" style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: '#00ffff' }}>
-                  Upload your payment receipt to Google Drive and paste the shareable link here. Ensure the link is set to "Anyone with the link can view".
+                  Upload your payment receipt to Google Drive. Share the link with view access. This is your key to the battlefield.
                 </p>
-              </div>
-
-              <div className="section-label" style={{ marginTop: "0.8rem" }}>
-                Team size & members
-              </div>
-
-              <div className="team-size-row">
-                <span>Team size:</span>
-                <div className="field" style={{ marginBottom: 0 }}>
-                  <div className="dropdown" id="teamSizeDropdown">
-                    <div
-                      className="input-base dropdown-toggle"
-                      tabIndex={0}
-                      role="button"
-                      onClick={toggleDropdown}
-                      onKeyDown={handleDropdownKey}
-                      aria-expanded={dropdownOpen}
-                      id="dropdownToggle"
-                    >
-                      <span id="teamSizeLabel">{teamSizeLabel}</span>
-                      <span className="chevron">▾</span>
-                    </div>
-
-                    <ul
-                      className={`dropdown-menu${dropdownOpen ? " open" : ""}`}
-                      id="teamSizeMenu"
-                      role="menu"
-                    >
-                      <li className="dropdown-item" data-value="2" onClick={() => handlePickTeamSize(2)}>
-                        <span>2 members</span>
-                      </li>
-                      <li className="dropdown-item" data-value="3" onClick={() => handlePickTeamSize(3)}>
-                        <span>3 members</span>
-                      </li>
-                      <li className="dropdown-item" data-value="4" onClick={() => handlePickTeamSize(4)}>
-                        <span>4 members (max)</span>
-                      </li>
-                    </ul>
-                  </div>
-
-                  <input type="hidden" id="teamSize" name="teamSize" value={teamSize} readOnly />
-                </div>
-              </div>
-
-              <p className="hint">
-                Leader is counted in team size. Maximum team size is 4. Add details for other members below.
-              </p>
-
-              <div className="participant-grid" id="participantsContainer">
-                {participants.map((p, i) => (
-                  <div className="participant-card" key={i}>
-                    <div className="participant-title">Member {i + 1}</div>
-
-                    <div className="field">
-                      <label htmlFor={`memberName${i + 1}`}>Name</label>
-                      <input
-                        id={`memberName${i + 1}`}
-                        name={`memberName${i + 1}`}
-                        type="text"
-                        className="input-base"
-                        placeholder="Full name"
-                        required
-                        value={participants[i]?.name || ""}
-                        onChange={(e) => updateParticipant(i, "name", e.target.value)}
-                      />
-                    </div>
-
-                    <div className="field">
-                      <label htmlFor={`memberEmail${i + 1}`}>Email</label>
-                      <input
-                        id={`memberEmail${i + 1}`}
-                        name={`memberEmail${i + 1}`}
-                        type="email"
-                        className="input-base"
-                        placeholder="member@institute.edu"
-                        required
-                        value={participants[i]?.email || ""}
-                        onChange={(e) => updateParticipant(i, "email", e.target.value)}
-                      />
-                    </div>
-
-                    {isVitChennai === "yes" ? (
-                      <div className="field">
-                        <label htmlFor={`memberReg${i + 1}`}>Registration no.</label>
-                        <input
-                          id={`memberReg${i + 1}`}
-                          name={`memberReg${i + 1}`}
-                          type="text"
-                          className="input-base"
-                          placeholder="VIT reg. no."
-                          required={isVitChennai === "yes"}
-                          value={participants[i]?.reg || ""}
-                          onChange={(e) => updateParticipant(i, "reg", e.target.value)}
-                        />
-                      </div>
-                    ) : (
-                      <div className="field">
-                        <label htmlFor={`memberInstitution${i + 1}`}>Institution</label>
-                        <input
-                          id={`memberInstitution${i + 1}`}
-                          name={`memberInstitution${i + 1}`}
-                          type="text"
-                          className="input-base"
-                          placeholder="College/University name"
-                          required={isVitChennai === "no"}
-                          value={participants[i]?.institution || ""}
-                          onChange={(e) => updateParticipant(i, "institution", e.target.value)}
-                        />
-                      </div>
-                    )}
-                  </div>
-                ))}
               </div>
 
               {isSubmitting && (
@@ -585,7 +444,7 @@ export default function Register() {
                 opacity: isSubmitting ? 0.6 : 1,
                 cursor: isSubmitting ? 'not-allowed' : 'pointer'
               }}>
-                {isSubmitting ? '⏳ Processing...' : 'Enter the V-VORTEX'}
+                {isSubmitting ? '⚡ INITIALIZING...' : '⚔️ ENTER THE ARENA'}
               </button>
             </form>
           </section>
@@ -598,10 +457,9 @@ export default function Register() {
         ref={vortexMessageRef}
       >
         <div className="vortex-message-inner">
-          <h2>VORTEX ENGAGED</h2>
+          <h2>🔥 COMMANDER INITIATED 🔥</h2>
           <p>
-            Your squad has been swallowed by the <strong>VORTEX</strong>. The only way out is{" "}
-            <strong>victory</strong>. Suit up.
+            Your <strong>LEGION</strong> has been inscribed in the annals of the VORTEX. The arena trembles at your approach. Assemble your warriors. The battle for <strong>GLORY</strong> begins now. <strong>VICTORY OR VALHALLA.</strong>
           </p>
         </div>
       </div>
