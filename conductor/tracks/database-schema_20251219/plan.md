@@ -10,7 +10,7 @@ This plan covers the creation of the core database schema for users and teams, i
 
 ## Phase 2: Automation & Constraints
 - [x] Task: Implement `team_code` auto-generation function and trigger. bef6664
-- [ ] Task: Implement `updated_at` timestamp trigger for `teams`.
+- [x] Task: Implement `updated_at` timestamp trigger for `teams`. 9433295
 - [ ] Task: Implement Team Size Constraint trigger (Max 4 members).
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Automation & Constraints' (Protocol in workflow.md)
 
