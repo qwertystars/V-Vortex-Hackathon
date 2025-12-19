@@ -4,7 +4,7 @@ This plan covers the creation of the core database schema for users and teams, i
 
 ## Phase 1: Core Schema & Lookup Tables
 - [x] Task: Create `domains` and `problem_statements` tables. 4f9ae63
-- [ ] Task: Create `users` table with link to `auth.users`.
+- [x] Task: Create `users` table with link to `auth.users`. e51a6a3
 - [ ] Task: Create `teams` table and `team_members` junction table.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Core Schema & Lookup Tables' (Protocol in workflow.md)
 
