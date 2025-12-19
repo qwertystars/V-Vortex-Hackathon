@@ -14,7 +14,7 @@ This plan covers the creation of the core database schema for users and teams, i
 - [x] Task: Implement Team Size Constraint trigger (Max 4 members). 66b81cc
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Automation & Constraints' (Protocol in workflow.md)
 
-## Phase 3: Security (RLS) & Documentation
+## Phase 3: Security (RLS) & Documentation [checkpoint: b0ca691]
 - [x] Task: Enable RLS and define policies for `users`, `teams`, and `team_members`. eeec3fe
 - [x] Task: Create `docs/database_schema.md` with complete schema documentation. 7e7666b
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Security (RLS) & Documentation' (Protocol in workflow.md)
