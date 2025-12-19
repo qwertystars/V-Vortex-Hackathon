@@ -15,6 +15,6 @@ This plan covers the creation of the core database schema for users and teams, i
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Automation & Constraints' (Protocol in workflow.md)
 
 ## Phase 3: Security (RLS) & Documentation
-- [ ] Task: Enable RLS and define policies for `users`, `teams`, and `team_members`.
+- [x] Task: Enable RLS and define policies for `users`, `teams`, and `team_members`. eeec3fe
 - [ ] Task: Create `docs/database_schema.md` with complete schema documentation.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Security (RLS) & Documentation' (Protocol in workflow.md)
