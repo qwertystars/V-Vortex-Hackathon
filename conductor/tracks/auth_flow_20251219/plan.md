@@ -6,12 +6,6 @@
     - [x] Subtask: Create/Update `AuthContext.jsx` to handle session persistence and exposure of auth state.
     - [x] Subtask: Write unit tests for `AuthContext` (mocking Supabase).
 
-## Phase 1.5: Edge Function Initialization
-- [x] Task: Initialize Edge Functions & Create Hello World [81763ad]
-    - [x] Subtask: Create `supabase/functions/hello-world` structure.
-    - [x] Subtask: Deploy/Verify function.
-    - [ ] Subtask: Deploy/Verify function.
-
 ## Phase 2: Database Schema & RLS
 - [ ] Task: Set up Database Schema
     - [ ] Subtask: Create migration for `profiles` and `teams` tables.
