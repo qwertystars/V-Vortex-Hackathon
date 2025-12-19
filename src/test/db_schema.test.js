@@ -80,4 +80,51 @@ describe('Phase 1: Database Schema', () => {
     // Cleanup
     await supabase.from('teams').delete().eq('id', team.id);
   });
+
+  it('should enforce max 4 team members', async () => {
+    // 1. Create a team
+    const { data: team, error: teamError } = await supabase
+      .from('teams')
+      .insert([{ team_name: 'Max Members Team' }])
+      .select()
+      .single();
+    
+    expect(teamError).toBeNull();
+
+    const { data: users, error: userError } = await supabase
+        .from('users')
+        .select('id')
+        .ilike('email', 'seed_user_%')
+        .limit(5);
+
+    expect(userError).toBeNull();
+    if (users.length < 5) {
+        throw new Error('Not enough seeded users found. Run migration seed_test_users_for_limit.');
+    }
+
+    const userIds = users.map(u => u.id);
+
+    // 3. Add 4 members (Should Succeed)
+    for (let i = 0; i < 4; i++) {
+      const { error } = await supabase.from('team_members').insert({
+        team_id: team.id,
+        user_id: userIds[i]
+      });
+      expect(error).toBeNull();
+    }
+
+    // 4. Add 5th member (Should Fail)
+    const { error: failError } = await supabase.from('team_members').insert({
+      team_id: team.id,
+      user_id: userIds[4]
+    });
+
+    // We expect an error here
+    expect(failError).not.toBeNull();
+    expect(failError.message).toContain('Team size limit reached'); 
+
+    // Cleanup
+    await supabase.from('teams').delete().eq('id', team.id);
+    // Cannot easily delete auth users without service key
+  }, 30000);
 });
