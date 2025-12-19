@@ -8,7 +8,7 @@ This plan covers the creation of the core database schema for users and teams, i
 - [x] Task: Create `teams` table and `team_members` junction table. d40dc06
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Core Schema & Lookup Tables' (Protocol in workflow.md)
 
-## Phase 2: Automation & Constraints
+## Phase 2: Automation & Constraints [checkpoint: 33498c8]
 - [x] Task: Implement `team_code` auto-generation function and trigger. bef6664
 - [x] Task: Implement `updated_at` timestamp trigger for `teams`. 9433295
 - [x] Task: Implement Team Size Constraint trigger (Max 4 members). 66b81cc
