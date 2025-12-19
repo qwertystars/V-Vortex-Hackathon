@@ -12,4 +12,9 @@ describe('Phase 1: Database Schema', () => {
     const { data, error } = await supabase.from('problem_statements').select('*').limit(1);
     expect(error).toBeNull();
   });
+
+  it('should have a users table', async () => {
+    const { data, error } = await supabase.from('users').select('*').limit(1);
+    expect(error).toBeNull();
+  });
 });
