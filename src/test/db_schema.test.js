@@ -48,4 +48,36 @@ describe('Phase 1: Database Schema', () => {
     // Cleanup
     await supabase.from('teams').delete().eq('id', data.id);
   });
+
+  it('should update updated_at timestamp on modification', async () => {
+    // 1. Create a team
+    const { data: team, error: insertError } = await supabase
+      .from('teams')
+      .insert([{ team_name: 'Update Test Team' }])
+      .select()
+      .single();
+
+    expect(insertError).toBeNull();
+    const originalUpdatedAt = team.updated_at;
+
+    // Wait a bit to ensure timestamp difference (Postgres resolution can be high)
+    await new Promise((r) => setTimeout(r, 100));
+
+    // 2. Update the team
+    const { data: updatedTeam, error: updateError } = await supabase
+      .from('teams')
+      .update({ team_name: 'Updated Name' })
+      .eq('id', team.id)
+      .select()
+      .single();
+
+    expect(updateError).toBeNull();
+
+    // 3. Check timestamps
+    expect(updatedTeam.updated_at).not.toBe(originalUpdatedAt);
+    expect(new Date(updatedTeam.updated_at).getTime()).toBeGreaterThan(new Date(originalUpdatedAt).getTime());
+
+    // Cleanup
+    await supabase.from('teams').delete().eq('id', team.id);
+  });
 });
