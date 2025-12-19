@@ -17,4 +17,14 @@ describe('Phase 1: Database Schema', () => {
     const { data, error } = await supabase.from('users').select('*').limit(1);
     expect(error).toBeNull();
   });
+
+  it('should have a teams table', async () => {
+    const { data, error } = await supabase.from('teams').select('*').limit(1);
+    expect(error).toBeNull();
+  });
+
+  it('should have a team_members table', async () => {
+    const { data, error } = await supabase.from('team_members').select('*').limit(1);
+    expect(error).toBeNull();
+  });
 });
