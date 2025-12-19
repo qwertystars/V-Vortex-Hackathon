@@ -4,5 +4,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [ ] Track: Implement the Supabase-only Authentication and Registration Flow
+## [~] Track: Implement the Supabase-only Authentication and Registration Flow
 *Link: [./conductor/tracks/auth_flow_20251219/](./conductor/tracks/auth_flow_20251219/)*

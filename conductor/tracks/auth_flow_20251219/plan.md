@@ -1,7 +1,7 @@
 # Plan: Authentication & Registration Flow
 
 ## Phase 1: Supabase & Project Configuration
-- [ ] Task: Initialize Supabase client and AuthContext
+- [~] Task: Initialize Supabase client and AuthContext
     - [ ] Subtask: Configure `supabaseClient.js` with environment variables.
     - [ ] Subtask: Create/Update `AuthContext.jsx` to handle session persistence and exposure of auth state.
     - [ ] Subtask: Write unit tests for `AuthContext` (mocking Supabase).

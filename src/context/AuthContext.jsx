@@ -1,42 +1,46 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { authService } from '../services/auth';
+import { supabase } from '../supabaseClient';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [team, setTeam] = useState(null);
+  const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Restore session from storage on load
-    const initAuth = async () => {
-      const email = sessionStorage.getItem('loginEmail');
-      const teamId = sessionStorage.getItem('teamId');
-      const role = sessionStorage.getItem('role');
-
-      if (email) {
-        setUser({ email, role, id: 'restored-id' });
-        if (teamId) {
-          setTeam({ id: teamId });
-        }
+    // Check active sessions and sets the user
+    const getSession = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error('Error getting session:', error);
       }
+      setSession(session);
+      setUser(session?.user ?? null);
       setLoading(false);
     };
-    initAuth();
+
+    getSession();
+
+    // Listen for changes on auth state (logged in, signed out, etc.)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const login = async (email, teamName, role) => {
+  const login = async (email) => {
     try {
-      const { user: userData, team: teamData } = await authService.login(email, teamName, role);
-      setUser(userData);
-      setTeam(teamData);
-      
-      // Persist to session storage for page reloads (simulating auth persistence)
-      sessionStorage.setItem('loginEmail', email);
-      sessionStorage.setItem('teamId', teamData.id);
-      sessionStorage.setItem('role', role);
-      
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          // emailRedirectTo: window.location.origin,
+        },
+      });
+      if (error) throw error;
       return { success: true };
     } catch (error) {
       console.error("Login failed", error);
@@ -45,14 +49,12 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
-    await authService.logout();
-    setUser(null);
-    setTeam(null);
-    sessionStorage.clear();
+    const { error } = await supabase.auth.signOut();
+    if (error) console.error('Error logging out:', error);
   };
 
   return (
-    <AuthContext.Provider value={{ user, team, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, session, login, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );
