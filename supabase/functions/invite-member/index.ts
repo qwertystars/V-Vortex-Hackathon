@@ -86,12 +86,16 @@ Deno.serve(async (req) => {
     });
   }
 
-  const { data: existingAuth, error: existingAuthError } =
-    await supabase.auth.admin.getUserByEmail(email);
-  if (existingAuthError) {
-    console.error("Lookup error:", existingAuthError);
-  }
-  const existingUserId = existingAuth?.user?.id ?? null;
+    const { data: existingAuth, error: existingAuthError } = await supabase
+      .schema("auth")
+      .from("users")
+      .select("id")
+      .eq("email", email)
+      .maybeSingle();
+    if (existingAuthError) {
+      console.error("Lookup error:", existingAuthError);
+    }
+    const existingUserId = existingAuth?.id ?? null;
 
   if (existingUserId) {
     const { data: existingMembership } = await supabase
