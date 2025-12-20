@@ -14,7 +14,7 @@ export default function Register() {
   const timeoutsRef = useRef([]);
 
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, refreshContext } = useAuth();
 
   const [sucked, setSucked] = useState(false);
   const [vortexVisible, setVortexVisible] = useState(false);
@@ -223,7 +223,10 @@ export default function Register() {
         setVortexVisible(false);
         setSucked(false);
       }, showDelay + visibleDuration);
-      const t3 = setTimeout(() => navigate("/dashboard"), showDelay + visibleDuration + 250);
+      const t3 = setTimeout(async () => {
+        await refreshContext();
+        navigate("/dashboard");
+      }, showDelay + visibleDuration + 250);
 
       timeoutsRef.current.push(t1, t2, t3);
     } catch (error) {

@@ -86,16 +86,16 @@ Deno.serve(async (req) => {
     });
   }
 
-    const { data: existingAuth, error: existingAuthError } = await supabase
-      .schema("auth")
-      .from("users")
-      .select("id")
-      .eq("email", email)
-      .maybeSingle();
-    if (existingAuthError) {
-      console.error("Lookup error:", existingAuthError);
-    }
-    const existingUserId = existingAuth?.id ?? null;
+  const { data: existingAuth, error: existingAuthError } = await supabase
+    .schema("auth")
+    .from("users")
+    .select("id")
+    .eq("email", email)
+    .maybeSingle();
+  if (existingAuthError) {
+    console.error("Lookup error:", existingAuthError);
+  }
+  const existingUserId = existingAuth?.id ?? null;
 
   if (existingUserId) {
     const { data: existingMembership } = await supabase
@@ -156,29 +156,33 @@ Deno.serve(async (req) => {
     });
   }
 
-  const redirectTo = siteUrl
-    ? `${siteUrl.replace(/\/$/, "")}/invite`
-    : undefined;
+  let invitedUserId = existingUserId;
 
-  const { data: inviteData, error: inviteError } =
-    await supabase.auth.admin.inviteUserByEmail(email, {
-      data: {
-        role: "team_member",
-        team_id: teamId,
-        invited_by: user.id,
-      },
-      redirectTo,
-    });
+  if (!invitedUserId) {
+    const redirectTo = siteUrl
+      ? `${siteUrl.replace(/\/$/, "")}/invite`
+      : undefined;
 
-  if (inviteError) {
-    console.error("Invite error:", inviteError);
-    return new Response(JSON.stringify({ error: inviteError.message }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    const { data: inviteData, error: inviteError } =
+      await supabase.auth.admin.inviteUserByEmail(email, {
+        data: {
+          role: "team_member",
+          team_id: teamId,
+          invited_by: user.id,
+        },
+        redirectTo,
+      });
+
+    if (inviteError) {
+      console.error("Invite error:", inviteError);
+      return new Response(JSON.stringify({ error: inviteError.message }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    invitedUserId = inviteData?.user?.id ?? null;
   }
-
-  const invitedUserId = inviteData?.user?.id ?? null;
 
   if (invitedUserId) {
     await supabase.auth.admin.updateUserById(invitedUserId, {
