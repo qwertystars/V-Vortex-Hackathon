@@ -4,6 +4,15 @@ import "../styles/transition.css";
 export default function PageTransition({ videoSrc, onFinished }) {
   const videoRef = useRef(null);
 
+  const resumePlayback = () => {
+    const video = videoRef.current;
+    if (!video || video.ended) return;
+    const playPromise = video.play();
+    if (playPromise && playPromise.catch) {
+      playPromise.catch(() => {});
+    }
+  };
+
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -17,7 +26,7 @@ export default function PageTransition({ videoSrc, onFinished }) {
     };
 
     // ✅ MUST be muted for autoplay
-    video.muted = false;
+    video.muted = true;
     video.currentTime = 0;
 
     const playPromise = video.play();
@@ -47,6 +56,15 @@ export default function PageTransition({ videoSrc, onFinished }) {
         className="transitionVideo"
         playsInline
         muted
+        tabIndex={-1}
+        disablePictureInPicture
+        disableRemotePlayback
+        controlsList="nodownload noplaybackrate noremoteplayback"
+        onPause={() => {
+          const video = videoRef.current;
+          if (video && !video.ended) resumePlayback();
+        }}
+        onContextMenu={(e) => e.preventDefault()}
       >
         <source src={videoSrc} type="video/mp4" />
       </video>

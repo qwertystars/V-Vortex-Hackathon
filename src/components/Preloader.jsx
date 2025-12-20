@@ -8,6 +8,15 @@ export default function Preloader({ onFinished }) {
   const flashRef = useRef(null);
   const tappedRef = useRef(false);
 
+  const resumePlayback = () => {
+    const vid = videoRef.current;
+    if (!vid || vid.ended) return;
+    const playPromise = vid.play();
+    if (playPromise && playPromise.catch) {
+      playPromise.catch(() => {});
+    }
+  };
+
   // Make sure playsinline attribute exists for mobile browsers
   useEffect(() => {
     const vid = videoRef.current;
@@ -146,7 +155,16 @@ export default function Preloader({ onFinished }) {
           // Start muted to maximize mobile compatibility; component code will try to unmute after play
           muted
           preload="auto"
+          tabIndex={-1}
+          disablePictureInPicture
+          disableRemotePlayback
+          controlsList="nodownload noplaybackrate noremoteplayback"
           onEnded={handleEnd}
+          onPause={() => {
+            const vid = videoRef.current;
+            if (vid && !vid.ended) resumePlayback();
+          }}
+          onContextMenu={(e) => e.preventDefault()}
           onLoadedData={(e) => {
             // smooth opacity fade-in once video data is ready
             setTimeout(() => {
