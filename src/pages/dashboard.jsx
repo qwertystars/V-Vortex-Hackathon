@@ -197,17 +197,20 @@ export default function TeamDashboard() {
               currentTeamName={team?.team_name}
               hasMembers={teamMembers.length > 0}
               onTeamBuilt={async () => {
-                // Optimize: Reload team data in parallel
+                // Optimize: Reload all data including leaderboard in parallel
                 const [
                   { data: updatedTeam },
-                  { data: updatedMembers }
+                  { data: updatedMembers },
+                  { data: updatedLeaderboard }
                 ] = await Promise.all([
                   supabase.from("teams").select("*").eq("id", teamId).single(),
-                  supabase.from("team_members").select("*").eq("team_id", teamId)
+                  supabase.from("team_members").select("*").eq("team_id", teamId),
+                  supabase.from("leaderboard_view").select("*").order("position", { ascending: true })
                 ]);
                 
                 setTeam(updatedTeam);
                 setTeamMembers(updatedMembers || []);
+                setLeaderboard(updatedLeaderboard || []);
                 setActiveTab("vortex");
               }}
             />

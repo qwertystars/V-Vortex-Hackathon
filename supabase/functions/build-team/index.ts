@@ -163,7 +163,7 @@ Deno.serve(async (req) => {
       member_name: m.name,
       member_email: m.email,
       member_reg_no: m.isVitChennai && m.regNo ? m.regNo : null,
-      institution: !m.isVitChennai && m.eventHubId ? m.eventHubId : null,
+      institution: m.isVitChennai ? "VIT Chennai" : (m.eventHubId || null),
     }));
 
     const { error: membersError } = await supabase

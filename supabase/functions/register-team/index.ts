@@ -82,7 +82,7 @@ Deno.serve(async (req) => {
       team_size: 2, // Set to minimum size (2) to satisfy constraint, will be updated when building team
       lead_name: leaderName,
       lead_reg_no: isVitChennai === "yes" ? leaderReg : null,
-      institution: isVitChennai === "no" ? eventHubId : null, // Must be NULL for VIT, eventHubId for others
+      institution: isVitChennai === "yes" ? "VIT Chennai" : eventHubId,
       lead_email: leaderEmail,
       receipt_link: receiptLink,
     };
