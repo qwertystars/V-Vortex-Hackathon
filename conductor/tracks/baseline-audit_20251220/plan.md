@@ -13,7 +13,7 @@
 
 ## Phase 3: Frontend Code Audit & Documentation
 - [x] Task: Audit Frontend for Pre-auth DB Reads and Role Selectors (Findings: Login/Register have pre-auth reads, role selector exists) 49c9f1a
-- [ ] Task: Audit Frontend for SessionStorage Routing and Context Gaps
+- [x] Task: Audit Frontend for SessionStorage Routing and Context Gaps (Findings: AuthProvider unused, routes public, sessionStorage used for routing) 84d133c
 - [ ] Task: Update `docs/database_schema.md` with Current Reality and Gap Annotations
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Frontend Audit' (Protocol in workflow.md)
 
