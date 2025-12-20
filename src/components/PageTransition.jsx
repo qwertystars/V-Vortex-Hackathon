@@ -28,7 +28,7 @@ export default function PageTransition({ videoSrc, onFinished }) {
     };
 
     // ✅ MUST be muted for autoplay
-    video.muted = false;
+    video.muted = true;
     video.currentTime = 0;
 
     const playPromise = video.play();

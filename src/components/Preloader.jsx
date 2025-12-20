@@ -7,6 +7,7 @@ export default function Preloader({ onFinished }) {
   const enterRef = useRef(null);
   const flashRef = useRef(null);
   const tappedRef = useRef(false);
+  const finishedRef = useRef(false); // Prevent calling onFinished multiple times
 
   // Make sure playsinline attribute exists for mobile browsers
   useEffect(() => {
@@ -103,6 +104,9 @@ export default function Preloader({ onFinished }) {
   };
 
   const handleEnd = () => {
+    if (finishedRef.current) return; // Prevent double-trigger
+    finishedRef.current = true;
+
     if (flashRef.current) flashRef.current.classList.add("flashVisible");
 
     // small stagger: fade out video slightly after flash starts
@@ -113,6 +117,18 @@ export default function Preloader({ onFinished }) {
 
     setTimeout(() => onFinished(), 1200);
   };
+
+  // Add safety timeout for mobile browsers where onEnded might not fire
+  useEffect(() => {
+    if (stage === "playing") {
+      const safetyTimeout = setTimeout(() => {
+        console.warn("Intro video timeout safety net triggered on mobile");
+        handleEnd();
+      }, 8000); // Video is ~6-7 seconds, this gives buffer
+
+      return () => clearTimeout(safetyTimeout);
+    }
+  }, [stage]);
 
   // If user rotates device, ensure layout stays full-screen (optional improvement)
   useEffect(() => {
