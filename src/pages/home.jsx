@@ -327,7 +327,7 @@ export default function Home({ setTransition }) {
           </div>
           <div className="team-member">
             <div className="member-photo">SG</div>
-            <h4 className="member-name">Srijan Guchhait</h4>
+            <h4 className="member-name">Srijan Guchhait(Gucci)</h4>
             <p className="member-role">Special Contributor</p>
           </div>
         </div>
@@ -404,6 +404,7 @@ export default function Home({ setTransition }) {
     </div>
   );
 }
+
 
 
 
