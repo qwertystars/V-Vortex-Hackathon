@@ -8,7 +8,7 @@
 ## Phase 2: Database Schema & RLS Audit (Automated)
 - [x] Task: Implement Automated Tests for Schema Verification (Tables, Columns, FKs) dfc5e0c
 - [x] Task: Implement Automated Tests for Current RLS Policies (Verifying current permissions) 9622afc
-- [ ] Task: Implement Automated Tests for Database Triggers and Constraints
+- [x] Task: Implement Automated Tests for Database Triggers and Constraints 051a953
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: DB Audit' (Protocol in workflow.md)
 
 ## Phase 3: Frontend Code Audit & Documentation
