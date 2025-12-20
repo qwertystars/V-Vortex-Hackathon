@@ -9,6 +9,10 @@ const siteUrl =
   Deno.env.get("SUPABASE_SITE_URL") ??
   "";
 
+if (!supabaseUrl || !serviceRoleKey) {
+  console.error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
+}
+
 const supabase = createClient(supabaseUrl, serviceRoleKey);
 
 const corsHeaders = {
@@ -24,6 +28,13 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") {
     return new Response(JSON.stringify({ error: "Method not allowed" }), {
       status: 405,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    return new Response(JSON.stringify({ error: "Server is missing Supabase secrets" }), {
+      status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
@@ -64,7 +75,11 @@ Deno.serve(async (req) => {
     });
   }
 
-  const { data: existingAuth } = await supabase.auth.admin.getUserByEmail(email);
+  const { data: existingAuth, error: existingAuthError } =
+    await supabase.auth.admin.getUserByEmail(email);
+  if (existingAuthError) {
+    console.error("Lookup error:", existingAuthError);
+  }
   const existingUserId = existingAuth?.user?.id ?? null;
 
   if (existingUserId) {
@@ -130,21 +145,19 @@ Deno.serve(async (req) => {
     ? `${siteUrl.replace(/\/$/, "")}/invite`
     : undefined;
 
-  const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(
-    email,
-    {
+  const { data: inviteData, error: inviteError } =
+    await supabase.auth.admin.inviteUserByEmail(email, {
       data: {
         role: "team_member",
         team_id: teamId,
         invited_by: user.id,
       },
       redirectTo,
-    }
-  );
+    });
 
   if (inviteError) {
     console.error("Invite error:", inviteError);
-    return new Response(JSON.stringify({ error: "Unable to send invite" }), {
+    return new Response(JSON.stringify({ error: inviteError.message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
