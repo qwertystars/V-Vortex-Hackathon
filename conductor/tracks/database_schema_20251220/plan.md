@@ -10,7 +10,7 @@ This plan outlines the steps to implement the database schema changes required f
 ## [checkpoint: a7e5a15]
 
 ## Phase 2: Schema Modifications (TDD)
-- [ ] Task: Modify `public.users` table
+- [x] Task: Modify `public.users` table d8fc81b
     - [ ] Write failing test: Verify that `onboarding_complete` does not exist and name/university are NOT NULL.
     - [ ] Implement: Add `onboarding_complete` column and make existing profile fields nullable.
     - [ ] Verify: Tests pass.
