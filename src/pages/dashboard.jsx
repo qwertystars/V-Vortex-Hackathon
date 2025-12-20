@@ -17,8 +17,6 @@ export default function TeamDashboard() {
   const [activeTab, setActiveTab] = useState("vortex");
   const [showSidebar, setShowSidebar] = useState(false);
   const [teamMembers, setTeamMembers] = useState([]);
-  const [teamMembers, setTeamMembers] = useState([]);
-  const [teamBuilt, setTeamBuilt] = useState(false);
   
   // Calculated stats
   const myRank = leaderboard.find(row => row.team_name === team?.team_name)?.position ?? "—";
