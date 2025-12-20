@@ -214,7 +214,7 @@ export default function Register() {
       sessionStorage.setItem("authFlow", "register");
       sessionStorage.setItem(
         "registerIntent",
-        JSON.stringify({ email: trimmedEmail, role })
+        JSON.stringify({ email: trimmedEmail })
       );
 
       navigate("/otp");
@@ -411,41 +411,6 @@ export default function Register() {
             {!user ? (
               <form id="registerAuthForm" onSubmit={handleStartRegistration}>
                 <div className="section-label">⚡ Activate Registration</div>
-
-                <div className="field">
-                  <label>Choose your role</label>
-                  <div className={`toggle-group${role === "team_member" ? " no-selected" : ""}`}>
-                    <div className="toggle-slider" />
-
-                    <label className="toggle-option">
-                      <input
-                        type="radio"
-                        name="role"
-                        value="team_leader"
-                        checked={role === "team_leader"}
-                        onChange={() => setRole("team_leader")}
-                      />
-                      <span className="toggle-label">
-                        <span className="toggle-icon">✓</span>
-                        Team Leader
-                      </span>
-                    </label>
-
-                    <label className="toggle-option">
-                      <input
-                        type="radio"
-                        name="role"
-                        value="team_member"
-                        checked={role === "team_member"}
-                        onChange={() => setRole("team_member")}
-                      />
-                      <span className="toggle-label">
-                        <span className="toggle-icon">✕</span>
-                        Team Member
-                      </span>
-                    </label>
-                  </div>
-                </div>
 
                 <div className="field">
                   <label htmlFor="authEmail">Email Address</label>
