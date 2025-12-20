@@ -19,6 +19,11 @@
   overflow: hidden; /* clip the decorative logo */
 } 
 
+.dashboardWrapper .sidebar {
+  display: flex;
+  z-index: 70;
+}
+
 /* decorative background logo (low opacity) */
 .sidebar::before {
   content: "";
