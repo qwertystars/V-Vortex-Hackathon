@@ -201,38 +201,6 @@ Deno.serve(async (req) => {
       }
     }
 
-    // 4. Optional: Send to Google Sheets
-    const GOOGLE_SHEETS_URL = Deno.env.get("GOOGLE_SHEETS_WEBHOOK_URL");
-    
-    if (GOOGLE_SHEETS_URL) {
-      const sheetData = {
-        teamId,
-        teamName,
-        teamSize,
-        leaderEmail: team.lead_email,
-        members: members.map((m: any) => ({
-          name: m.name,
-          email: m.email,
-          isVitChennai: m.isVitChennai,
-          regNo: m.regNo || null,
-          eventHubId: m.eventHubId || null,
-        })),
-        status: "Team Fully Built",
-        timestamp: new Date().toISOString(),
-      };
-
-      try {
-        await fetch(GOOGLE_SHEETS_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(sheetData),
-        });
-      } catch (sheetError) {
-        console.error("Google Sheets error:", sheetError);
-        // Don't fail if sheets fails
-      }
-    }
-
     return new Response(
       JSON.stringify({ success: true, message: "Team built successfully" }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }

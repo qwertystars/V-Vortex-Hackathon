@@ -101,35 +101,6 @@ Deno.serve(async (req) => {
     }
     
     console.log("Team leader registered successfully:", team.id);
-    
-    // Optional: Send to Google Sheets (for team leader registration only)
-    const GOOGLE_SHEETS_URL = Deno.env.get("GOOGLE_SHEETS_WEBHOOK_URL");
-    
-    if (GOOGLE_SHEETS_URL) {
-      const sheetData = {
-        teamId: team.id,
-        teamName: teamData.team_name,
-        leaderName,
-        leaderEmail,
-        isVitChennai,
-        leaderReg: isVitChennai === "yes" ? leaderReg : null,
-        eventHubId: isVitChennai === "no" ? eventHubId : null,
-        receiptLink,
-        registrationStatus: "Leader Registered - Team Pending",
-        timestamp: new Date().toISOString(),
-      };
-
-      try {
-        await fetch(GOOGLE_SHEETS_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(sheetData),
-        });
-      } catch (sheetError) {
-        console.error("Google Sheets error:", sheetError);
-        // Don't fail the registration if sheets fails
-      }
-    }
 
     return new Response(
       JSON.stringify({ success: true, teamId: team.id }),
