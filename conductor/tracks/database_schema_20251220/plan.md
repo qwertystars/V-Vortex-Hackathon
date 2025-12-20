@@ -14,7 +14,7 @@ This plan outlines the steps to implement the database schema changes required f
     - [ ] Write failing test: Verify that `onboarding_complete` does not exist and name/university are NOT NULL.
     - [ ] Implement: Add `onboarding_complete` column and make existing profile fields nullable.
     - [ ] Verify: Tests pass.
-- [ ] Task: Modify `public.teams` table
+- [x] Task: Modify `public.teams` table e08bc5a
     - [ ] Write failing test: Verify that `leader_user_id` does not exist.
     - [ ] Implement: Add `leader_user_id` referencing `auth.users(id)`.
     - [ ] Verify: Tests pass.
