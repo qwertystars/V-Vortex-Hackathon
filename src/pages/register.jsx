@@ -207,7 +207,7 @@ export default function Register() {
 
     try {
       setSubmitMessage("🔥 Creating your account...");
-      const { error } = await supabase.functions.invoke("register-team", {
+      const { data, error } = await supabase.functions.invoke("register-team", {
         body: {
           isVitChennai,
           eventHubId: isVitChennai === "no" ? eventHubId : null,
@@ -218,7 +218,15 @@ export default function Register() {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        const errorMsg = error.message || error.error || "Registration failed";
+        throw new Error(errorMsg);
+      }
+      
+      // Check for errors in the response data
+      if (data?.error) {
+        throw new Error(data.error);
+      }
 
       setSubmitMessage("✅ REGISTRATION SUCCESSFUL! Redirecting to login...");
 

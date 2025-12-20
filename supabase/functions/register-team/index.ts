@@ -75,8 +75,10 @@ Deno.serve(async (req) => {
     }
 
     // 1. Insert team leader into database (team not fully formed yet)
+    // Generate random temporary team name
+    const randomId = crypto.randomUUID().split('-')[0].toUpperCase();
     const teamData = {
-      team_name: `Team-${leaderEmail.split('@')[0]}`, // Temporary name, will be updated when building team
+      team_name: `TEMP-${randomId}`, // Temporary random name, will be updated when building team
       team_size: 1, // Initially just the leader, will be updated when building team
       lead_name: leaderName,
       lead_reg_no: isVitChennai === "yes" ? leaderReg : null,

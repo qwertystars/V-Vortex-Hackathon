@@ -2,7 +2,7 @@ import { useState } from "react";
 import { supabase } from "../supabaseClient";
 import "../styles/build-team.css";
 
-export default function BuildTeam({ teamId, onTeamBuilt }) {
+export default function BuildTeam({ teamId, onTeamBuilt, currentTeamName, hasMembers }) {
   const [teamName, setTeamName] = useState("");
   const [teamSize, setTeamSize] = useState(2);
   const [members, setMembers] = useState([
@@ -10,6 +10,20 @@ export default function BuildTeam({ teamId, onTeamBuilt }) {
   ]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  // Check if team is already built
+  if (hasMembers) {
+    return (
+      <div className="buildTeamContainer">
+        <div className="buildTeamCard">
+          <h2 className="buildTeamTitle">✅ Team Already Built</h2>
+          <p className="buildTeamDesc">
+            Your team has already been built and is complete. You cannot modify the team composition after it has been finalized.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const handleTeamSizeChange = (size) => {
     setTeamSize(size);
@@ -86,7 +100,16 @@ export default function BuildTeam({ teamId, onTeamBuilt }) {
         },
       });
 
-      if (buildError) throw buildError;
+      if (buildError) {
+        // Parse error from edge function response
+        const errorMsg = buildError.message || buildError.error || "Failed to build team";
+        throw new Error(errorMsg);
+      }
+      
+      // Check for errors in the response data
+      if (data?.error) {
+        throw new Error(data.error);
+      }
 
       // Success!
       alert("✅ Team successfully built! Your team is now complete.");

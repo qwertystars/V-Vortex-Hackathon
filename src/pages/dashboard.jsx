@@ -40,27 +40,18 @@ export default function TeamDashboard() {
       }
 
       try {
-        const { data: teamData } = await supabase
-          .from("teams")
-          .select("*")
-          .eq("id", teamId)
-          .single();
-
-        const { data: scoreData } = await supabase
-          .from("scorecards")
-          .select("*")
-          .eq("team_id", teamId)
-          .single();
-
-        const { data: leaderboardData } = await supabase
-          .from("leaderboard_view")
-          .select("*")
-          .order("position", { ascending: true });
-
-        const { data: membersData } = await supabase
-          .from("team_members")
-          .select("*")
-          .eq("team_id", teamId);
+        // Optimize: Fetch all data in parallel for faster loading
+        const [
+          { data: teamData },
+          { data: scoreData },
+          { data: leaderboardData },
+          { data: membersData }
+        ] = await Promise.all([
+          supabase.from("teams").select("*").eq("id", teamId).single(),
+          supabase.from("scorecards").select("*").eq("team_id", teamId).single(),
+          supabase.from("leaderboard_view").select("*").order("position", { ascending: true }),
+          supabase.from("team_members").select("*").eq("team_id", teamId)
+        ]);
 
         setTeam(teamData);
         setScorecard(scoreData || null);
@@ -204,19 +195,18 @@ export default function TeamDashboard() {
           {/* ===== BUILD YOUR TEAM ===== */}
           {activeTab === "buildTeam" && (
             <BuildTeam 
-              teamId={teamId} 
+              teamId={teamId}
+              currentTeamName={team?.team_name}
+              hasMembers={teamMembers.length > 0}
               onTeamBuilt={async () => {
-                // Reload team data after building
-                const { data: updatedTeam } = await supabase
-                  .from("teams")
-                  .select("*")
-                  .eq("id", teamId)
-                  .single();
-                
-                const { data: updatedMembers } = await supabase
-                  .from("team_members")
-                  .select("*")
-                  .eq("team_id", teamId);
+                // Optimize: Reload team data in parallel
+                const [
+                  { data: updatedTeam },
+                  { data: updatedMembers }
+                ] = await Promise.all([
+                  supabase.from("teams").select("*").eq("id", teamId).single(),
+                  supabase.from("team_members").select("*").eq("team_id", teamId)
+                ]);
                 
                 setTeam(updatedTeam);
                 setTeamMembers(updatedMembers || []);
@@ -228,6 +218,38 @@ export default function TeamDashboard() {
           {/* ===== VORTEX HUB ===== */}
           {activeTab === "vortex" && (
             <div className="vortexHub">
+              
+              {/* Show Build Team prompt if team not built yet */}
+              {teamMembers.length === 0 && (
+                <div className="buildTeamPrompt" style={{
+                  background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(236, 72, 153, 0.2))',
+                  border: '2px solid rgba(139, 92, 246, 0.4)',
+                  borderRadius: '12px',
+                  padding: '1.5rem',
+                  marginBottom: '2rem',
+                  textAlign: 'center',
+                  cursor: 'pointer'
+                }} onClick={() => setActiveTab("buildTeam")}>
+                  <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🔨</div>
+                  <h3 style={{ color: '#e879f9', marginBottom: '0.5rem', fontSize: '1.4rem' }}>
+                    Build Your Team First!
+                  </h3>
+                  <p style={{ color: '#cbd5e1', marginBottom: '1rem' }}>
+                    Your team is not complete yet. Click here to add members and set your team name.
+                  </p>
+                  <div style={{ 
+                    display: 'inline-block',
+                    padding: '0.75rem 1.5rem',
+                    background: 'rgba(139, 92, 246, 0.3)',
+                    borderRadius: '8px',
+                    color: '#e9d5ff',
+                    fontWeight: '600'
+                  }}>
+                    Go to Build Your Team →
+                  </div>
+                </div>
+              )}
+              
               <div className="vortexGrid">
                 <div className="vortexCard" onClick={() => setActiveTab("leaderboard")}>
                   <div className="vortexIcon">↗</div>
