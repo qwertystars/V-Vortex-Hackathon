@@ -5,11 +5,11 @@
 - [x] Task: Create Baseline Test Utility (helpers for checking table/column/RLS state) 39aace7
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Setup' (Protocol in workflow.md) 06aecb5
 
-## Phase 2: Database Schema & RLS Audit (Automated)
+## Phase 2: Database Schema & RLS Audit (Automated) [checkpoint: c90b433]
 - [x] Task: Implement Automated Tests for Schema Verification (Tables, Columns, FKs) dfc5e0c
 - [x] Task: Implement Automated Tests for Current RLS Policies (Verifying current permissions) 9622afc
 - [x] Task: Implement Automated Tests for Database Triggers and Constraints 051a953
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: DB Audit' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: DB Audit' (Protocol in workflow.md) c90b433
 
 ## Phase 3: Frontend Code Audit & Documentation
 - [ ] Task: Audit Frontend for Pre-auth DB Reads and Role Selectors
