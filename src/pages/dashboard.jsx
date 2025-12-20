@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
+import BuildTeam from "../components/BuildTeam";
 import "../styles/dashboard.css";
 import logo from "/logo.jpg";
 
@@ -15,6 +16,9 @@ export default function TeamDashboard() {
   const [time, setTime] = useState("");
   const [activeTab, setActiveTab] = useState("vortex");
   const [showSidebar, setShowSidebar] = useState(false);
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [teamBuilt, setTeamBuilt] = useState(false);
   
   // Calculated stats
   const myRank = leaderboard.find(row => row.team_name === team?.team_name)?.position ?? "—";
@@ -53,9 +57,15 @@ export default function TeamDashboard() {
           .select("*")
           .order("position", { ascending: true });
 
+        const { data: membersData } = await supabase
+          .from("team_members")
+          .select("*")
+          .eq("team_id", teamId);
+
         setTeam(teamData);
         setScorecard(scoreData || null);
         setLeaderboard(leaderboardData || []);
+        setTeamMembers(membersData || []);
       } catch (err) {
         console.error("Dashboard error:", err);
       } finally {
@@ -115,6 +125,13 @@ export default function TeamDashboard() {
           </button>
 
           <button
+            className={activeTab === "buildTeam" ? "active" : ""}
+            onClick={() => { setActiveTab("buildTeam"); setShowSidebar(false); }}
+          >
+            Build Your Team
+          </button>
+
+          <button
             className={activeTab === "leaderboard" ? "active" : ""}
             onClick={() => { setActiveTab("leaderboard"); setShowSidebar(false); }}
           >
@@ -163,6 +180,7 @@ export default function TeamDashboard() {
             <div>
               <div className="headerTitle">
                 {activeTab === "vortex" && "Vortex Hub"}
+                {activeTab === "buildTeam" && "Build Your Team"}
                 {activeTab === "leaderboard" && "Leaderboard"}
                 {activeTab === "nexus" && "Nexus Entry"}
                 {activeTab === "mission" && "The Mission"}
@@ -182,6 +200,30 @@ export default function TeamDashboard() {
 
         {/* ================= CONTENT ================= */}
         <div className="pageContent">
+
+          {/* ===== BUILD YOUR TEAM ===== */}
+          {activeTab === "buildTeam" && (
+            <BuildTeam 
+              teamId={teamId} 
+              onTeamBuilt={async () => {
+                // Reload team data after building
+                const { data: updatedTeam } = await supabase
+                  .from("teams")
+                  .select("*")
+                  .eq("id", teamId)
+                  .single();
+                
+                const { data: updatedMembers } = await supabase
+                  .from("team_members")
+                  .select("*")
+                  .eq("team_id", teamId);
+                
+                setTeam(updatedTeam);
+                setTeamMembers(updatedMembers || []);
+                setActiveTab("vortex");
+              }}
+            />
+          )}
 
           {/* ===== VORTEX HUB ===== */}
           {activeTab === "vortex" && (

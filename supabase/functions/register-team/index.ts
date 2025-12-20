@@ -18,12 +18,12 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const { teamName, teamSize, isVitChennai, institution, leaderName, leaderReg, leaderEmail, receiptLink, members } = await req.json();
+    const { isVitChennai, eventHubId, leaderName, leaderReg, leaderEmail, receiptLink } = await req.json();
     
-    console.log("Received registration:", { teamName, leaderEmail, isVitChennai, receiptLink });
+    console.log("Received team leader registration:", { leaderEmail, isVitChennai, receiptLink });
 
     // Validate input - conditional validation based on VIT Chennai status
-    if (!teamName || !leaderName || !leaderEmail || !receiptLink) {
+    if (!leaderName || !leaderEmail || !receiptLink) {
       return new Response(
         JSON.stringify({ error: "Missing required fields" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -38,25 +38,11 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Validate non-VIT students have institution
-    if (isVitChennai === "no" && !institution) {
+    // Validate non-VIT students have eventHubId
+    if (isVitChennai === "no" && !eventHubId) {
       return new Response(
-        JSON.stringify({ error: "Non-VIT students must provide institution name" }),
+        JSON.stringify({ error: "Non-VIT students must provide EventHub Unique ID" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Check for duplicate team name
-    const { data: existingTeamName } = await supabase
-      .from("teams")
-      .select("id")
-      .eq("team_name", teamName)
-      .maybeSingle();
-
-    if (existingTeamName) {
-      return new Response(
-        JSON.stringify({ error: "Team name already registered. Please choose a different team name." }),
-        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -88,71 +74,19 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Collect all emails to validate (leader + all members)
-    const allEmails = [leaderEmail];
-    if (members && members.length > 0) {
-      members.forEach((m: any) => {
-        if (m.email) {
-          allEmails.push(m.email);
-        }
-      });
-    }
-
-    // Check for duplicate emails within the registration itself
-    const emailSet = new Set(allEmails);
-    if (emailSet.size !== allEmails.length) {
-      return new Response(
-        JSON.stringify({ error: "Duplicate emails detected in your team. Each member must have a unique email address." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Check each member email against existing records
-    for (const member of members || []) {
-      if (!member.email) continue;
-
-      // Check in teams table
-      const { data: existingInTeams } = await supabase
-        .from("teams")
-        .select("id")
-        .eq("lead_email", member.email)
-        .maybeSingle();
-
-      if (existingInTeams) {
-        return new Response(
-          JSON.stringify({ error: `Email ${member.email} is already registered as a team leader. Each email can only be used once.` }),
-          { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      // Check in team_members table
-      const { data: existingInMembers } = await supabase
-        .from("team_members")
-        .select("id")
-        .eq("member_email", member.email)
-        .maybeSingle();
-
-      if (existingInMembers) {
-        return new Response(
-          JSON.stringify({ error: `Email ${member.email} is already registered as a team member. Each email can only be used once.` }),
-          { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-    }
-
-    // 1. Insert team into database
+    // 1. Insert team leader into database (team not fully formed yet)
     const teamData = {
-      team_name: teamName,
-      team_size: teamSize,
+      team_name: `Team-${leaderEmail.split('@')[0]}`, // Temporary name, will be updated when building team
+      team_size: 1, // Initially just the leader, will be updated when building team
       lead_name: leaderName,
       lead_reg_no: isVitChennai === "yes" ? leaderReg : null,
-      institution: isVitChennai === "no" ? institution : null,
+      institution: isVitChennai === "no" ? eventHubId : null, // Store EventHub ID in institution field for non-VIT
       lead_email: leaderEmail,
       receipt_link: receiptLink,
       is_vit_chennai: isVitChennai === "yes",
     };
     
-    console.log("Inserting team data:", teamData);
+    console.log("Inserting team leader data:", teamData);
     
     const { data: team, error: teamError } = await supabase
       .from("teams")
@@ -165,49 +99,35 @@ Deno.serve(async (req) => {
       throw new Error(`Database error: ${teamError.message}`);
     }
     
-    console.log("Team inserted successfully:", team.id);
-
-    // 2. Insert team members if any
-    if (members && members.length > 0) {
-      const memberRecords = members.map((m: any) => ({
-        team_id: team.id,
-        member_name: m.name,
-        member_email: m.email || null,
-        member_reg_no: m.reg || null,
-        institution: m.institution || null,
-      }));
-
-      const { error: membersError } = await supabase
-        .from("team_members")
-        .insert(memberRecords);
-
-      if (membersError) {
-        throw new Error(`Members insert error: ${membersError.message}`);
-      }
-    }
-
-    // 3. Send to Google Sheets
+    console.log("Team leader registered successfully:", team.id);
+    
+    // Optional: Send to Google Sheets (for team leader registration only)
     const GOOGLE_SHEETS_URL = Deno.env.get("GOOGLE_SHEETS_WEBHOOK_URL");
     
     if (GOOGLE_SHEETS_URL) {
       const sheetData = {
-        teamName,
-        teamSize,
-        isVitChennai,
-        institution: isVitChennai === "no" ? institution : "VIT Chennai",
+        teamId: team.id,
+        teamName: teamData.team_name,
         leaderName,
-        leaderReg: isVitChennai === "yes" ? leaderReg : "N/A",
         leaderEmail,
+        isVitChennai,
+        leaderReg: isVitChennai === "yes" ? leaderReg : null,
+        eventHubId: isVitChennai === "no" ? eventHubId : null,
         receiptLink,
-        members: members || [],
+        registrationStatus: "Leader Registered - Team Pending",
         timestamp: new Date().toISOString(),
       };
 
-      await fetch(GOOGLE_SHEETS_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(sheetData),
-      });
+      try {
+        await fetch(GOOGLE_SHEETS_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(sheetData),
+        });
+      } catch (sheetError) {
+        console.error("Google Sheets error:", sheetError);
+        // Don't fail the registration if sheets fails
+      }
     }
 
     return new Response(

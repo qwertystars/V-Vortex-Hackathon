@@ -187,7 +187,6 @@ export default function Register() {
     timeoutsRef.current = [];
 
     const formData = new FormData(e.target);
-    const teamName = formData.get("teamName");
     const leaderName = formData.get("leaderName");
     const leaderReg = formData.get("leaderReg");
     const leaderEmail = formData.get("leaderEmail");
@@ -204,13 +203,12 @@ export default function Register() {
     }
 
     setIsSubmitting(true);
-    setSubmitMessage("⚡ Connecting to V-VORTEX mainframe...");
+    setSubmitMessage("⚡ Registering team leader...");
 
     try {
-      setSubmitMessage("🔥 Your legion is being forged in digital fire...");
+      setSubmitMessage("🔥 Creating your account...");
       const { error } = await supabase.functions.invoke("register-team", {
         body: {
-          teamName,
           isVitChennai,
           eventHubId: isVitChennai === "no" ? eventHubId : null,
           leaderName,
@@ -222,7 +220,7 @@ export default function Register() {
 
       if (error) throw error;
 
-      setSubmitMessage("✅ LEGION REGISTERED! Prepare for battle...");
+      setSubmitMessage("✅ REGISTRATION SUCCESSFUL! Redirecting to login...");
 
       if (submitSfxRef.current) {
         submitSfxRef.current.currentTime = 0;
@@ -284,35 +282,27 @@ export default function Register() {
               <div className="logo-placeholder">
                 <img src={logo} alt="V-VORTEX logo" className="logo-img" />
               </div>
-              <div className="tagline">Commander Registration Portal</div>
+              <div className="tagline">Team Leader Registration</div>
               <div className="title">V-VORTEX</div>
               <p className="subtitle">
-                You stand at the threshold of legends. As commander, you will forge warriors into champions. Rally your elite squad and breach the vortex. Greatness is not given—it is seized.
+                Register as a team leader to begin your journey. After registration, you'll build your team by adding 1-3 members in your dashboard.
               </p>
             </div>
 
             <ul className="bullet-list">
-              <li>Every empire begins with a single command. This is yours.</li>
-              <li>Lead with fire. Code with fury. Conquer with innovation.</li>
-              <li>The vortex devours the weak. Only legends emerge victorious.</li>
+              <li>Step 1: Register as team leader</li>
+              <li>Step 2: Login to your dashboard</li>
+              <li>Step 3: Build your team with 2-4 total members</li>
             </ul>
           </aside>
 
           <section className="panel">
             <form id="teamForm" onSubmit={handleSubmit}>
-              <div className="section-label">⚔️ Forge Your Legion's Identity</div>
-
-              <div className="field">
-                <label htmlFor="teamName">Legion Name</label>
-                <input
-                  id="teamName"
-                  name="teamName"
-                  type="text"
-                  className="input-base"
-                  placeholder="e.g. Quantum Reapers, Code Titans, Digital Warlords"
-                  required
-                />
-              </div>
+              <div className="section-label">🛡️ Team Leader Registration</div>
+              
+              <p className="hint" style={{ marginBottom: '1.5rem', fontSize: '0.9rem', color: '#e879f9', lineHeight: '1.5' }}>
+                Register as a team leader first. After logging in, you'll be able to build your team by adding 1-3 members (2-4 total including yourself).
+              </p>
 
               <div className="field">
                 <label>Are you from VIT Chennai?</label>
@@ -366,31 +356,31 @@ export default function Register() {
                 </div>
               )}
 
-              <div className="section-label" style={{ marginTop: "0.6rem" }}>
-                🛡️ Commander Credentials
+              <div className="section-label" style={{ marginTop: "1.2rem" }}>
+                👤 Your Details
               </div>
 
               <div className="field-row">
                 <div className="field">
-                  <label htmlFor="leaderName">Your Name, Commander</label>
+                  <label htmlFor="leaderName">Your Name</label>
                   <input
                     id="leaderName"
                     name="leaderName"
                     type="text"
                     className="input-base"
-                    placeholder="The one who leads the charge"
+                    placeholder="Enter your full name"
                     required
                   />
                 </div>
                 {isVitChennai === "yes" && (
                   <div className="field">
-                    <label htmlFor="leaderReg">Battle ID</label>
+                    <label htmlFor="leaderReg">Registration Number</label>
                     <input
                       id="leaderReg"
                       name="leaderReg"
                       type="text"
                       className="input-base"
-                      placeholder="Your VIT warrior code"
+                      placeholder="Your VIT registration number"
                       required={isVitChennai === "yes"}
                     />
                   </div>
@@ -398,19 +388,19 @@ export default function Register() {
               </div>
 
               <div className="field">
-                <label htmlFor="leaderEmail">Command Center Contact</label>
+                <label htmlFor="leaderEmail">Email Address</label>
                 <input
                   id="leaderEmail"
                   name="leaderEmail"
                   type="email"
                   className="input-base"
-                  placeholder="commander@warzone.com"
+                  placeholder="your.email@example.com"
                   required
                 />
               </div>
 
               <div className="field">
-                <label htmlFor="receiptLink">⚡ Battle Entry Pass (Payment Proof)</label>
+                <label htmlFor="receiptLink">⚡ Payment Receipt Link</label>
                 <input
                   id="receiptLink"
                   name="receiptLink"
@@ -420,7 +410,7 @@ export default function Register() {
                   required
                 />
                 <p className="hint" style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: '#00ffff' }}>
-                  Upload your payment receipt to Google Drive. Share the link with view access. This is your key to the battlefield.
+                  Upload your payment receipt to Google Drive and share the link with view access.
                 </p>
               </div>
 
@@ -444,7 +434,7 @@ export default function Register() {
                 opacity: isSubmitting ? 0.6 : 1,
                 cursor: isSubmitting ? 'not-allowed' : 'pointer'
               }}>
-                {isSubmitting ? '⚡ INITIALIZING...' : '⚔️ ENTER THE ARENA'}
+                {isSubmitting ? '⚡ REGISTERING...' : '⚔️ REGISTER AS TEAM LEADER'}
               </button>
             </form>
           </section>
@@ -457,9 +447,9 @@ export default function Register() {
         ref={vortexMessageRef}
       >
         <div className="vortex-message-inner">
-          <h2>🔥 COMMANDER INITIATED 🔥</h2>
+          <h2>🔥 TEAM LEADER REGISTERED 🔥</h2>
           <p>
-            Your <strong>LEGION</strong> has been inscribed in the annals of the VORTEX. The arena trembles at your approach. Assemble your warriors. The battle for <strong>GLORY</strong> begins now. <strong>VICTORY OR VALHALLA.</strong>
+            You've successfully registered as a <strong>TEAM LEADER</strong>. Login to your dashboard and use the <strong>"Build Your Team"</strong> feature to add your team members and complete your squad formation.
           </p>
         </div>
       </div>
