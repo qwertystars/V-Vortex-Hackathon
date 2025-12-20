@@ -2,7 +2,7 @@
 
 ## Phase 1: Environment & Tooling Setup
 - [x] Task: Verify Supabase Connectivity and Test Environment 521c393
-- [ ] Task: Create Baseline Test Utility (helpers for checking table/column/RLS state)
+- [x] Task: Create Baseline Test Utility (helpers for checking table/column/RLS state) 39aace7
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Setup' (Protocol in workflow.md)
 
 ## Phase 2: Database Schema & RLS Audit (Automated)
