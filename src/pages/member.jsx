@@ -1,10 +1,18 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "../supabaseClient";
+import { useAuth } from "../context/AuthContext";
 import "../styles/member.css";
 import logo from "/logo.jpg";
 
 export default function HackVortexDashboard() {
   const [activePage, setActivePage] = useState("details");
   const [time, setTime] = useState("00:00:00");
+  const [profile, setProfile] = useState(null);
+  const [team, setTeam] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const { user, context } = useAuth();
 
   // ===============================
   // LIVE CLOCK
@@ -23,6 +31,48 @@ export default function HackVortexDashboard() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    const hydrate = async () => {
+      if (!user) {
+        navigate("/login");
+        return;
+      }
+
+      if (!context?.teamId) {
+        navigate("/waiting");
+        return;
+      }
+
+      try {
+        const { data: profileData } = await supabase
+          .from("users")
+          .select("name, email, university_name, onboarding_complete")
+          .eq("id", user.id)
+          .single();
+
+        const { data: teamData } = await supabase
+          .from("teams")
+          .select("team_name, team_code")
+          .eq("id", context.teamId)
+          .single();
+
+        setProfile(profileData || null);
+        setTeam(teamData || null);
+      } catch (error) {
+        console.error("Member dashboard error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    hydrate();
+  }, [user, context, navigate]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/login");
+  };
+
   // ===============================
   // PAGE TITLES
   // ===============================
@@ -40,6 +90,10 @@ export default function HackVortexDashboard() {
       subtitle: "Strategic challenge overview",
     },
   };
+
+  if (loading) {
+    return <div className="loading">SYNCING MEMBER DATA…</div>;
+  }
 
   return (
     <>
@@ -91,12 +145,17 @@ export default function HackVortexDashboard() {
           {/* USER CARD */}
           <div className="sidebar-user">
             <div className="user-box glass">
-              <div className="user-avatar">AJ</div>
+              <div className="user-avatar">
+                {(profile?.name || user?.email || "ME").slice(0, 2).toUpperCase()}
+              </div>
               <div className="user-meta">
-                <p>Alex Johnson</p>
-                <p>0x4582...BCA3</p>
+                <p>{profile?.name || user?.email || "Member"}</p>
+                <p>{team?.team_name || "Roster Pending"}</p>
               </div>
             </div>
+            <button className="primary-btn" style={{ marginTop: "12px" }} onClick={handleLogout}>
+              Disconnect
+            </button>
           </div>
         </aside>
 
@@ -123,10 +182,10 @@ export default function HackVortexDashboard() {
             {activePage === "details" && (
               <div className="page">
                 <div className="card glass center">
-                  <h2>Alex Johnson</h2>
+                  <h2>{profile?.name || "Member"}</h2>
                   <p>
-                    Lead Full Stack Architect <br />
-                    <strong>CodeCrafters</strong>
+                    {profile?.university_name || "University"} <br />
+                    <strong>{team?.team_name || "Team Pending"}</strong>
                   </p>
                 </div>
               </div>
@@ -137,7 +196,7 @@ export default function HackVortexDashboard() {
               <div className="page">
                 <div className="card glass center">
                   <h2>Gateway Access</h2>
-                  <div className="qr-box">QR</div>
+                  <div className="qr-box">{team?.team_code || "PENDING"}</div>
                   <button className="primary-btn">
                     Export Credential
                   </button>

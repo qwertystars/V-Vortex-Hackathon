@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
+import { routeForContext } from "../utils/authRouting";
 import "../styles/otp.css";
 import VortexBackground from "../components/VortexBackground";
 import logo from "/logo.jpg";
@@ -47,16 +48,15 @@ export default function OTP({ setTransition }) {
 
       // Clear login email from session storage
       sessionStorage.removeItem('loginEmail');
-      
-      const role = sessionStorage.getItem('role') || 'Team Leader';
-      sessionStorage.removeItem('role');
 
-      // Get team ID (may be needed for dashboard)
-      const teamId = sessionStorage.getItem('teamId');
-      sessionStorage.removeItem('teamId');
+      const { data: context, error: contextError } = await supabase.functions.invoke("get-my-context");
+      if (contextError) {
+        console.error("Context error:", contextError);
+        alert("⚠️ Unable to fetch your access context. Please try again.");
+        return;
+      }
 
-      // Decide destination based on role
-      const destination = role === 'Team Member' ? '/member' : `/dashboard/${teamId}`;
+      const destination = routeForContext(context);
 
       if (setTransition) {
         setTransition(

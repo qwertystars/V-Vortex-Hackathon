@@ -1,16 +1,23 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
+import { useAuth } from "../context/AuthContext";
 import "../styles/dashboard.css";
 import logo from "/logo.jpg";
 
 export default function TeamDashboard() {
   const { teamId } = useParams();
   const navigate = useNavigate();
+  const { user, context } = useAuth();
 
   const [team, setTeam] = useState(null);
   const [scorecard, setScorecard] = useState(null);
   const [leaderboard, setLeaderboard] = useState([]);
+  const [memberCount, setMemberCount] = useState(0);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteStatus, setInviteStatus] = useState("");
+  const [invites, setInvites] = useState([]);
+  const [leaderProfile, setLeaderProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [time, setTime] = useState("");
   const [activeTab, setActiveTab] = useState("vortex");
@@ -22,6 +29,8 @@ export default function TeamDashboard() {
   const topScore = leaderboard[0]?.score ?? 0;
   const myScore = scorecard?.total_score ?? 0;
   const gapToAlpha = myRank === 1 ? 0 : Math.max(0, topScore - myScore);
+  const isTeamFull = memberCount >= 4;
+  const isMinReady = memberCount >= 2;
 
 
   /* ===============================
@@ -29,23 +38,34 @@ export default function TeamDashboard() {
   =============================== */
   useEffect(() => {
     const init = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         navigate("/login");
         return;
       }
 
+      const activeTeamId = context?.teamId;
+      if (!activeTeamId) {
+        navigate("/register");
+        return;
+      }
+
+      if (teamId && teamId !== activeTeamId) {
+        navigate("/dashboard", { replace: true });
+        return;
+      }
+
       try {
-        const { data: teamData } = await supabase
+        const { data: teamData, error: teamError } = await supabase
           .from("teams")
           .select("*")
-          .eq("id", teamId)
+          .eq("id", activeTeamId)
           .single();
+        if (teamError) throw teamError;
 
         const { data: scoreData } = await supabase
           .from("scorecards")
           .select("*")
-          .eq("team_id", teamId)
+          .eq("team_id", activeTeamId)
           .single();
 
         const { data: leaderboardData } = await supabase
@@ -53,9 +73,29 @@ export default function TeamDashboard() {
           .select("*")
           .order("position", { ascending: true });
 
+        const { count } = await supabase
+          .from("team_members")
+          .select("user_id", { count: "exact", head: true })
+          .eq("team_id", activeTeamId);
+
+        const { data: inviteRows } = await supabase
+          .from("team_invites")
+          .select("email, status, created_at")
+          .eq("team_id", activeTeamId)
+          .order("created_at", { ascending: false });
+
+        const { data: profile } = await supabase
+          .from("users")
+          .select("name, email")
+          .eq("id", user.id)
+          .single();
+
         setTeam(teamData);
         setScorecard(scoreData || null);
         setLeaderboard(leaderboardData || []);
+        setMemberCount(count ?? 0);
+        setInvites(inviteRows || []);
+        setLeaderProfile(profile || null);
       } catch (err) {
         console.error("Dashboard error:", err);
       } finally {
@@ -64,7 +104,7 @@ export default function TeamDashboard() {
     };
 
     init();
-  }, [teamId, navigate]);
+  }, [teamId, navigate, user, context]);
 
   /* ===============================
      LIVE CLOCK
@@ -88,11 +128,66 @@ export default function TeamDashboard() {
   =============================== */
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    navigate("/");
+    navigate("/login");
+  };
+
+  const handleInvite = async (e) => {
+    e.preventDefault();
+    if (!inviteEmail.trim()) {
+      return;
+    }
+    if (isTeamFull) {
+      setInviteStatus("Team is already at maximum capacity.");
+      return;
+    }
+
+    setInviteStatus("Dispatching invite...");
+    const { data, error } = await supabase.functions.invoke("invite-member", {
+      body: {
+        email: inviteEmail.trim(),
+        teamId: context?.teamId,
+      },
+    });
+
+    if (error) {
+      console.error("Invite error:", error);
+      setInviteStatus(error.message || "Invite failed.");
+      return;
+    }
+
+    const activeTeamId = context?.teamId;
+    if (activeTeamId) {
+      const { data: inviteRows } = await supabase
+        .from("team_invites")
+        .select("email, status, created_at")
+        .eq("team_id", activeTeamId)
+        .order("created_at", { ascending: false });
+
+      const { count } = await supabase
+        .from("team_members")
+        .select("user_id", { count: "exact", head: true })
+        .eq("team_id", activeTeamId);
+
+      setInvites(inviteRows || []);
+      setMemberCount(count ?? 0);
+    }
+
+    if (data?.status === "already_invited") {
+      setInviteStatus("Invite already pending for this email.");
+    } else if (data?.status === "already_member") {
+      setInviteStatus("Member already belongs to this team.");
+    } else {
+      setInviteStatus("Invite sent. Awaiting acceptance.");
+    }
+    setInviteEmail("");
   };
 
   if (loading) {
     return <div className="loading">SYNCING VORTEX DATA…</div>;
+  }
+
+  if (!team) {
+    return <div className="loading">TEAM DATA UNAVAILABLE</div>;
   }
 
   return (
@@ -112,6 +207,13 @@ export default function TeamDashboard() {
             onClick={() => { setActiveTab("vortex"); setShowSidebar(false); }}
           >
             Vortex Hub
+          </button>
+
+          <button
+            className={activeTab === "invite" ? "active" : ""}
+            onClick={() => { setActiveTab("invite"); setShowSidebar(false); }}
+          >
+            Invite Warriors
           </button>
 
           <button
@@ -138,9 +240,9 @@ export default function TeamDashboard() {
 
         <div className="sidebarFooter">
           <div className="userCard">
-            <strong>{team.lead_name}</strong>
+            <strong>{leaderProfile?.name || user?.email || "Team Leader"}</strong>
             <div style={{ fontSize: "11px", color: "#e879f9" }}>
-              Team Leader
+              Team Leader · {memberCount}/4 members
             </div>
           </div>
 
@@ -163,6 +265,7 @@ export default function TeamDashboard() {
             <div>
               <div className="headerTitle">
                 {activeTab === "vortex" && "Vortex Hub"}
+                {activeTab === "invite" && "Invite Warriors"}
                 {activeTab === "leaderboard" && "Leaderboard"}
                 {activeTab === "nexus" && "Nexus Entry"}
                 {activeTab === "mission" && "The Mission"}
@@ -191,6 +294,12 @@ export default function TeamDashboard() {
                   <div className="vortexIcon">↗</div>
                   <h3>Leaderboard</h3>
                   <p>Analyze the competitive landscape and track your climb.</p>
+                </div>
+
+                <div className="vortexCard" onClick={() => setActiveTab("invite")}>
+                  <div className="vortexIcon">✉</div>
+                  <h3>Invite Warriors</h3>
+                  <p>Assemble 2–4 members and activate your roster.</p>
                 </div>
 
                 <div className="vortexCard" onClick={() => setActiveTab("nexus")}>
@@ -222,6 +331,76 @@ export default function TeamDashboard() {
                   <strong>{scorecard?.total_score ?? "—"} PTS</strong>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* ===== INVITES ===== */}
+          {activeTab === "invite" && (
+            <div className="vortexHub">
+              <div className="teamSummary" style={{ marginBottom: "18px" }}>
+                <div className="teamLeft">
+                  <div className="teamBadge">
+                    {team.team_name.slice(0, 2).toUpperCase()}
+                  </div>
+                  <div>
+                    <h2>{team.team_name}</h2>
+                    <p>ROSTER STATUS · {memberCount}/4 MEMBERS</p>
+                  </div>
+                </div>
+                <div className="teamRight">
+                  <span>MINIMUM READY</span>
+                  <strong>{isMinReady ? "YES" : "NO"}</strong>
+                </div>
+              </div>
+
+              <div className="vortexCard" style={{ cursor: "default" }}>
+                <h3>Invite a Warrior</h3>
+                <p>Send an invite link to activate member onboarding.</p>
+                <form onSubmit={handleInvite} style={{ marginTop: "12px" }}>
+                  <input
+                    className="inputField"
+                    type="email"
+                    placeholder="warrior@institute.edu"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    required
+                  />
+                  <button className="verifyBtn" type="submit" disabled={isTeamFull}>
+                    {isTeamFull ? "TEAM AT CAPACITY" : "DISPATCH INVITE"}
+                  </button>
+                </form>
+                {inviteStatus && (
+                  <p className="helper" style={{ marginTop: "10px" }}>
+                    {inviteStatus}
+                  </p>
+                )}
+                {isTeamFull && (
+                  <p className="helper" style={{ marginTop: "8px" }}>
+                    Maximum roster size reached. Remove a member to invite more.
+                  </p>
+                )}
+              </div>
+
+              {invites.length > 0 && (
+                <div className="leaderboardTable" style={{ marginTop: "18px" }}>
+                  <div className="lbHeader">
+                    <div>EMAIL</div>
+                    <div>STATUS</div>
+                    <div style={{ textAlign: "right" }}>INVITED</div>
+                  </div>
+                  {invites.map((invite) => (
+                    <div key={`${invite.email}-${invite.created_at}`} className="lbRow">
+                      <div>{invite.email}</div>
+                      <div>{invite.status}</div>
+                      <div style={{ textAlign: "right" }}>
+                        {invite.created_at
+                          ? new Date(invite.created_at).toLocaleDateString("en-GB")
+                          : "—"}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 

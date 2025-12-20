@@ -15,6 +15,9 @@ vi.mock('../supabaseClient', () => ({
       signInWithOtp: vi.fn(),
       signOut: vi.fn(),
     },
+    functions: {
+      invoke: vi.fn(),
+    },
   },
 }));
 
@@ -27,6 +30,8 @@ const TestComponent = () => {
 describe('AuthContext', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    supabase.auth.getSession.mockResolvedValue({ data: { session: null }, error: null });
+    supabase.functions.invoke.mockResolvedValue({ data: null, error: null });
   });
 
   it('provides loading state initially', async () => {
@@ -47,6 +52,10 @@ describe('AuthContext', () => {
       data: { session: { user: mockUser } },
       error: null,
     });
+    supabase.functions.invoke.mockResolvedValue({
+      data: { role: 'team_leader', teamId: null, onboardingComplete: true },
+      error: null,
+    });
 
     render(
       <AuthProvider>
@@ -62,6 +71,7 @@ describe('AuthContext', () => {
 
   it('provides "No User" when no session exists', async () => {
     supabase.auth.getSession.mockResolvedValue({ data: { session: null }, error: null });
+    supabase.functions.invoke.mockResolvedValue({ data: null, error: null });
 
     render(
       <AuthProvider>
@@ -93,7 +103,9 @@ describe('AuthContext', () => {
     expect(result.success).toBe(true);
     expect(supabase.auth.signInWithOtp).toHaveBeenCalledWith({
       email: 'test@example.com',
-      options: {},
+      options: {
+        shouldCreateUser: true,
+      },
     });
   });
 
@@ -141,6 +153,10 @@ describe('AuthContext', () => {
       return { data: { subscription: { unsubscribe: vi.fn() } } };
     });
     supabase.auth.getSession.mockResolvedValue({ data: { session: null }, error: null });
+    supabase.functions.invoke.mockResolvedValue({
+      data: { role: 'team_leader', teamId: null, onboardingComplete: true },
+      error: null,
+    });
 
     render(
       <AuthProvider>

@@ -39,6 +39,14 @@ input, textarea, select { width: 100%; }
 /* make images responsive by default */
 img { max-width: 100%; height: auto; display: block; }
 
+.loading {
+  padding: 48px 24px;
+  text-align: center;
+  color: #7ffcff;
+  font-family: "Share Tech Mono", monospace;
+  letter-spacing: 0.2em;
+}
+
 /* ---------------------- */
 /* WRAPPER */
 /* ---------------------- */

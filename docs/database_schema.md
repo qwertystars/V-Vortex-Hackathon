@@ -22,11 +22,11 @@ Profile table for registered users, linked to Supabase Auth.
 - `name`: (text) Not Null.
 - `email`: (text) Unique, Not Null.
 - `phone`: (text) Nullable.
-- `role`: (text) Not Null (e.g., 'member', 'leader', 'admin').
+- `role`: (text) Not Null (e.g., 'team_member', 'team_leader').
 - `university_name`: (text) Not Null.
 - `event_hub_id`: (text) Nullable.
 - `created_at`: (timestamptz) Default: `now()`.
-- **[GAP]** `onboarding_complete`: (boolean) Missing. Required for post-login routing (Step 2).
+- `onboarding_complete`: (boolean) Not Null, Default: `false`.
 
 ### 4. `teams`
 Table for storing team information.
@@ -39,17 +39,26 @@ Table for storing team information.
 - `payment_verified`: (boolean) Default: `false`.
 - `created_at`: (timestamptz) Default: `now()`.
 - `updated_at`: (timestamptz) Default: `now()`.
-- **[GAP]** `leader_user_id`: (uuid) Missing. Required for server-truth leader link (Step 2).
-- **[GAP]** `lead_email`: (text) Observed in code but not a target for Robust Flow (canonical leader should be `leader_user_id`).
+- `leader_user_id`: (uuid) Foreign Key -> `auth.users(id)` (canonical leader indicator, unique per team).
+- `lead_email`: (text) Observed in legacy code; not used for robust auth flow.
 
 ### 5. `team_members`
 Junction table linking users to teams.
 - `team_id`: (uuid) Foreign Key -> `teams(id)`.
-- `user_id`: (uuid) Foreign Key -> `users(id)`. **[GAP]** Current FK is to `public.users`, should ideally be `auth.users` for early enablement (Step 2).
+- `user_id`: (uuid) Foreign Key -> `auth.users(id)` (allows invite-before-profile).
 - Primary Key: (`team_id`, `user_id`).
 
-### 6. [GAP] `team_invites`
-**[MISSING]** Required for idempotent invite system (Step 2).
+### 6. `team_invites`
+Invite tracking table (idempotent and auditable).
+- `id`: (uuid) Primary Key, Default: `gen_random_uuid()`.
+- `team_id`: (uuid) Foreign Key -> `teams(id)`.
+- `email`: (text) Invited email.
+- `invited_by`: (uuid) Foreign Key -> `auth.users(id)` (leader).
+- `invited_user_id`: (uuid) Foreign Key -> `auth.users(id)` (nullable until created).
+- `status`: (text) Default: `pending`.
+- `created_at`: (timestamptz) Default: `now()`.
+- `accepted_at`: (timestamptz) Nullable.
+- Unique constraint: (`team_id`, `email`).
 
 ## Automation (Triggers & Functions)
 
@@ -76,12 +85,16 @@ RLS is enabled on all tables.
 - **`domains` / `problem_statements`**: 
     - `SELECT`: Allowed for all users (public read).
 - **`users`**:
-    - `SELECT`: Users can view only their own row.
+    - `SELECT`: Users can view only their own row; leaders can view their team members.
     - `UPDATE`: Users can update only their own row.
+    - `INSERT`: Users can insert their own profile row.
 - **`teams`**:
-    - `SELECT`: Users can view teams they are members of.
-    - `UPDATE`: Team members can update their own team details. **[GAP]** Should be restricted to leader only.
-    - `INSERT`: Authenticated users can create teams.
+    - `SELECT`: Users can view teams they are members of or lead.
+    - `UPDATE`: Restricted to leader only.
+    - `INSERT`: Restricted to leader creating their own team.
 - **`team_members`**:
-    - `SELECT`: Authenticated users can view memberships. **[GAP]** Should be scoped to own team.
-    - `INSERT`: Authenticated users can join teams. **[GAP]** Should be server-controlled (invite only).
+    - `SELECT`: Scoped to the user’s own team.
+    - `INSERT`: Server-controlled (invite/create-team only).
+- **`team_invites`**:
+    - `SELECT`: Leader only (own team).
+    - `INSERT/UPDATE/DELETE`: Server-controlled.

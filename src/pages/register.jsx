@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
+import { useAuth } from "../context/AuthContext";
 import "../styles/register.css";
 import logo from "/logo.jpg";
 import submitSfxFile from "/vortex_music.m4a";
@@ -13,6 +14,7 @@ export default function Register() {
   const timeoutsRef = useRef([]);
 
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [sucked, setSucked] = useState(false);
   const [vortexVisible, setVortexVisible] = useState(false);
@@ -21,6 +23,7 @@ export default function Register() {
 
   const [isVitChennai, setIsVitChennai] = useState("yes");
   const [eventHubId, setEventHubId] = useState("");
+  const [universityName, setUniversityName] = useState("");
 
   const stateRef = useRef({
     width: window.innerWidth,
@@ -39,6 +42,7 @@ export default function Register() {
   useEffect(() => {
     if (isVitChennai === "yes") {
       setEventHubId("");
+      setUniversityName("");
     }
   }, [isVitChennai]);
 
@@ -151,33 +155,6 @@ export default function Register() {
     };
   }, []);
 
-  const toggleDropdown = () => setDropdownOpen((v) => !v);
-  const closeDropdown = () => setDropdownOpen(false);
-
-  const handlePickTeamSize = (val) => {
-    const n = Number(val);
-    setTeamSize(n);
-    setTeamSizeLabel(`${val} ${val === 1 ? "member" : "members"}${val === 4 ? " (max)" : ""}`);
-    closeDropdown();
-  };
-
-  const handleDropdownKey = (e) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      toggleDropdown();
-    } else if (e.key === "Escape") {
-      closeDropdown();
-    }
-  };
-
-  useEffect(() => {
-    function onDocClick(e) {
-      if (!e.target.closest?.(".dropdown")) closeDropdown();
-    }
-    document.addEventListener("click", onDocClick);
-    return () => document.removeEventListener("click", onDocClick);
-  }, []);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -187,11 +164,16 @@ export default function Register() {
     timeoutsRef.current = [];
 
     const formData = new FormData(e.target);
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
     const teamName = formData.get("teamName");
     const leaderName = formData.get("leaderName");
     const leaderReg = formData.get("leaderReg");
-    const leaderEmail = formData.get("leaderEmail");
     const receiptLink = formData.get("receiptLink");
+    const leaderEmail = user.email;
 
     if (isVitChennai === "no" && !String(eventHubId || "").trim()) {
       alert("Please enter your VIT EventHub Unique ID.");
@@ -208,11 +190,12 @@ export default function Register() {
 
     try {
       setSubmitMessage("🔥 Your legion is being forged in digital fire...");
-      const { error } = await supabase.functions.invoke("register-team", {
+      const { error } = await supabase.functions.invoke("create-team", {
         body: {
           teamName,
           isVitChennai,
           eventHubId: isVitChennai === "no" ? eventHubId : null,
+          universityName: isVitChennai === "no" ? universityName : "VIT Chennai",
           leaderName,
           leaderReg: isVitChennai === "yes" ? leaderReg : null,
           leaderEmail,
@@ -240,14 +223,14 @@ export default function Register() {
         setVortexVisible(false);
         setSucked(false);
       }, showDelay + visibleDuration);
-      const t3 = setTimeout(() => navigate("/login"), showDelay + visibleDuration + 250);
+      const t3 = setTimeout(() => navigate("/dashboard"), showDelay + visibleDuration + 250);
 
       timeoutsRef.current.push(t1, t2, t3);
     } catch (error) {
       console.error("Registration error:", error);
       setIsSubmitting(false);
       setSubmitMessage("");
-      alert("❌ Registration failed. Please try again.");
+      alert(`❌ Registration failed: ${error?.message || "Please try again."}`);
     }
   };
 
@@ -366,6 +349,22 @@ export default function Register() {
                 </div>
               )}
 
+              {isVitChennai === "no" && (
+                <div className="field college-field">
+                  <label htmlFor="universityName">College / University Name</label>
+                  <input
+                    id="universityName"
+                    name="universityName"
+                    type="text"
+                    className="input-base"
+                    placeholder="Enter your institution name"
+                    required
+                    value={universityName}
+                    onChange={(e) => setUniversityName(e.target.value)}
+                  />
+                </div>
+              )}
+
               <div className="section-label" style={{ marginTop: "0.6rem" }}>
                 🛡️ Commander Credentials
               </div>
@@ -405,7 +404,8 @@ export default function Register() {
                   type="email"
                   className="input-base"
                   placeholder="commander@warzone.com"
-                  required
+                  value={user?.email ?? ""}
+                  disabled
                 />
               </div>
 
@@ -423,6 +423,10 @@ export default function Register() {
                   Upload your payment receipt to Google Drive. Share the link with view access. This is your key to the battlefield.
                 </p>
               </div>
+
+              <p className="hint" style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: '#7cf0ff' }}>
+                Teams must have 2–4 members (including the leader). Invite at least one member after creation.
+              </p>
 
               {isSubmitting && (
                 <div className="submit-message" style={{

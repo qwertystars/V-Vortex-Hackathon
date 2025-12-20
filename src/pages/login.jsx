@@ -1,15 +1,15 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
+import { useAuth } from "../context/AuthContext";
+import { routeForContext } from "../utils/authRouting";
 import "../styles/login.css";
 import logo from "/logo.jpg";
 
-export default function Login({ setTransition }) {
+export default function Login({ setTransition: _setTransition }) {
   const navigate = useNavigate();
+  const { user, context, loading, contextLoading } = useAuth();
   const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
-  const [teamName, setTeamName] = useState("");
-  const [role, setRole] = useState("Team Leader");
   const [showModal, setShowModal] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -35,6 +35,13 @@ export default function Login({ setTransition }) {
   };
 
   useEffect(() => {
+    if (loading || contextLoading) return;
+    if (user && context) {
+      navigate(routeForContext(context));
+    }
+  }, [user, context, loading, contextLoading, navigate]);
+
+  useEffect(() => {
     if (!showModal) return;
     const onKey = (ev) => {
       if (ev.key === "Escape") {
@@ -51,50 +58,7 @@ export default function Login({ setTransition }) {
     e.preventDefault();
 
     try {
-      // 1. Verify team exists with this email (different checks for leader vs member)
-      let team = null;
-      if (role === "Team Leader") {
-        const { data: t, error: teamError } = await supabase
-          .from('teams')
-          .select('id, team_name, lead_email')
-          .eq('team_name', teamName)
-          .eq('lead_email', email)
-          .single();
-
-        if (teamError || !t) {
-          alert('❌ Team not found or leader email mismatch. Please check your team name and email.');
-          return;
-        }
-
-        team = t;
-      } else {
-        // Team Member login - verify member exists and belongs to the team
-        const { data: member, error: memberError } = await supabase
-          .from('team_members')
-          .select('team_id')
-          .eq('member_email', email)
-          .single();
-
-        if (memberError || !member) {
-          alert('❌ Member not found. Please check your member email.');
-          return;
-        }
-
-        const { data: t, error: teamError2 } = await supabase
-          .from('teams')
-          .select('id, team_name')
-          .eq('id', member.team_id)
-          .single();
-
-        if (teamError2 || !t || t.team_name !== teamName) {
-          alert('❌ Team name does not match the member account. Please check the team name.');
-          return;
-        }
-
-        team = t;
-      }
-
-      // 2. Send OTP to email using Supabase Auth
+      // Send OTP to email using Supabase Auth
       const { error: otpError } = await supabase.auth.signInWithOtp({
         email: email,
         options: {
@@ -107,12 +71,10 @@ export default function Login({ setTransition }) {
         return;
       }
 
-      // 3. Store email and role in sessionStorage for OTP verification page
+      // Store email for OTP verification page
       sessionStorage.setItem('loginEmail', email);
-      sessionStorage.setItem('teamId', team.id);
-      sessionStorage.setItem('role', role);
       
-      // 4. Show success modal
+      // Show success modal
       setShowModal(true);
     } catch (error) {
       console.error('Login error:', error);
@@ -171,20 +133,8 @@ export default function Login({ setTransition }) {
 
           {/* FORM */}
           <form onSubmit={handleSubmit}>
-            <label className="fieldLabel">▸ WARRIOR CLASS</label>
-            <select
-              className="inputField"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              required
-            >
-              <option value="Team Leader">Team Leader</option>
-              <option value="Team Member">Team Member</option>
-            </select>
-            <p className="helper">– Your designation in the squad</p>
-
             <label className="fieldLabel">
-              {role === "Team Leader" ? "▸ TEAM LEADER EMAIL ID" : "▸ MEMBER EMAIL ID"}
+              ▸ COMMAND CENTER EMAIL ID
             </label>
             <input
               className="inputField"
@@ -197,29 +147,8 @@ export default function Login({ setTransition }) {
             />
             <p className="helper">– Your official battle credentials</p>
 
-            <label className="fieldLabel">
-              {role === "Team Leader" ? "▸ TEAM LEADER NAME" : "▸ MEMBER NAME"}
-            </label>
-            <input
-              className="inputField"
-              type="text"
-              placeholder="Enter your warrior name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-            <p className="helper">– Your battle identity</p>
-
-            <label className="fieldLabel">▸ TEAM CALL SIGN (TEAM NAME)</label>
-            <input
-              className="inputField"
-              placeholder="Enter your legendary squad name"
-              value={teamName}
-              onChange={(e) => setTeamName(e.target.value)}
-              required
-            />
             <p className="helper">
-              – The name that will echo through V-VORTEX history
+              – Invited members: use the invite link sent to your email
             </p>
 
             <button className="submitBtn" type="submit">

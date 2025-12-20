@@ -812,3 +812,49 @@
   }
 }
 
+/* INVITE FORM */
+.vortexHub .inputField {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(217, 70, 239, 0.5);
+  background: rgba(2, 6, 23, 0.7);
+  color: #f5d0fe;
+  font-size: 14px;
+  outline: none;
+  margin-bottom: 12px;
+}
+
+.vortexHub .inputField:focus {
+  border-color: #f472b6;
+  box-shadow: 0 0 12px rgba(244, 114, 182, 0.6);
+}
+
+.vortexHub .verifyBtn {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(217, 70, 239, 0.7);
+  background: linear-gradient(90deg, #d946ef, #701a75);
+  color: white;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.vortexHub .verifyBtn:hover {
+  box-shadow: 0 0 15px rgba(217, 70, 239, 0.6);
+}
+
+.vortexHub .verifyBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.vortexHub .helper {
+  color: #cbd5f5;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}

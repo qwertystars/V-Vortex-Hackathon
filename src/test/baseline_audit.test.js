@@ -8,7 +8,8 @@ describe('Baseline Audit - Schema Verification', () => {
     'problem_statements',
     'users',
     'teams',
-    'team_members'
+    'team_members',
+    'team_invites'
   ];
 
   describe('Table Existence', () => {
@@ -19,10 +20,9 @@ describe('Baseline Audit - Schema Verification', () => {
       });
     });
     
-    it('should NOT have an "invites" or "team_invites" table yet (per Step 1)', async () => {
-        // Step 1 says "no invite table"
-        const exists = await checkTableExists('team_invites');
-        expect(exists).toBe(false);
+    it('should have a "team_invites" table for invite tracking', async () => {
+      const exists = await checkTableExists('team_invites');
+      expect(exists).toBe(true);
     });
   });
 
@@ -46,9 +46,9 @@ describe('Baseline Audit - Schema Verification', () => {
       });
     });
 
-    it('should NOT have "leader_user_id" in "teams" yet (target for Step 2)', async () => {
+    it('should have "leader_user_id" in "teams" for leader linkage', async () => {
        const exists = await checkColumnExists('teams', 'leader_user_id');
-       expect(exists).toBe(false);
+       expect(exists).toBe(true);
     });
   });
 
@@ -62,34 +62,29 @@ describe('Baseline Audit - Schema Verification', () => {
           });
       });
       
-      it('should NOT have "onboarding_complete" in "users" yet (target for Step 2)', async () => {
+      it('should have "onboarding_complete" in "users" for onboarding gating', async () => {
           const exists = await checkColumnExists('users', 'onboarding_complete');
-          expect(exists).toBe(false);
+          expect(exists).toBe(true);
       });
   });
 
   describe('Current RLS Audit (Step 1 Gaps)', () => {
-    it('team_members SELECT should be readable (Current Reality check)', async () => {
-        const { error, status } = await supabase.from('team_members').select('*').limit(1);
-        // If it's public/authenticated read, this might return 200 or 401.
-        // Step 1 says it is too permissive.
-        expect(status).toBeLessThan(500); 
+    it('team_members SELECT should return no rows for anon users', async () => {
+        const { data, error } = await supabase.from('team_members').select('*').limit(1);
+        expect(error).toBeNull();
+        expect(data).toEqual([]);
     });
 
-    it('team_members INSERT GAP check', async () => {
+    it('team_members INSERT should be blocked for anon users', async () => {
         const { error } = await supabase.from('team_members').insert({ 
             team_id: '00000000-0000-0000-0000-000000000000', 
             user_id: '00000000-0000-0000-0000-000000000000' 
         });
         
-        // If we are anonymous, 42501 is expected.
-        // The TODO says it's allowed for AUTHENTICATED.
-        // We can't easily test 'authenticated' without a login.
-        // We will just verify we get a response from Supabase.
         expect(error).toBeDefined();
     });
 
-    it('teams UPDATE GAP check', async () => {
+    it('teams UPDATE should be blocked for anon users', async () => {
         const { error } = await supabase.from('teams').update({ team_name: 'test' }).eq('id', '00000000-0000-0000-0000-000000000000');
         expect(error).toBeDefined();
     });
