@@ -151,33 +151,6 @@ export default function Register() {
     };
   }, []);
 
-  const toggleDropdown = () => setDropdownOpen((v) => !v);
-  const closeDropdown = () => setDropdownOpen(false);
-
-  const handlePickTeamSize = (val) => {
-    const n = Number(val);
-    setTeamSize(n);
-    setTeamSizeLabel(`${val} ${val === 1 ? "member" : "members"}${val === 4 ? " (max)" : ""}`);
-    closeDropdown();
-  };
-
-  const handleDropdownKey = (e) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      toggleDropdown();
-    } else if (e.key === "Escape") {
-      closeDropdown();
-    }
-  };
-
-  useEffect(() => {
-    function onDocClick(e) {
-      if (!e.target.closest?.(".dropdown")) closeDropdown();
-    }
-    document.addEventListener("click", onDocClick);
-    return () => document.removeEventListener("click", onDocClick);
-  }, []);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
