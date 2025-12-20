@@ -24,15 +24,13 @@ export default function Invite() {
           setError("Invite link is invalid or expired. Request a fresh invite.");
           return;
         }
-      } else {
-        const { error: sessionError } = await supabase.auth.getSessionFromUrl({
-          storeSession: true,
-        });
-        if (sessionError) {
-          console.error("Invite session error:", sessionError);
-          setError("Invite code missing or invalid. Please use the link from your email.");
-          return;
-        }
+      }
+
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !sessionData?.session) {
+        console.error("Invite session error:", sessionError);
+        setError("Invite link is invalid or expired. Please use the link from your email.");
+        return;
       }
 
       setStatus("Routing to your onboarding bay...");
