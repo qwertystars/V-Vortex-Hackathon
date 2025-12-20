@@ -2,8 +2,21 @@ import { useRef, useState, useEffect } from "react";
 import "../styles/preloader.css";
 
 export default function Preloader({ onFinished }) {
-  const [stage, setStage] = useState("tap");
+  const [stage, setStage] = useState("tap"); // "tap" | "playing"
   const videoRef = useRef(null);
+  const enterRef = useRef(null);
+  const flashRef = useRef(null);
+  const tappedRef = useRef(false);
+
+  // Make sure playsinline attribute exists for mobile browsers
+  useEffect(() => {
+    const vid = videoRef.current;
+    if (vid) {
+      // ensure iOS Safari plays inline
+      vid.setAttribute("playsinline", "");
+      vid.setAttribute("webkit-playsinline", "");
+    }
+  }, []);
 
   // Block all keyboard controls during the preloader video
   useEffect(() => {
@@ -26,39 +39,73 @@ export default function Preloader({ onFinished }) {
     }
   }, [stage]);
 
-  const handleTap = () => {
-    // Trigger glitch + zoom animations
-    document.getElementById("enterScreen").classList.add("tapZoom");
+  const handleTap = (e) => {
+    // Prevent double/triple triggers (pointerdown + click, etc)
+    if (tappedRef.current) return;
+    tappedRef.current = true;
 
+    // Small safety for touch events
+    if (e && typeof e.preventDefault === "function") e.preventDefault();
+
+    // Add zoom/glitch animation to entry screen
+    if (enterRef.current) {
+      enterRef.current.classList.add("tapZoom");
+    }
+
+    // Keep the UX snappy on mobile: short delay before switching to video
     setTimeout(() => {
       setStage("playing");
 
-      setTimeout(() => {
+      // Start video after a tiny delay to allow DOM updates/animations to run
+      setTimeout(async () => {
         const vid = videoRef.current;
-        if (vid) {
-          vid.muted = false;
-          vid.volume = 1;
+        if (!vid) return;
+
+        // Start with muted to maximize compatibility on mobile; we'll try to unmute after play
+        try {
+          vid.muted = true;
+          vid.volume = 0;
           vid.currentTime = 0;
-          vid.play().then(() => {
-            // Sound fade-in effect
+          // Try to play; if browser blocks unmuted autoplay, playing muted will usually succeed
+          await vid.play();
+          // Attempt to unmute (allowed because this handler originates from user gesture)
+          try {
+            vid.muted = false;
+            // fade volume in
             let vol = 0;
+            vid.volume = 0;
             const fade = setInterval(() => {
               if (vol >= 1) {
                 clearInterval(fade);
               } else {
-                vol += 0.05;
+                vol = Math.min(1, vol + 0.05);
                 vid.volume = vol;
               }
             }, 120);
-          });
+          } catch (unmuteErr) {
+            // Unmuting failed — keep muted but keep playing (better than nothing)
+            vid.muted = true;
+          }
+        } catch (playErr) {
+          // Some browsers refuse to play even after a gesture — fallback: try setting muted true then play
+          try {
+            vid.muted = true;
+            vid.currentTime = 0;
+            await vid.play();
+          } catch (err) {
+            // Give up — still transition after a short delay
+            console.warn("Intro video could not play:", err);
+            setTimeout(() => onFinished(), 800);
+          }
         }
       }, 300);
     }, 500);
   };
 
   const handleEnd = () => {
-    document.getElementById("flash").classList.add("flashVisible");
+    if (flashRef.current) flashRef.current.classList.add("flashVisible");
 
+    // small stagger: fade out video slightly after flash starts
     setTimeout(() => {
       const vid = videoRef.current;
       if (vid) vid.classList.add("videoFadeOut");
@@ -67,22 +114,46 @@ export default function Preloader({ onFinished }) {
     setTimeout(() => onFinished(), 1200);
   };
 
+  // If user rotates device, ensure layout stays full-screen (optional improvement)
+  useEffect(() => {
+    const onRotate = () => {
+      // Force reflow for some mobile browsers so the video covers the viewport
+      const vid = videoRef.current;
+      if (vid) {
+        vid.style.width = "100%";
+        vid.style.height = "100%";
+      }
+    };
+    window.addEventListener("orientationchange", onRotate);
+    return () => window.removeEventListener("orientationchange", onRotate);
+  }, []);
+
   return (
     <>
       {/* Scanline overlay */}
-      <div className="scanlines"></div>
+      <div className="scanlines" />
 
       {/* Flash transition */}
-      <div id="flash"></div>
+      <div id="flash" ref={flashRef} />
 
       {/* TAP SCREEN */}
       {stage === "tap" && (
-        <div id="enterScreen" onClick={handleTap}>
-          <div id="enterText">DARE TO ENTER THE VORTEX? .. CLICK HERE.. </div>
+        <div
+          id="enterScreen"
+          ref={enterRef}
+          // pointerdown covers mouse/touch/pen and fires earlier than click (better UX on mobile)
+          onPointerDown={handleTap}
+          // keep onClick as fallback on some older browsers
+          onClick={handleTap}
+          role="button"
+          tabIndex={0}
+          aria-label="Enter the vortex"
+        >
+          <div id="enterText">DARE TO ENTER THE VORTEX? .. TAP / CLICK HERE ..</div>
           <div id="arrow">▼</div>
 
           {/* Glitch overlay */}
-          <div className="glitchLayer"></div>
+          <div className="glitchLayer" />
         </div>
       )}
 
@@ -90,16 +161,21 @@ export default function Preloader({ onFinished }) {
       {stage === "playing" && (
         <video
           id="introVideo"
+          className="introVideo"
           ref={videoRef}
           playsInline
+          // Start muted to maximize mobile compatibility; component code will try to unmute after play
+          muted
+          preload="auto"
           onEnded={handleEnd}
           onLoadedData={(e) => {
+            // smooth opacity fade-in once video data is ready
             setTimeout(() => {
-              e.target.style.opacity = 1;
+              if (e && e.target) e.target.style.opacity = 1;
             }, 100);
           }}
           src="/secondpart_fixed.mp4"
-        ></video>
+        />
       )}
     </>
   );
