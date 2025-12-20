@@ -26,6 +26,7 @@ Profile table for registered users, linked to Supabase Auth.
 - `university_name`: (text) Not Null.
 - `event_hub_id`: (text) Nullable.
 - `created_at`: (timestamptz) Default: `now()`.
+- **[GAP]** `onboarding_complete`: (boolean) Missing. Required for post-login routing (Step 2).
 
 ### 4. `teams`
 Table for storing team information.
@@ -38,12 +39,17 @@ Table for storing team information.
 - `payment_verified`: (boolean) Default: `false`.
 - `created_at`: (timestamptz) Default: `now()`.
 - `updated_at`: (timestamptz) Default: `now()`.
+- **[GAP]** `leader_user_id`: (uuid) Missing. Required for server-truth leader link (Step 2).
+- **[GAP]** `lead_email`: (text) Observed in code but not a target for Robust Flow (canonical leader should be `leader_user_id`).
 
 ### 5. `team_members`
 Junction table linking users to teams.
 - `team_id`: (uuid) Foreign Key -> `teams(id)`.
-- `user_id`: (uuid) Foreign Key -> `users(id)`.
+- `user_id`: (uuid) Foreign Key -> `users(id)`. **[GAP]** Current FK is to `public.users`, should ideally be `auth.users` for early enablement (Step 2).
 - Primary Key: (`team_id`, `user_id`).
+
+### 6. [GAP] `team_invites`
+**[MISSING]** Required for idempotent invite system (Step 2).
 
 ## Automation (Triggers & Functions)
 
@@ -74,8 +80,8 @@ RLS is enabled on all tables.
     - `UPDATE`: Users can update only their own row.
 - **`teams`**:
     - `SELECT`: Users can view teams they are members of.
-    - `UPDATE`: Team members can update their own team details.
+    - `UPDATE`: Team members can update their own team details. **[GAP]** Should be restricted to leader only.
     - `INSERT`: Authenticated users can create teams.
 - **`team_members`**:
-    - `SELECT`: Authenticated users can view memberships.
-    - `INSERT`: Authenticated users can join teams.
+    - `SELECT`: Authenticated users can view memberships. **[GAP]** Should be scoped to own team.
+    - `INSERT`: Authenticated users can join teams. **[GAP]** Should be server-controlled (invite only).
