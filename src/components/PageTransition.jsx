@@ -8,6 +8,17 @@ export default function PageTransition({ videoSrc, onFinished }) {
     const video = videoRef.current;
     if (!video) return;
 
+    // Block all keyboard controls during transition
+    const blockKeyboard = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    };
+    
+    window.addEventListener('keydown', blockKeyboard, true);
+    window.addEventListener('keyup', blockKeyboard, true);
+    window.addEventListener('keypress', blockKeyboard, true);
+
     let finished = false;
 
     const finish = () => {
@@ -37,6 +48,10 @@ export default function PageTransition({ videoSrc, onFinished }) {
     return () => {
       clearTimeout(timeout);
       video.removeEventListener("ended", finish);
+      // Remove keyboard blockers
+      window.removeEventListener('keydown', blockKeyboard, true);
+      window.removeEventListener('keyup', blockKeyboard, true);
+      window.removeEventListener('keypress', blockKeyboard, true);
     };
   }, [onFinished]);
 

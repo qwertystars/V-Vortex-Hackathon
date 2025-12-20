@@ -1,9 +1,30 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import "../styles/preloader.css";
 
 export default function Preloader({ onFinished }) {
   const [stage, setStage] = useState("tap");
   const videoRef = useRef(null);
+
+  // Block all keyboard controls during the preloader video
+  useEffect(() => {
+    if (stage === "playing") {
+      const blockKeyboard = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      };
+      
+      window.addEventListener('keydown', blockKeyboard, true);
+      window.addEventListener('keyup', blockKeyboard, true);
+      window.addEventListener('keypress', blockKeyboard, true);
+      
+      return () => {
+        window.removeEventListener('keydown', blockKeyboard, true);
+        window.removeEventListener('keyup', blockKeyboard, true);
+        window.removeEventListener('keypress', blockKeyboard, true);
+      };
+    }
+  }, [stage]);
 
   const handleTap = () => {
     // Trigger glitch + zoom animations
