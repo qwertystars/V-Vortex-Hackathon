@@ -79,13 +79,12 @@ Deno.serve(async (req) => {
     const randomId = crypto.randomUUID().split('-')[0].toUpperCase();
     const teamData = {
       team_name: `TEMP-${randomId}`, // Temporary random name, will be updated when building team
-      team_size: 1, // Initially just the leader, will be updated when building team
+      team_size: 2, // Set to minimum size (2) to satisfy constraint, will be updated when building team
       lead_name: leaderName,
       lead_reg_no: isVitChennai === "yes" ? leaderReg : null,
-      institution: isVitChennai === "no" ? eventHubId : null, // Store EventHub ID in institution field for non-VIT
+      institution: isVitChennai === "no" ? eventHubId : null, // Must be NULL for VIT, eventHubId for others
       lead_email: leaderEmail,
       receipt_link: receiptLink,
-      is_vit_chennai: isVitChennai === "yes",
     };
     
     console.log("Inserting team leader data:", teamData);

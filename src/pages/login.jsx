@@ -7,8 +7,6 @@ import logo from "/logo.jpg";
 export default function Login({ setTransition }) {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
-  const [teamName, setTeamName] = useState("");
   const [role, setRole] = useState("Team Leader");
   const [showModal, setShowModal] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -51,24 +49,23 @@ export default function Login({ setTransition }) {
     e.preventDefault();
 
     try {
-      // 1. Verify team exists with this email (different checks for leader vs member)
+      // 1. Verify email exists (different checks for leader vs member)
       let team = null;
       if (role === "Team Leader") {
         const { data: t, error: teamError } = await supabase
           .from('teams')
           .select('id, team_name, lead_email')
-          .eq('team_name', teamName)
           .eq('lead_email', email)
           .single();
 
         if (teamError || !t) {
-          alert('❌ Team not found or leader email mismatch. Please check your team name and email.');
+          alert('❌ Team leader account not found. Please check your email.');
           return;
         }
 
         team = t;
       } else {
-        // Team Member login - verify member exists and belongs to the team
+        // Team Member login - verify member exists
         const { data: member, error: memberError } = await supabase
           .from('team_members')
           .select('team_id')
@@ -76,7 +73,7 @@ export default function Login({ setTransition }) {
           .single();
 
         if (memberError || !member) {
-          alert('❌ Member not found. Please check your member email.');
+          alert('❌ Member account not found. Please check your email.');
           return;
         }
 
@@ -86,8 +83,8 @@ export default function Login({ setTransition }) {
           .eq('id', member.team_id)
           .single();
 
-        if (teamError2 || !t || t.team_name !== teamName) {
-          alert('❌ Team name does not match the member account. Please check the team name.');
+        if (teamError2 || !t) {
+          alert('❌ Team not found for this member.');
           return;
         }
 
@@ -196,31 +193,6 @@ export default function Login({ setTransition }) {
               required
             />
             <p className="helper">– Your official battle credentials</p>
-
-            <label className="fieldLabel">
-              {role === "Team Leader" ? "▸ TEAM LEADER NAME" : "▸ MEMBER NAME"}
-            </label>
-            <input
-              className="inputField"
-              type="text"
-              placeholder="Enter your warrior name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-            <p className="helper">– Your battle identity</p>
-
-            <label className="fieldLabel">▸ TEAM CALL SIGN (TEAM NAME)</label>
-            <input
-              className="inputField"
-              placeholder="Enter your legendary squad name"
-              value={teamName}
-              onChange={(e) => setTeamName(e.target.value)}
-              required
-            />
-            <p className="helper">
-              – The name that will echo through V-VORTEX history
-            </p>
 
             <button className="submitBtn" type="submit">
               <span>⚡ ENTER THE ARENA • SEND BATTLE CODE ⚡</span>
