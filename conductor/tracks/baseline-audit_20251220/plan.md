@@ -1,9 +1,9 @@
 # Plan: Baseline Audit (Robust Auth Flow Step 1)
 
-## Phase 1: Environment & Tooling Setup
+## Phase 1: Environment & Tooling Setup [checkpoint: 06aecb5]
 - [x] Task: Verify Supabase Connectivity and Test Environment 521c393
 - [x] Task: Create Baseline Test Utility (helpers for checking table/column/RLS state) 39aace7
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Setup' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Setup' (Protocol in workflow.md) 06aecb5
 
 ## Phase 2: Database Schema & RLS Audit (Automated)
 - [ ] Task: Implement Automated Tests for Schema Verification (Tables, Columns, FKs)
