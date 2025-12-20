@@ -11,11 +11,11 @@
 - [x] Task: Implement Automated Tests for Database Triggers and Constraints 051a953
 - [x] Task: Conductor - User Manual Verification 'Phase 2: DB Audit' (Protocol in workflow.md) c90b433
 
-## Phase 3: Frontend Code Audit & Documentation
+## Phase 3: Frontend Code Audit & Documentation [checkpoint: 3016477]
 - [x] Task: Audit Frontend for Pre-auth DB Reads and Role Selectors (Findings: Login/Register have pre-auth reads, role selector exists) 49c9f1a
 - [x] Task: Audit Frontend for SessionStorage Routing and Context Gaps (Findings: AuthProvider unused, routes public, sessionStorage used for routing) 84d133c
 - [x] Task: Update `docs/database_schema.md` with Current Reality and Gap Annotations af91b7f
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Frontend Audit' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Frontend Audit' (Protocol in workflow.md) 3016477
 
 ## Phase 4: Finalization
 - [ ] Task: Final Review of Identified Gaps against `TODO.md` Step 1
