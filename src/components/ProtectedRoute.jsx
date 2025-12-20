@@ -7,7 +7,6 @@ export default function ProtectedRoute({
   requireAuth = true,
   requireRole = null,
   requireTeam = null,
-  requireOnboarding = null,
 }) {
   const { user, loading, context, contextLoading } = useAuth();
 
@@ -32,23 +31,7 @@ export default function ProtectedRoute({
   }
 
   if (requireTeam === true && !context.teamId) {
-    return <Navigate to={ROUTES.leaderRegister} replace />;
-  }
-
-  if (requireTeam === false && context.teamId) {
-    return <Navigate to={ROUTES.leaderDashboard} replace />;
-  }
-
-  if (requireOnboarding === true && !context.onboardingComplete) {
-    return <Navigate to={ROUTES.memberOnboarding} replace />;
-  }
-
-  if (requireOnboarding === false && context.onboardingComplete) {
-    return <Navigate to={ROUTES.memberDashboard} replace />;
-  }
-
-  if (context.role === "team_member" && !context.teamId) {
-    return <Navigate to={ROUTES.waiting} replace />;
+    return <Navigate to={ROUTES.register} replace />;
   }
 
   return children;

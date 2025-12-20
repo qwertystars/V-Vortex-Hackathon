@@ -59,8 +59,9 @@ export default function Login({ setTransition: _setTransition }) {
 
     try {
       // Send OTP to email using Supabase Auth
+      const trimmedEmail = email.trim();
       const { error: otpError } = await supabase.auth.signInWithOtp({
-        email: email,
+        email: trimmedEmail,
         options: {
           shouldCreateUser: true,
         }
@@ -72,7 +73,9 @@ export default function Login({ setTransition: _setTransition }) {
       }
 
       // Store email for OTP verification page
-      sessionStorage.setItem('loginEmail', email);
+      sessionStorage.setItem('loginEmail', trimmedEmail);
+      sessionStorage.setItem('authFlow', 'login');
+      sessionStorage.removeItem('registerIntent');
       
       // Show success modal
       setShowModal(true);
@@ -148,7 +151,7 @@ export default function Login({ setTransition: _setTransition }) {
             <p className="helper">– Your official battle credentials</p>
 
             <p className="helper">
-              – Invited members: use the invite link sent to your email
+              – New teams and members: register with your team code at /register
             </p>
 
             <button className="submitBtn" type="submit">

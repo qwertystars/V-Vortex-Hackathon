@@ -60,43 +60,10 @@ Deno.serve(async (req) => {
     }
   }
 
-  if (!role) {
-    role = "team_leader";
-  }
-
-  let onboardingComplete = false;
-  if (role === "team_member") {
-    const { data: profile, error: profileError } = await supabase
-      .from("users")
-      .select("onboarding_complete")
-      .eq("id", user.id)
-      .maybeSingle();
-
-    if (!profileError && profile) {
-      onboardingComplete = Boolean(profile.onboarding_complete);
-    }
-
-    if (teamId) {
-      await supabase
-        .from("team_invites")
-        .update({
-          status: "accepted",
-          accepted_at: new Date().toISOString(),
-          invited_user_id: user.id,
-        })
-        .eq("team_id", teamId)
-        .eq("email", user.email)
-        .is("accepted_at", null);
-    }
-  } else {
-    onboardingComplete = true;
-  }
-
   return new Response(
     JSON.stringify({
       role,
       teamId,
-      onboardingComplete,
     }),
     {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

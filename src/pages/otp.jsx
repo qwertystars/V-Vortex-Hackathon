@@ -48,6 +48,31 @@ export default function OTP({ setTransition }) {
 
       // Clear login email from session storage
       sessionStorage.removeItem('loginEmail');
+      const authFlow = sessionStorage.getItem('authFlow');
+      const hasRegisterIntent = sessionStorage.getItem('registerIntent');
+      sessionStorage.removeItem('authFlow');
+
+      if (authFlow === "login") {
+        sessionStorage.removeItem("registerIntent");
+      }
+
+      if (authFlow === "register" || (!authFlow && hasRegisterIntent)) {
+        if (setTransition) {
+          setTransition(
+            <div className="otpTransition">
+              <span>Entering The Vortex...</span>
+            </div>
+          );
+
+          setTimeout(() => {
+            setTransition(null);
+            navigate("/register");
+          }, 1200);
+        } else {
+          navigate("/register");
+        }
+        return;
+      }
 
       const { data: context, error: contextError } = await supabase.functions.invoke("get-my-context");
       if (contextError) {

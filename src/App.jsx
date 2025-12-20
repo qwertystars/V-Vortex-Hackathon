@@ -11,9 +11,6 @@ import Register from "./pages/register";
 import OTP from "./pages/otp";
 import TeamDashboard from "./pages/dashboard";
 import Member from "./pages/member";
-import Invite from "./pages/invite";
-import Onboarding from "./pages/onboarding";
-import Waiting from "./pages/waiting";
 
 export default function App() {
   const [introDone, setIntroDone] = useState(false);
@@ -30,37 +27,13 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home setTransition={setTransition} />} />
           <Route path="/login" element={<Login setTransition={setTransition} />} />
-          <Route
-            path="/register"
-            element={
-              <ProtectedRoute requireRole="team_leader" requireTeam={false}>
-                <Register setTransition={setTransition} />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/register" element={<Register setTransition={setTransition} />} />
           <Route path="/otp" element={<OTP setTransition={setTransition} />} />
-          <Route path="/invite" element={<Invite />} />
           <Route
             path="/member"
             element={
-              <ProtectedRoute requireRole="team_member" requireOnboarding>
+              <ProtectedRoute requireRole="team_member" requireTeam>
                 <Member />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/onboarding"
-            element={
-              <ProtectedRoute requireRole="team_member" requireOnboarding={false}>
-                <Onboarding />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/waiting"
-            element={
-              <ProtectedRoute>
-                <Waiting />
               </ProtectedRoute>
             }
           />

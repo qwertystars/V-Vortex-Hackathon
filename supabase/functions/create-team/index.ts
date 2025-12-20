@@ -47,6 +47,7 @@ Deno.serve(async (req) => {
   const leaderName = String(body.leaderName || "").trim();
   const leaderReg = body.leaderReg ? String(body.leaderReg).trim() : null;
   const leaderEmail = String(body.leaderEmail || "").trim();
+  const leaderPhone = body.leaderPhone ? String(body.leaderPhone).trim() : null;
   const receiptLink = body.receiptLink ? String(body.receiptLink).trim() : null;
   const eventHubId = body.eventHubId ? String(body.eventHubId).trim() : null;
   const universityName = String(body.universityName || "").trim();
@@ -109,6 +110,7 @@ Deno.serve(async (req) => {
       id: user.id,
       email: user.email,
       name: leaderName,
+      phone: leaderPhone,
       role: "team_leader",
       university_name: universityName,
       event_hub_id: eventHubId,

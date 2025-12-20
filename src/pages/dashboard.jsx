@@ -14,9 +14,7 @@ export default function TeamDashboard() {
   const [scorecard, setScorecard] = useState(null);
   const [leaderboard, setLeaderboard] = useState([]);
   const [memberCount, setMemberCount] = useState(0);
-  const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteStatus, setInviteStatus] = useState("");
-  const [invites, setInvites] = useState([]);
+  const [copyStatus, setCopyStatus] = useState("");
   const [leaderProfile, setLeaderProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [time, setTime] = useState("");
@@ -29,8 +27,6 @@ export default function TeamDashboard() {
   const topScore = leaderboard[0]?.score ?? 0;
   const myScore = scorecard?.total_score ?? 0;
   const gapToAlpha = myRank === 1 ? 0 : Math.max(0, topScore - myScore);
-  const isTeamFull = memberCount >= 4;
-  const isMinReady = memberCount >= 2;
 
 
   /* ===============================
@@ -78,12 +74,6 @@ export default function TeamDashboard() {
           .select("user_id", { count: "exact", head: true })
           .eq("team_id", activeTeamId);
 
-        const { data: inviteRows } = await supabase
-          .from("team_invites")
-          .select("email, status, created_at")
-          .eq("team_id", activeTeamId)
-          .order("created_at", { ascending: false });
-
         const { data: profile } = await supabase
           .from("users")
           .select("name, email")
@@ -94,7 +84,6 @@ export default function TeamDashboard() {
         setScorecard(scoreData || null);
         setLeaderboard(leaderboardData || []);
         setMemberCount(count ?? 0);
-        setInvites(inviteRows || []);
         setLeaderProfile(profile || null);
       } catch (err) {
         console.error("Dashboard error:", err);
@@ -131,55 +120,18 @@ export default function TeamDashboard() {
     navigate("/login");
   };
 
-  const handleInvite = async (e) => {
-    e.preventDefault();
-    if (!inviteEmail.trim()) {
-      return;
-    }
-    if (isTeamFull) {
-      setInviteStatus("Team is already at maximum capacity.");
-      return;
-    }
+  const handleCopyTeamCode = async () => {
+    if (!team?.team_code) return;
 
-    setInviteStatus("Dispatching invite...");
-    const { data, error } = await supabase.functions.invoke("invite-member", {
-      body: {
-        email: inviteEmail.trim(),
-        teamId: context?.teamId,
-      },
-    });
-
-    if (error) {
-      console.error("Invite error:", error);
-      setInviteStatus(error.message || "Invite failed.");
-      return;
+    try {
+      await navigator.clipboard.writeText(team.team_code);
+      setCopyStatus("Team code copied.");
+    } catch (error) {
+      console.error("Clipboard error:", error);
+      setCopyStatus("Unable to copy. Copy manually.");
     }
 
-    const activeTeamId = context?.teamId;
-    if (activeTeamId) {
-      const { data: inviteRows } = await supabase
-        .from("team_invites")
-        .select("email, status, created_at")
-        .eq("team_id", activeTeamId)
-        .order("created_at", { ascending: false });
-
-      const { count } = await supabase
-        .from("team_members")
-        .select("user_id", { count: "exact", head: true })
-        .eq("team_id", activeTeamId);
-
-      setInvites(inviteRows || []);
-      setMemberCount(count ?? 0);
-    }
-
-    if (data?.status === "already_invited") {
-      setInviteStatus("Invite already pending for this email.");
-    } else if (data?.status === "already_member") {
-      setInviteStatus("Member already belongs to this team.");
-    } else {
-      setInviteStatus("Invite sent. Awaiting acceptance.");
-    }
-    setInviteEmail("");
+    window.setTimeout(() => setCopyStatus(""), 2000);
   };
 
   if (loading) {
@@ -210,10 +162,10 @@ export default function TeamDashboard() {
           </button>
 
           <button
-            className={activeTab === "invite" ? "active" : ""}
-            onClick={() => { setActiveTab("invite"); setShowSidebar(false); }}
+            className={activeTab === "team-code" ? "active" : ""}
+            onClick={() => { setActiveTab("team-code"); setShowSidebar(false); }}
           >
-            Invite Warriors
+            Team Code
           </button>
 
           <button
@@ -265,7 +217,7 @@ export default function TeamDashboard() {
             <div>
               <div className="headerTitle">
                 {activeTab === "vortex" && "Vortex Hub"}
-                {activeTab === "invite" && "Invite Warriors"}
+                {activeTab === "team-code" && "Team Code"}
                 {activeTab === "leaderboard" && "Leaderboard"}
                 {activeTab === "nexus" && "Nexus Entry"}
                 {activeTab === "mission" && "The Mission"}
@@ -296,10 +248,10 @@ export default function TeamDashboard() {
                   <p>Analyze the competitive landscape and track your climb.</p>
                 </div>
 
-                <div className="vortexCard" onClick={() => setActiveTab("invite")}>
-                  <div className="vortexIcon">✉</div>
-                  <h3>Invite Warriors</h3>
-                  <p>Assemble 2–4 members and activate your roster.</p>
+                <div className="vortexCard" onClick={() => setActiveTab("team-code")}>
+                  <div className="vortexIcon">#</div>
+                  <h3>Team Code</h3>
+                  <p>Share this code so members can join your squad.</p>
                 </div>
 
                 <div className="vortexCard" onClick={() => setActiveTab("nexus")}>
@@ -334,8 +286,8 @@ export default function TeamDashboard() {
             </div>
           )}
 
-          {/* ===== INVITES ===== */}
-          {activeTab === "invite" && (
+          {/* ===== TEAM CODE ===== */}
+          {activeTab === "team-code" && (
             <div className="vortexHub">
               <div className="teamSummary" style={{ marginBottom: "18px" }}>
                 <div className="teamLeft">
@@ -348,59 +300,29 @@ export default function TeamDashboard() {
                   </div>
                 </div>
                 <div className="teamRight">
-                  <span>MINIMUM READY</span>
-                  <strong>{isMinReady ? "YES" : "NO"}</strong>
+                  <span>TEAM CODE</span>
+                  <strong>{team.team_code || "—"}</strong>
                 </div>
               </div>
 
               <div className="vortexCard" style={{ cursor: "default" }}>
-                <h3>Invite a Warrior</h3>
-                <p>Send an invite link to activate member onboarding.</p>
-                <form onSubmit={handleInvite} style={{ marginTop: "12px" }}>
-                  <input
-                    className="inputField"
-                    type="email"
-                    placeholder="warrior@institute.edu"
-                    value={inviteEmail}
-                    onChange={(e) => setInviteEmail(e.target.value)}
-                    required
-                  />
-                  <button className="verifyBtn" type="submit" disabled={isTeamFull}>
-                    {isTeamFull ? "TEAM AT CAPACITY" : "DISPATCH INVITE"}
-                  </button>
-                </form>
-                {inviteStatus && (
+                <h3>Share Team Code</h3>
+                <p>Give this code to members so they can register and join.</p>
+                <div className="teamCodeBox">{team.team_code || "PENDING"}</div>
+                <button
+                  className="verifyBtn"
+                  type="button"
+                  onClick={handleCopyTeamCode}
+                  disabled={!team.team_code}
+                >
+                  {team.team_code ? "COPY CODE" : "CODE UNAVAILABLE"}
+                </button>
+                {copyStatus && (
                   <p className="helper" style={{ marginTop: "10px" }}>
-                    {inviteStatus}
-                  </p>
-                )}
-                {isTeamFull && (
-                  <p className="helper" style={{ marginTop: "8px" }}>
-                    Maximum roster size reached. Remove a member to invite more.
+                    {copyStatus}
                   </p>
                 )}
               </div>
-
-              {invites.length > 0 && (
-                <div className="leaderboardTable" style={{ marginTop: "18px" }}>
-                  <div className="lbHeader">
-                    <div>EMAIL</div>
-                    <div>STATUS</div>
-                    <div style={{ textAlign: "right" }}>INVITED</div>
-                  </div>
-                  {invites.map((invite) => (
-                    <div key={`${invite.email}-${invite.created_at}`} className="lbRow">
-                      <div>{invite.email}</div>
-                      <div>{invite.status}</div>
-                      <div style={{ textAlign: "right" }}>
-                        {invite.created_at
-                          ? new Date(invite.created_at).toLocaleDateString("en-GB")
-                          : "—"}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
           )}
 

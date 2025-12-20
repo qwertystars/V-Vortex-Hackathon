@@ -817,7 +817,7 @@
   }
 }
 
-/* INVITE FORM */
+/* TEAM CODE */
 .vortexHub .inputField {
   width: 100%;
   padding: 12px 14px;
@@ -833,6 +833,20 @@
 .vortexHub .inputField:focus {
   border-color: #f472b6;
   box-shadow: 0 0 12px rgba(244, 114, 182, 0.6);
+}
+
+.teamCodeBox {
+  margin: 12px 0 16px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(217, 70, 239, 0.5);
+  background: rgba(2, 6, 23, 0.8);
+  color: #fdf4ff;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.32em;
+  text-align: center;
+  font-family: "Courier New", Courier, monospace;
 }
 
 .vortexHub .verifyBtn {

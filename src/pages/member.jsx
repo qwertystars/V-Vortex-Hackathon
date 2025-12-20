@@ -39,14 +39,14 @@ export default function HackVortexDashboard() {
       }
 
       if (!context?.teamId) {
-        navigate("/waiting");
+        navigate("/register");
         return;
       }
 
       try {
         const { data: profileData } = await supabase
           .from("users")
-          .select("name, email, university_name, onboarding_complete")
+          .select("name, email, university_name")
           .eq("id", user.id)
           .single();
 

@@ -1,31 +1,23 @@
 export const ROUTES = {
   login: "/login",
   otp: "/otp",
-  leaderRegister: "/register",
+  register: "/register",
   leaderDashboard: "/dashboard",
   memberDashboard: "/member",
-  memberOnboarding: "/onboarding",
-  waiting: "/waiting",
-  invite: "/invite",
 };
 
 export function routeForContext(context) {
-  if (!context || !context.role) {
+  if (!context) {
     return ROUTES.login;
   }
 
   if (context.role === "team_leader") {
-    return context.teamId ? ROUTES.leaderDashboard : ROUTES.leaderRegister;
+    return context.teamId ? ROUTES.leaderDashboard : ROUTES.register;
   }
 
   if (context.role === "team_member") {
-    if (!context.teamId) {
-      return ROUTES.waiting;
-    }
-    return context.onboardingComplete
-      ? ROUTES.memberDashboard
-      : ROUTES.memberOnboarding;
+    return context.teamId ? ROUTES.memberDashboard : ROUTES.register;
   }
 
-  return ROUTES.waiting;
+  return ROUTES.register;
 }
