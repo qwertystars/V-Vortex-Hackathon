@@ -6,7 +6,8 @@ This plan outlines the steps to implement the database schema changes required f
 - [x] Task: Reset local database and verify connectivity
     - [ ] Action: Execute database reset (migration to clean state)
     - [ ] Action: Verify connectivity to the local Supabase instance
-- [~] Task: Conductor - User Manual Verification 'Phase 1: Preparation' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Preparation' (Protocol in workflow.md)
+## [checkpoint: a7e5a15]
 
 ## Phase 2: Schema Modifications (TDD)
 - [ ] Task: Modify `public.users` table
