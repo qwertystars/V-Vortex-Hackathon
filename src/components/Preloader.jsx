@@ -190,6 +190,19 @@ export default function Preloader({ onFinished }) {
               if (e && e.target) e.target.style.opacity = 1;
             }, 100);
           }}
+          // Disable all video controls
+          disablePictureInPicture
+          controlsList="nodownload nofullscreen noremoteplayback"
+          // Prevent pause and other interactions
+          onContextMenu={(e) => e.preventDefault()}
+          onClick={(e) => e.preventDefault()}
+          onDoubleClick={(e) => e.preventDefault()}
+          onPause={(e) => {
+            // If user somehow pauses, immediately resume
+            if (videoRef.current && !finishedRef.current) {
+              videoRef.current.play().catch(() => {});
+            }
+          }}
           src="/secondpart_fixed.mp4"
         />
       )}

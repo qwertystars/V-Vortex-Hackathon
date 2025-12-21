@@ -1,6 +1,8 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
+import { useAuth } from "../context/AuthContext";
+import { routeForContext } from "../utils/authRouting";
 import "../styles/register.css";
 import logo from "/logo.jpg";
 import submitSfxFile from "/vortex_music.m4a";
@@ -13,14 +15,21 @@ export default function Register() {
   const timeoutsRef = useRef([]);
 
   const navigate = useNavigate();
+  const { user, refreshContext, loading, context, contextLoading } = useAuth();
 
   const [sucked, setSucked] = useState(false);
   const [vortexVisible, setVortexVisible] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("");
 
+  const [role, setRole] = useState("team_leader");
+  const [authEmail, setAuthEmail] = useState("");
+  const [sendingOtp, setSendingOtp] = useState(false);
+
   const [isVitChennai, setIsVitChennai] = useState("yes");
   const [eventHubId, setEventHubId] = useState("");
+  const [universityName, setUniversityName] = useState("");
+  const [teamCode, setTeamCode] = useState("");
 
   const stateRef = useRef({
     width: window.innerWidth,
@@ -37,10 +46,37 @@ export default function Register() {
   });
 
   useEffect(() => {
-    if (isVitChennai === "yes") {
+    if (role === "team_leader" && isVitChennai === "yes") {
       setEventHubId("");
+      setUniversityName("");
     }
-  }, [isVitChennai]);
+  }, [isVitChennai, role]);
+
+  useEffect(() => {
+    const storedIntent = sessionStorage.getItem("registerIntent");
+    if (!storedIntent) return;
+
+    try {
+      const parsed = JSON.parse(storedIntent);
+      if (parsed?.role === "team_leader" || parsed?.role === "team_member") {
+        setRole(parsed.role);
+      }
+      if (parsed?.email) {
+        setAuthEmail(parsed.email);
+      }
+    } catch (error) {
+      console.warn("Invalid register intent payload");
+      sessionStorage.removeItem("registerIntent");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (loading || contextLoading) return;
+    if (user && context?.teamId) {
+      sessionStorage.removeItem("registerIntent");
+      navigate(routeForContext(context));
+    }
+  }, [loading, contextLoading, user, context, navigate]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -150,6 +186,45 @@ export default function Register() {
       window.removeEventListener("resize", resize);
     };
   }, []);
+
+  const handleStartRegistration = async (e) => {
+    e.preventDefault();
+
+    if (sendingOtp) return;
+
+    const trimmedEmail = authEmail.trim();
+    if (!trimmedEmail) {
+      alert("Please enter your email to continue.");
+      return;
+    }
+
+    setSendingOtp(true);
+
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email: trimmedEmail,
+        options: {
+          shouldCreateUser: true,
+        },
+      });
+
+      if (error) throw error;
+
+      sessionStorage.setItem("loginEmail", trimmedEmail);
+      sessionStorage.setItem("authFlow", "register");
+      sessionStorage.setItem(
+        "registerIntent",
+        JSON.stringify({ email: trimmedEmail })
+      );
+
+      navigate("/otp");
+    } catch (error) {
+      console.error("OTP dispatch error:", error);
+      alert(`❌ Failed to send OTP: ${error?.message || "Please try again."}`);
+    } finally {
+      setSendingOtp(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();

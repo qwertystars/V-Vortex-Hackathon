@@ -51,6 +51,18 @@ export default function TeamDashboard() {
           supabase.from("team_members").select("*").eq("team_id", teamId)
         ]);
 
+        // SECURITY: Verify user is the team leader or a team member
+        if (teamData) {
+          const isLeader = teamData.lead_email === user.email;
+          const isMember = membersData?.some(m => m.member_email === user.email);
+          
+          if (!isLeader && !isMember) {
+            alert("You don't have access to this team dashboard.");
+            navigate("/login");
+            return;
+          }
+        }
+
         setTeam(teamData);
         setScorecard(scoreData || null);
         setLeaderboard(leaderboardData || []);

@@ -99,6 +99,32 @@ html, body {
   opacity: 0;
   transition: opacity 1.2s ease-in-out;
   z-index: 900;
+  
+  /* Disable video controls completely */
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Remove default video controls styling */
+#introVideo::-webkit-media-controls {
+  display: none !important;
+}
+
+#introVideo::-webkit-media-controls-enclosure {
+  display: none !important;
+}
+
+#introVideo::-webkit-media-controls-panel {
+  display: none !important;
+}
+
+#introVideo::-webkit-media-controls-play-button {
+  display: none !important;
+}
+
+#introVideo::-webkit-media-controls-start-playback-button {
+  display: none !important;
 }
 
 .videoFadeOut {
