@@ -9,6 +9,7 @@ export default function Login({ setTransition }) {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("Team Leader");
   const [showModal, setShowModal] = useState(false);
+  const [notFoundInfo, setNotFoundInfo] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
 
   const modalRef = useRef(null);
@@ -61,7 +62,11 @@ export default function Login({ setTransition }) {
           .single();
 
         if (teamError || !t) {
-          alert('❌ Team leader account not found. Please check your email.');
+          setNotFoundInfo({
+            type: 'leader',
+            email: trimmedEmail,
+            message: 'Team leader account not found. You can register as a Team Leader or verify your email with your team leader.'
+          });
           return;
         }
 
@@ -75,7 +80,11 @@ export default function Login({ setTransition }) {
           .single();
 
         if (memberError || !member) {
-          alert('❌ Member account not found. Please check your email.');
+          setNotFoundInfo({
+            type: 'member',
+            email: trimmedEmail,
+            message: 'Member account not found. Ask your team leader to add your email to their team, or register as a Team Leader.'
+          });
           return;
         }
 
@@ -170,6 +179,28 @@ export default function Login({ setTransition }) {
 
           {/* FORM */}
           <form onSubmit={handleSubmit}>
+            {notFoundInfo && (
+              <div className="notfound-box glass" style={{ marginBottom: '12px', padding: '10px' }}>
+                <strong>Notice:</strong>
+                <p style={{ margin: '6px 0' }}>{notFoundInfo.message}</p>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    type="button"
+                    className="submitBtn"
+                    onClick={() => { setRole('Team Leader'); setNotFoundInfo(null); }}
+                  >
+                    Register as Team Leader
+                  </button>
+                  <button
+                    type="button"
+                    className="submitBtn"
+                    onClick={() => { navigator.clipboard?.writeText(notFoundInfo.email); alert('Email copied to clipboard'); }}
+                  >
+                    Copy Email
+                  </button>
+                </div>
+              </div>
+            )}
             <label className="fieldLabel">▸ WARRIOR CLASS</label>
             <select
               className="inputField"
