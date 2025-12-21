@@ -51,11 +51,13 @@ export default function Login({ setTransition }) {
     try {
       // 1. Verify email exists (different checks for leader vs member)
       let team = null;
+      const trimmedEmail = email.trim();
+
       if (role === "Team Leader") {
         const { data: t, error: teamError } = await supabase
           .from('teams')
           .select('id, team_name, lead_email')
-          .eq('lead_email', email)
+          .ilike('lead_email', trimmedEmail)
           .single();
 
         if (teamError || !t) {
@@ -69,7 +71,7 @@ export default function Login({ setTransition }) {
         const { data: member, error: memberError } = await supabase
           .from('team_members')
           .select('team_id')
-          .eq('member_email', email)
+          .ilike('member_email', trimmedEmail)
           .single();
 
         if (memberError || !member) {
