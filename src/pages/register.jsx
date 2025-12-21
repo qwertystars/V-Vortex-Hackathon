@@ -13,7 +13,6 @@ export default function Register() {
   const timeoutsRef = useRef([]);
 
   const navigate = useNavigate();
-  const { user, refreshContext, loading, context, contextLoading } = useAuth();
 
   const [sucked, setSucked] = useState(false);
   const [vortexVisible, setVortexVisible] = useState(false);
@@ -67,14 +66,6 @@ export default function Register() {
       sessionStorage.removeItem("registerIntent");
     }
   }, []);
-
-  useEffect(() => {
-    if (loading || contextLoading) return;
-    if (user && context?.teamId) {
-      sessionStorage.removeItem("registerIntent");
-      navigate(routeForContext(context));
-    }
-  }, [loading, contextLoading, user, context, navigate]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
