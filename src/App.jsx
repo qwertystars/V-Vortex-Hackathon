@@ -11,6 +11,7 @@ import Register from "./pages/register";
 import OTP from "./pages/otp";
 import TeamDashboard from "./pages/dashboard";
 import Member from "./pages/member";
+import Scan from "./pages/scan";
 
 export default function App() {
   const [introDone, setIntroDone] = useState(false);
@@ -50,6 +51,14 @@ export default function App() {
             element={
               <ProtectedRoute requireRole="team_leader" requireTeam>
                 <TeamDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/scan"
+            element={
+              <ProtectedRoute>
+                <Scan />
               </ProtectedRoute>
             }
           />
