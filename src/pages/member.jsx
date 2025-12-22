@@ -10,6 +10,7 @@ export default function HackVortexDashboard() {
   const [time, setTime] = useState("00:00:00");
   const [profile, setProfile] = useState(null);
   const [team, setTeam] = useState(null);
+  const [submission, setSubmission] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { user, context } = useAuth();
@@ -44,20 +45,43 @@ export default function HackVortexDashboard() {
       }
 
       try {
-        const { data: profileData } = await supabase
-          .from("users")
-          .select("name, email, university_name")
-          .eq("id", user.id)
-          .single();
+        const [
+          { data: profileData, error: profileError },
+          { data: teamData, error: teamError },
+          { data: submissionData, error: submissionError },
+        ] = await Promise.all([
+          supabase
+            .from("users")
+            .select("name, email, university_name")
+            .eq("id", user.id)
+            .single(),
+          supabase
+            .from("teams")
+            .select("team_name, team_code")
+            .eq("id", context.teamId)
+            .single(),
+          supabase
+            .from("ideathon_submissions")
+            .select(
+              "title, abstract, drive_pdf_url, is_final, submitted_at, track_type"
+            )
+            .eq("team_id", context.teamId)
+            .maybeSingle(),
+        ]);
 
-        const { data: teamData } = await supabase
-          .from("teams")
-          .select("team_name, team_code")
-          .eq("id", context.teamId)
-          .single();
+        if (profileError) {
+          console.error("Profile fetch error:", profileError);
+        }
+        if (teamError) {
+          console.error("Team fetch error:", teamError);
+        }
+        if (submissionError) {
+          console.error("Submission fetch error:", submissionError);
+        }
 
         setProfile(profileData || null);
         setTeam(teamData || null);
+        setSubmission(submissionData || null);
       } catch (error) {
         console.error("Member dashboard error:", error);
       } finally {
@@ -73,6 +97,18 @@ export default function HackVortexDashboard() {
     navigate("/login");
   };
 
+  const formatSubmissionDate = (value) => {
+    if (!value) return "—";
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return "—";
+    return parsed.toLocaleString();
+  };
+
+  const submissionTrackLabel =
+    submission?.track_type === "open_innovation"
+      ? "Open Innovation"
+      : "Regular";
+
   // ===============================
   // PAGE TITLES
   // ===============================
@@ -84,6 +120,10 @@ export default function HackVortexDashboard() {
     qr: {
       title: "Access Gateway",
       subtitle: "Team verification portal",
+    },
+    ideathon: {
+      title: "Ideathon Submission",
+      subtitle: "Round 1 team snapshot",
     },
     problem: {
       title: "Mission Logic",
@@ -130,6 +170,15 @@ export default function HackVortexDashboard() {
               onClick={() => setActivePage("qr")}
             >
               Access Gate
+            </button>
+
+            <button
+              className={`sidebar-btn ${
+                activePage === "ideathon" ? "active" : ""
+              }`}
+              onClick={() => setActivePage("ideathon")}
+            >
+              Ideathon Submission
             </button>
 
             <button
@@ -200,6 +249,62 @@ export default function HackVortexDashboard() {
                   <button className="primary-btn">
                     Export Credential
                   </button>
+                </div>
+              </div>
+            )}
+
+            {/* IDEATHON PAGE */}
+            {activePage === "ideathon" && (
+              <div className="page">
+                <div className="card glass">
+                  <h2>Ideathon Submission</h2>
+                  {submission ? (
+                    <div className="submissionDetails">
+                      <div className="submissionRow">
+                        <span>Status</span>
+                        <strong>
+                          {submission.is_final ? "Final" : "Draft"}
+                        </strong>
+                      </div>
+                      <div className="submissionRow">
+                        <span>Submitted</span>
+                        <strong>
+                          {formatSubmissionDate(submission.submitted_at)}
+                        </strong>
+                      </div>
+                      <div className="submissionRow">
+                        <span>Track</span>
+                        <strong>{submissionTrackLabel}</strong>
+                      </div>
+                      <div className="submissionBlock">
+                        <span>Title</span>
+                        <strong>{submission.title || "—"}</strong>
+                      </div>
+                      <div className="submissionBlock">
+                        <span>Abstract</span>
+                        <p>{submission.abstract || "—"}</p>
+                      </div>
+                      <div className="submissionBlock">
+                        <span>Drive PDF</span>
+                        {submission.drive_pdf_url ? (
+                          <a
+                            href={submission.drive_pdf_url}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            Open PDF
+                          </a>
+                        ) : (
+                          <strong>—</strong>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <p>
+                      No submission yet. Your team leader will submit the
+                      ideathon entry here.
+                    </p>
+                  )}
                 </div>
               </div>
             )}

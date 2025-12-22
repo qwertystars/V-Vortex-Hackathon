@@ -20,6 +20,20 @@ export default function TeamDashboard() {
   const [time, setTime] = useState("");
   const [activeTab, setActiveTab] = useState("vortex");
   const [showSidebar, setShowSidebar] = useState(false);
+  const [submission, setSubmission] = useState(null);
+  const [domains, setDomains] = useState([]);
+  const [problemStatements, setProblemStatements] = useState([]);
+  const [submissionForm, setSubmissionForm] = useState({
+    domainId: "",
+    problemStatementId: "",
+    trackType: "regular",
+    title: "",
+    abstract: "",
+    drivePdfUrl: "",
+  });
+  const [submissionError, setSubmissionError] = useState("");
+  const [submissionStatus, setSubmissionStatus] = useState("");
+  const [submissionSaving, setSubmissionSaving] = useState(false);
   
   // Calculated stats
   const myRank = leaderboard.find(row => row.team_name === team?.team_name)?.position ?? "—";
@@ -27,6 +41,25 @@ export default function TeamDashboard() {
   const topScore = leaderboard[0]?.score ?? 0;
   const myScore = scorecard?.total_score ?? 0;
   const gapToAlpha = myRank === 1 ? 0 : Math.max(0, topScore - myScore);
+  const isFinalSubmission = submission?.is_final;
+  const filteredProblemStatements = submissionForm.domainId
+    ? problemStatements.filter(
+        (statement) => String(statement.domain_id) === submissionForm.domainId
+      )
+    : problemStatements;
+  const submissionDomainName = submission?.domain_id
+    ? domains.find((domain) => domain.id === submission.domain_id)?.name ?? "—"
+    : "—";
+  const submissionProblemTitle = submission?.problem_statement_id
+    ? problemStatements.find(
+        (statement) => statement.id === submission.problem_statement_id
+      )?.title ?? "—"
+    : "—";
+  const submissionTrackLabel =
+    submission?.track_type === "open_innovation"
+      ? "Open Innovation"
+      : "Regular";
+  const draftButtonLabel = submission ? "Save Draft" : "Create Draft";
 
 
   /* ===============================
@@ -51,40 +84,72 @@ export default function TeamDashboard() {
       }
 
       try {
-        const { data: teamData, error: teamError } = await supabase
-          .from("teams")
-          .select("*")
-          .eq("id", activeTeamId)
-          .single();
+        const [
+          { data: teamData, error: teamError },
+          { data: submissionData, error: submissionFetchError },
+          { data: domainsData, error: domainsError },
+          { data: problemData, error: problemError },
+          { count, error: memberError },
+          { data: profile, error: profileError },
+        ] = await Promise.all([
+          supabase.from("teams").select("*").eq("id", activeTeamId).single(),
+          supabase
+            .from("ideathon_submissions")
+            .select("*")
+            .eq("team_id", activeTeamId)
+            .maybeSingle(),
+          supabase.from("domains").select("id, name").order("name", {
+            ascending: true,
+          }),
+          supabase
+            .from("problem_statements")
+            .select("id, title, domain_id")
+            .order("title", { ascending: true }),
+          supabase
+            .from("team_members")
+            .select("user_id", { count: "exact", head: true })
+            .eq("team_id", activeTeamId),
+          supabase.from("users").select("name, email").eq("id", user.id).single(),
+        ]);
+
         if (teamError) throw teamError;
-
-        const { data: scoreData } = await supabase
-          .from("scorecards")
-          .select("*")
-          .eq("team_id", activeTeamId)
-          .single();
-
-        const { data: leaderboardData } = await supabase
-          .from("leaderboard_view")
-          .select("*")
-          .order("position", { ascending: true });
-
-        const { count } = await supabase
-          .from("team_members")
-          .select("user_id", { count: "exact", head: true })
-          .eq("team_id", activeTeamId);
-
-        const { data: profile } = await supabase
-          .from("users")
-          .select("name, email")
-          .eq("id", user.id)
-          .single();
+        if (submissionFetchError) {
+          console.error("Ideathon submission fetch error:", submissionFetchError);
+        }
+        if (domainsError) {
+          console.error("Domains fetch error:", domainsError);
+        }
+        if (problemError) {
+          console.error("Problem statements fetch error:", problemError);
+        }
+        if (memberError) {
+          console.error("Member count fetch error:", memberError);
+        }
+        if (profileError) {
+          console.error("Profile fetch error:", profileError);
+        }
 
         setTeam(teamData);
-        setScorecard(scoreData || null);
-        setLeaderboard(leaderboardData || []);
+        setSubmission(submissionData || null);
+        setDomains(domainsData || []);
+        setProblemStatements(problemData || []);
         setMemberCount(count ?? 0);
         setLeaderProfile(profile || null);
+        setScorecard(null);
+        setLeaderboard([]);
+
+        const baseDomainId =
+          submissionData?.domain_id ?? teamData?.domain_id ?? "";
+        setSubmissionForm({
+          domainId: baseDomainId ? String(baseDomainId) : "",
+          problemStatementId: submissionData?.problem_statement_id
+            ? String(submissionData.problem_statement_id)
+            : "",
+          trackType: submissionData?.track_type || "regular",
+          title: submissionData?.title || "",
+          abstract: submissionData?.abstract || "",
+          drivePdfUrl: submissionData?.drive_pdf_url || "",
+        });
       } catch (err) {
         console.error("Dashboard error:", err);
       } finally {
@@ -134,6 +199,133 @@ export default function TeamDashboard() {
     window.setTimeout(() => setCopyStatus(""), 2000);
   };
 
+  const formatSubmissionDate = (value) => {
+    if (!value) return "—";
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return "—";
+    return parsed.toLocaleString();
+  };
+
+  const isValidUrl = (value) => {
+    try {
+      const parsed = new URL(value);
+      return parsed.protocol === "http:" || parsed.protocol === "https:";
+    } catch {
+      return false;
+    }
+  };
+
+  const updateSubmissionField = (field, value) => {
+    setSubmissionForm((prev) => {
+      const next = { ...prev, [field]: value };
+      if (field === "domainId") {
+        next.problemStatementId = "";
+      }
+      return next;
+    });
+    if (submissionError) setSubmissionError("");
+    if (submissionStatus) setSubmissionStatus("");
+  };
+
+  const handleSubmissionSave = async (finalize) => {
+    if (!team?.id) return;
+    if (submission?.is_final) {
+      setSubmissionError("Final submission is locked.");
+      return;
+    }
+
+    setSubmissionError("");
+    setSubmissionStatus("");
+
+    const payload = {
+      team_id: team.id,
+      domain_id: submissionForm.domainId
+        ? Number(submissionForm.domainId)
+        : null,
+      problem_statement_id: submissionForm.problemStatementId
+        ? Number(submissionForm.problemStatementId)
+        : null,
+      track_type: submissionForm.trackType,
+      title: submissionForm.title.trim(),
+      abstract: submissionForm.abstract.trim(),
+      drive_pdf_url: submissionForm.drivePdfUrl.trim(),
+      is_final: finalize,
+    };
+
+    if (!payload.domain_id) {
+      setSubmissionError("Select a domain for the submission.");
+      return;
+    }
+    if (!payload.title) {
+      setSubmissionError("Provide a project title.");
+      return;
+    }
+    if (!payload.abstract) {
+      setSubmissionError("Add a concise abstract.");
+      return;
+    }
+    if (!payload.drive_pdf_url) {
+      setSubmissionError("Provide a Drive PDF URL.");
+      return;
+    }
+    if (!isValidUrl(payload.drive_pdf_url)) {
+      setSubmissionError("Drive PDF URL must be a valid http(s) link.");
+      return;
+    }
+
+    if (finalize) {
+      const confirmed = window.confirm(
+        "Final submission locks edits. Continue?"
+      );
+      if (!confirmed) return;
+    }
+
+    setSubmissionSaving(true);
+    try {
+      let saved;
+      if (submission?.id) {
+        const { data, error } = await supabase
+          .from("ideathon_submissions")
+          .update(payload)
+          .eq("id", submission.id)
+          .select("*")
+          .single();
+        if (error) throw error;
+        saved = data;
+      } else {
+        const { data, error } = await supabase
+          .from("ideathon_submissions")
+          .insert(payload)
+          .select("*")
+          .single();
+        if (error) throw error;
+        saved = data;
+      }
+
+      setSubmission(saved);
+      setSubmissionStatus(
+        finalize ? "Final submission locked." : "Draft saved."
+      );
+      setSubmissionForm({
+        domainId: saved?.domain_id ? String(saved.domain_id) : "",
+        problemStatementId: saved?.problem_statement_id
+          ? String(saved.problem_statement_id)
+          : "",
+        trackType: saved?.track_type || "regular",
+        title: saved?.title || "",
+        abstract: saved?.abstract || "",
+        drivePdfUrl: saved?.drive_pdf_url || "",
+      });
+    } catch (error) {
+      console.error("Ideathon save error:", error);
+      setSubmissionError(
+        error?.message || "Unable to save the submission right now."
+      );
+    } finally {
+      setSubmissionSaving(false);
+    }
+  };
+
   if (loading) {
     return <div className="loading">SYNCING VORTEX DATA…</div>;
   }
@@ -166,6 +358,13 @@ export default function TeamDashboard() {
             onClick={() => { setActiveTab("team-code"); setShowSidebar(false); }}
           >
             Team Code
+          </button>
+
+          <button
+            className={activeTab === "ideathon" ? "active" : ""}
+            onClick={() => { setActiveTab("ideathon"); setShowSidebar(false); }}
+          >
+            Ideathon Submission
           </button>
 
           <button
@@ -218,6 +417,7 @@ export default function TeamDashboard() {
               <div className="headerTitle">
                 {activeTab === "vortex" && "Vortex Hub"}
                 {activeTab === "team-code" && "Team Code"}
+                {activeTab === "ideathon" && "Ideathon Submission"}
                 {activeTab === "leaderboard" && "Leaderboard"}
                 {activeTab === "nexus" && "Nexus Entry"}
                 {activeTab === "mission" && "The Mission"}
@@ -252,6 +452,12 @@ export default function TeamDashboard() {
                   <div className="vortexIcon">#</div>
                   <h3>Team Code</h3>
                   <p>Share this code so members can join your squad.</p>
+                </div>
+
+                <div className="vortexCard" onClick={() => setActiveTab("ideathon")}>
+                  <div className="vortexIcon">✦</div>
+                  <h3>Ideathon Submission</h3>
+                  <p>Submit your Round 1 abstract and lock in your idea.</p>
                 </div>
 
                 <div className="vortexCard" onClick={() => setActiveTab("nexus")}>
@@ -321,6 +527,216 @@ export default function TeamDashboard() {
                   <p className="helper" style={{ marginTop: "10px" }}>
                     {copyStatus}
                   </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ===== IDEATHON SUBMISSION ===== */}
+          {activeTab === "ideathon" && (
+            <div className="vortexHub ideathonPanel">
+              <div className="ideathonHeader">
+                <div>
+                  <h2>Ideathon Submission</h2>
+                  <p>
+                    Draft your Round 1 submission. Final submit locks edits and
+                    timestamps your entry.
+                  </p>
+                </div>
+                <div
+                  className={`ideathonStatus ${
+                    isFinalSubmission ? "final" : "draft"
+                  }`}
+                >
+                  {isFinalSubmission
+                    ? "FINALIZED"
+                    : submission
+                      ? "DRAFT"
+                      : "NOT STARTED"}
+                </div>
+              </div>
+
+              <div className="vortexCard ideathonCard">
+                {isFinalSubmission ? (
+                  <div className="ideathonSummary">
+                    <div className="summaryRow">
+                      <span>Status</span>
+                      <strong>Final submission</strong>
+                    </div>
+                    <div className="summaryRow">
+                      <span>Submitted at</span>
+                      <strong>{formatSubmissionDate(submission?.submitted_at)}</strong>
+                    </div>
+                    <div className="summaryRow">
+                      <span>Track</span>
+                      <strong>{submissionTrackLabel}</strong>
+                    </div>
+                    <div className="summaryRow">
+                      <span>Domain</span>
+                      <strong>{submissionDomainName}</strong>
+                    </div>
+                    <div className="summaryRow">
+                      <span>Problem statement</span>
+                      <strong>{submissionProblemTitle}</strong>
+                    </div>
+                    <div className="summaryBlock">
+                      <span>Title</span>
+                      <strong>{submission?.title || "—"}</strong>
+                    </div>
+                    <div className="summaryBlock">
+                      <span>Abstract</span>
+                      <p>{submission?.abstract || "—"}</p>
+                    </div>
+                    <div className="summaryBlock">
+                      <span>Drive PDF</span>
+                      {submission?.drive_pdf_url ? (
+                        <a
+                          href={submission.drive_pdf_url}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Open PDF
+                        </a>
+                      ) : (
+                        <strong>—</strong>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <form
+                    className="ideathonForm"
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      handleSubmissionSave(false);
+                    }}
+                  >
+                    <div className="submissionGrid">
+                      <div className="submissionField">
+                        <label htmlFor="ideathon-domain">Domain</label>
+                        <select
+                          id="ideathon-domain"
+                          className="inputField"
+                          value={submissionForm.domainId}
+                          onChange={(event) =>
+                            updateSubmissionField("domainId", event.target.value)
+                          }
+                        >
+                          <option value="">Select a domain</option>
+                          {domains.map((domain) => (
+                            <option key={domain.id} value={domain.id}>
+                              {domain.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="submissionField">
+                        <label htmlFor="ideathon-track">Track Type</label>
+                        <select
+                          id="ideathon-track"
+                          className="inputField"
+                          value={submissionForm.trackType}
+                          onChange={(event) =>
+                            updateSubmissionField("trackType", event.target.value)
+                          }
+                        >
+                          <option value="regular">Regular</option>
+                          <option value="open_innovation">Open Innovation</option>
+                        </select>
+                      </div>
+                      <div className="submissionField">
+                        <label htmlFor="ideathon-problem">
+                          Problem Statement (optional)
+                        </label>
+                        <select
+                          id="ideathon-problem"
+                          className="inputField"
+                          value={submissionForm.problemStatementId}
+                          onChange={(event) =>
+                            updateSubmissionField(
+                              "problemStatementId",
+                              event.target.value
+                            )
+                          }
+                        >
+                          <option value="">Unassigned</option>
+                          {filteredProblemStatements.map((statement) => (
+                            <option key={statement.id} value={statement.id}>
+                              {statement.title}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="submissionField">
+                        <label htmlFor="ideathon-title">Project Title</label>
+                        <input
+                          id="ideathon-title"
+                          className="inputField"
+                          type="text"
+                          value={submissionForm.title}
+                          onChange={(event) =>
+                            updateSubmissionField("title", event.target.value)
+                          }
+                          placeholder="e.g., GreenPulse Intelligence"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="submissionField full">
+                      <label htmlFor="ideathon-abstract">Abstract</label>
+                      <textarea
+                        id="ideathon-abstract"
+                        className="inputField"
+                        rows={5}
+                        value={submissionForm.abstract}
+                        onChange={(event) =>
+                          updateSubmissionField("abstract", event.target.value)
+                        }
+                        placeholder="Summarize the problem, approach, and impact."
+                      />
+                    </div>
+
+                    <div className="submissionField full">
+                      <label htmlFor="ideathon-drive">Drive PDF URL</label>
+                      <input
+                        id="ideathon-drive"
+                        className="inputField"
+                        type="url"
+                        value={submissionForm.drivePdfUrl}
+                        onChange={(event) =>
+                          updateSubmissionField("drivePdfUrl", event.target.value)
+                        }
+                        placeholder="https://drive.google.com/..."
+                      />
+                    </div>
+
+                    {submissionError && (
+                      <p className="helper error">{submissionError}</p>
+                    )}
+                    {submissionStatus && (
+                      <p className="helper success">{submissionStatus}</p>
+                    )}
+
+                    <div className="submissionActions">
+                      <button
+                        className="verifyBtn"
+                        type="submit"
+                        disabled={submissionSaving}
+                      >
+                        {submissionSaving ? "Saving..." : draftButtonLabel}
+                      </button>
+                      <button
+                        className="verifyBtn ghost"
+                        type="button"
+                        onClick={() => handleSubmissionSave(true)}
+                        disabled={submissionSaving}
+                      >
+                        {submissionSaving ? "Submitting..." : "Final Submit"}
+                      </button>
+                    </div>
+                    <p className="helper">
+                      Final submission is irreversible. Make sure your PDF is ready.
+                    </p>
+                  </form>
                 )}
               </div>
             </div>
