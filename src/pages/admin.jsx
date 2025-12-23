@@ -12,6 +12,7 @@ export default function AdminDashboard() {
   const [password, setPassword] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState("");
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -79,6 +80,53 @@ export default function AdminDashboard() {
     await supabase.auth.signOut();
     setIsAdmin(false);
     navigate("/");
+  };
+
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      // Fetch teams with their members (exclude ids)
+      const { data, error } = await supabase
+        .from('teams')
+        .select('team_name, team_size, lead_name, lead_email, lead_reg_no, team_members(member_name, member_reg_no)');
+
+      if (error) throw error;
+
+      // Build CSV rows
+      const header = ['Team Name','Team Size','Lead Name','Lead Email','Lead Reg No','Members'];
+      const rows = data.map(team => {
+        const members = (team.team_members || [])
+          .map(m => `${m.member_name} (${m.member_reg_no})`)
+          .join('; ');
+        return [team.team_name, team.team_size, team.lead_name, team.lead_email, team.lead_reg_no, members];
+      });
+
+      const csv = [header, ...rows].map(r => r.map(field => {
+        if (field === null || field === undefined) return '';
+        const s = String(field);
+        // escape quotes
+        if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+          return '"' + s.replace(/"/g, '""') + '"';
+        }
+        return s;
+      }).join(',')).join('\n');
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const now = new Date().toISOString().slice(0,10);
+      a.download = `teams_export_${now}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Export error', err);
+      alert('Failed to export teams: ' + (err.message || err));
+    } finally {
+      setExporting(false);
+    }
   };
 
   if (checking) return <div className="adminWrapper"><p style={{paddingTop:80}}>Checking credentials…</p></div>;
@@ -155,7 +203,10 @@ export default function AdminDashboard() {
         </div>
 
         <div className="adminRight">
-          <button className="logoutBtn" onClick={() => navigate("/")}>
+          <button className="logoutBtn" onClick={handleExport} disabled={exporting} style={{marginRight:10}}>
+            {exporting ? 'Exporting…' : 'Export Teams'}
+          </button>
+          <button className="logoutBtn" onClick={() => navigate("/")}> 
             Logout
           </button>
         </div>
