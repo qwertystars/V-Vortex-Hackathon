@@ -1,25 +1,15 @@
-// src/pages/home.jsx
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import PageTransition from "../components/PageTransition"; // re-used pattern
 import "../styles/home.css";
-import logo from "/logo.jpg"; // use your project logo
 
 export default function Home({ setTransition }) {
-  const navigate = useNavigate();
+  const navigate = (path) => {
+    console.log("GO TO CLICKED:", path);
+    // Navigation logic here
+  };
 
   const goTo = (path) => {
     console.log("GO TO CLICKED:", path);
-    setTransition(
-      <PageTransition
-        videoSrc="/transition.mp4"
-        onFinished={() => {
-          console.log("TRANSITION FINISHED");
-          setTransition(null);
-          navigate(path);
-        }}
-      />
-    );
+    // setTransition logic here
   };
 
   const rounds = {
@@ -60,11 +50,72 @@ export default function Home({ setTransition }) {
     },
   };
 
+  const domains = {
+    iot: {
+      title: "IOT & ROBOTICS",
+      icon: "🔌",
+      problems: [
+        {
+          name: "Sky-Glow Sentinel (Urban Light Pollution Mapping)",
+          desc: "Urban light pollution creates skyglow that obscures stars and disrupts natural biological cycles. The objective is to design a high-sensitivity Sky Quality Monitoring system capable of accurately measuring night-sky brightness in urban environments and mapping these measurements to quantify and visualize light pollution at ground level."
+        },
+        {
+          name: "Decentralized Communication in Infrastructure-Denied Environments",
+          desc: "Modern communication systems fail in environments without internet, cellular networks, Wi-Fi, or cloud access. The objective is to develop a decentralized, peer-to-peer hardware communication network that enables reliable data exchange and maintains network functionality without any centralized infrastructure."
+        },
+        {
+          name: "Smart Parking Occupancy Detection System",
+          desc: "In urban areas, drivers spend significant time searching for vacant parking spaces, leading to traffic congestion and fuel wastage. The objective is to design a low-cost IoT-based system that detects parking spot occupancy in real time and communicates availability information to users through a centralized interface."
+        }
+      ]
+    },
+    aiml: {
+      title: "AI/ML",
+      icon: "🤖",
+      problems: [
+        {
+          name: "AI-Generated Image Authenticity Detection",
+          desc: "Design a system that determines whether an image is AI-generated or real, remaining robust to compression, resizing, and post-processing, while providing confidence-aware and explainable authenticity assessments across diverse image sources."
+        },
+        {
+          name: "AI-Powered Mind Map Search Engine",
+          desc: "Design a search system that retrieves information for a user query and organizes results into an interactive mind map, automatically revealing key concepts, subtopics, and relationships to support exploratory learning and research."
+        },
+        {
+          name: "AI-Powered Mental Well-Being Risk Indicator (Non-Clinical)",
+          desc: "Design a non-clinical system that analyzes anonymized behavioral patterns over time to identify early mental well-being risk indicators, while preserving user privacy, avoiding medical diagnosis, and providing transparent, uncertainty-aware insights."
+        }
+      ]
+    },
+    fintech: {
+      title: "FINTECH",
+      icon: "💰",
+      problems: [
+        {
+          name: "Unified Payment Orchestration & Automated Settlements",
+          desc: "Design and prototype a unified payment orchestration platform that allows merchants to accept payments across multiple channels through a single interface, while automating post-payment workflows such as settlements, refunds, splits, and conditional payouts using configurable logic. The system should reliably initiate, track, settle, and reconcile transactions in an auditable and extensible manner."
+        },
+        {
+          name: "Privacy-Preserving Collaborative Fraud Intelligence Platform",
+          desc: "Design and prototype a real-time transaction monitoring and compliance intelligence platform that detects suspicious activity and assigns risk levels while enabling privacy-preserving collaboration across multiple independent entities. The platform must support shared fraud intelligence without exposing raw transaction data, provide explainable risk decisions, and ensure transparency, auditability, and data sovereignty."
+        },
+        {
+          name: "Adaptive Pricing in Real-Time Digital Marketplaces",
+          desc: "Design a real-time adaptive pricing system for digital marketplaces that continuously adjusts prices under uncertain and evolving demand conditions to maximize long-term business value while maintaining fairness, customer trust, and regulatory compliance. The system should balance short-term revenue with long-term retention, handle delayed feedback, and avoid extreme or erratic price fluctuations."
+        }
+      ]
+    }
+  };
+
   const [activeRound, setActiveRound] = useState(null);
+  const [activeDomain, setActiveDomain] = useState(null);
 
   useEffect(() => {
     function onKey(e) {
-      if (e.key === "Escape") closeModal();
+      if (e.key === "Escape") {
+        closeModal();
+        closeDomainModal();
+      }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -81,16 +132,36 @@ export default function Home({ setTransition }) {
     document.body.style.overflow = "";
   }
 
-  // Inline styles to ensure modal layout works even if CSS isn't updated yet.
-  // Prefer moving these to home.css, but inline ensures the layout/visual fix you requested.
+  function openDomainModal(key) {
+    setActiveDomain(domains[key]);
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeDomainModal(e) {
+    if (e && e.stopPropagation) e.stopPropagation();
+    setActiveDomain(null);
+    document.body.style.overflow = "";
+  }
+
   const overlayStyle = {
-    position:  "fixed",
+    position: "fixed",
     inset: 0,
     display: activeRound ? "flex" : "none",
     alignItems: "center",
     justifyContent: "center",
-    background:
-      "linear-gradient(0deg, rgba(0,0,0,0.7), rgba(0,0,0,0.6))",
+    background: "linear-gradient(0deg, rgba(0,0,0,0.7), rgba(0,0,0,0.6))",
+    zIndex: 1000,
+    padding: "40px 20px",
+    overflowY: "auto",
+  };
+
+  const domainOverlayStyle = {
+    position: "fixed",
+    inset: 0,
+    display: activeDomain ? "flex" : "none",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "linear-gradient(0deg, rgba(0,0,0,0.7), rgba(0,0,0,0.6))",
     zIndex: 1000,
     padding: "40px 20px",
     overflowY: "auto",
@@ -101,11 +172,25 @@ export default function Home({ setTransition }) {
     maxWidth: 1100,
     background: "linear-gradient(180deg, rgba(10,4,14,0.98) 0%, rgba(5,2,8,0.98) 100%)",
     border: "2px solid #00e6ff",
-    borderRadius:   12,
+    borderRadius: 12,
     padding: "28px",
     boxShadow: "0 20px 60px rgba(0,0,0,0.8)",
     color: "#9ffcff",
     position: "relative",
+  };
+
+  const domainModalStyle = {
+    width: "100%",
+    maxWidth: 1100,
+    background: "linear-gradient(180deg, rgba(10,4,14,0.98) 0%, rgba(5,2,8,0.98) 100%)",
+    border: "2px solid #00e6ff",
+    borderRadius: 12,
+    padding: "28px",
+    boxShadow: "0 20px 60px rgba(0,0,0,0.8)",
+    color: "#9ffcff",
+    position: "relative",
+    maxHeight: "90vh",
+    overflowY: "auto"
   };
 
   const headerBarStyle = {
@@ -133,7 +218,7 @@ export default function Home({ setTransition }) {
     width: 30,
     borderRadius: 6,
     cursor: "pointer",
-    fontSize:   18,
+    fontSize: 18,
     lineHeight: "24px",
     display: "flex",
     alignItems: "center",
@@ -162,15 +247,35 @@ export default function Home({ setTransition }) {
     lineHeight: 1.9,
   };
 
+  const problemCardStyle = {
+    background: "rgba(0, 230, 255, 0.05)",
+    border: "1px solid rgba(0, 230, 255, 0.2)",
+    borderRadius: 8,
+    padding: "20px",
+    marginBottom: "20px",
+  };
+
+  const problemTitleStyle = {
+    color: "#00e6ff",
+    fontWeight: 700,
+    fontSize: 18,
+    marginBottom: 12,
+    letterSpacing: 0.5,
+  };
+
+  const problemDescStyle = {
+    color: "#bfeffb",
+    lineHeight: 1.8,
+    fontSize: 15,
+  };
+
   return (
     <div className="vv-home">
-      {/* scanline */}
       <div className="scanline" aria-hidden />
 
-      {/* NAV */}
       <nav className="vv-nav">
         <div className="logo">
-          <img src={logo} alt="V-VORTEX" />
+          <img src="/logo.jpg" alt="V-VORTEX" />
           <h1>V-VORTEX</h1>
         </div>
 
@@ -184,7 +289,6 @@ export default function Home({ setTransition }) {
         </div>
       </nav>
 
-      {/* HERO */}
       <header className="hero">
         <div className="hero-content">
           <h2>V-VORTEX</h2>
@@ -215,19 +319,32 @@ export default function Home({ setTransition }) {
         </div>
       </header>
 
-      {/* DOMAINS */}
       <section className="domains">
         <h2 className="section-title">⟨ BATTLE DOMAINS ⟩</h2>
         <div className="domains-grid">
-          <div className="domain-card"><div className="domain-icon">🤖</div><h3>AI/ML</h3></div>
-          <div className="domain-card"><div className="domain-icon">🛡️</div><h3>Cybersecurity</h3></div>
-          <div className="domain-card selected"><div className="domain-icon">🏥</div><h3>Healthcare</h3></div>
-          <div className="domain-card"><div className="domain-icon">💰</div><h3>Fintech</h3></div>
-          <div className="domain-card"><div className="domain-icon">🔌</div><h3>IoT & Robotics</h3></div>
+          <div className="domain-card" onClick={() => openDomainModal('aiml')} style={{cursor: 'pointer'}}>
+            <div className="domain-icon">🤖</div>
+            <h3>AI/ML</h3>
+          </div>
+          <div className="domain-card">
+            <div className="domain-icon">🛡️</div>
+            <h3>Cybersecurity</h3>
+          </div>
+          <div className="domain-card selected">
+            <div className="domain-icon">🏥</div>
+            <h3>Healthcare</h3>
+          </div>
+          <div className="domain-card" onClick={() => openDomainModal('fintech')} style={{cursor: 'pointer'}}>
+            <div className="domain-icon">💰</div>
+            <h3>Fintech</h3>
+          </div>
+          <div className="domain-card" onClick={() => openDomainModal('iot')} style={{cursor: 'pointer'}}>
+            <div className="domain-icon">🔌</div>
+            <h3>IoT & Robotics</h3>
+          </div>
         </div>
       </section>
 
-      {/* EVALUATION / ROUNDS */}
       <section className="evaluation">
         <h2 className="section-title">⟨ PATH TO VICTORY ⟩</h2>
         <div className="rounds">
@@ -262,7 +379,6 @@ export default function Home({ setTransition }) {
         </div>
       </section>
 
-      {/* TEAM / COORDINATORS */}
       <section className="team">
         <h2 className="section-title">⟨ THE ARCHITECTS ⟩</h2>
 
@@ -289,14 +405,14 @@ export default function Home({ setTransition }) {
               <div className="member-photo">SJ</div>
               <h4 className="member-name">Sugeeth Jayaraj S.A.</h4>
               <p className="member-role">Student Coordinator</p>
-              <p class="member-role">Feel free to reach out</p>
+              <p className="member-role">Feel free to reach out</p>
               <p className="member-role">+91 81226 54796</p>
             </div>
             <div className="coordinator-card">
               <div className="member-photo">PM</div>
               <h4 className="member-name">Prasanna M</h4>
               <p className="member-role">Student Coordinator</p>
-              <p class="member-role">Need Help?</p>
+              <p className="member-role">Need Help?</p>
               <p className="member-role">+91 97909 70726</p>
             </div>
           </div>
@@ -333,15 +449,14 @@ export default function Home({ setTransition }) {
         </div>
       </section>
 
-      {/* FOOTER */}
       <footer>
         <p>🌀 V-VORTEX 2026 • WHERE LEGENDS ARE BORN 🌀</p>
         <p className="muted">VIT Chennai • National Level Hackathon</p>
       </footer>
 
-      {/* Modal overlay */}
+      {/* Rounds Modal */}
       <div
-        className={`modal-overlay ${activeRound ? "active" :   ""}`}
+        className={`modal-overlay ${activeRound ? "active" : ""}`}
         onClick={closeModal}
         role="dialog"
         aria-modal={activeRound ? "true" : "false"}
@@ -371,18 +486,17 @@ export default function Home({ setTransition }) {
 
             <div style={{ height: 1, background: "rgba(255,255,255,0.03)", margin: "12px 0" }} />
 
-            {/* Two column layout similar to the mock */}
             <div style={bodyGridStyle}>
               {Object.entries(activeRound.blocks).map(([heading, items]) => (
                 <div key={heading}>
-                  <h4 style={blockTitleStyle}>{heading.  toUpperCase()}</h4>
+                  <h4 style={blockTitleStyle}>{heading.toUpperCase()}</h4>
                   <ul style={listStyle}>
                     {items.map((it, i) => (
                       <li key={i} style={{ listStyleType: "none", marginBottom: 8 }}>
                         <span
                           style={{
                             display: "inline-block",
-                            width:   10,
+                            width: 10,
                             height: 10,
                             background: "#ff2fe6",
                             borderRadius: 2,
@@ -401,17 +515,48 @@ export default function Home({ setTransition }) {
           </div>
         )}
       </div>
+
+      {/* Domain Modal */}
+      <div
+        className={`modal-overlay ${activeDomain ? "active" : ""}`}
+        onClick={closeDomainModal}
+        role="dialog"
+        aria-modal={activeDomain ? "true" : "false"}
+        aria-hidden={!activeDomain}
+        style={domainOverlayStyle}
+      >
+        {activeDomain && (
+          <div
+            className="modal"
+            onClick={(e) => e.stopPropagation()}
+            style={domainModalStyle}
+          >
+            <div style={headerBarStyle}>
+              <h2 style={titleStyle}>
+                {activeDomain.icon} {activeDomain.title} - PROBLEM STATEMENTS
+              </h2>
+              <button
+                onClick={closeDomainModal}
+                aria-label="Close details"
+                style={closeBtnStyle}
+              >
+                ×
+              </button>
+            </div>
+
+            <div style={{ height: 1, background: "rgba(255,255,255,0.03)", margin: "12px 0 24px 0" }} />
+
+            {activeDomain.problems.map((problem, idx) => (
+              <div key={idx} style={problemCardStyle}>
+                <h3 style={problemTitleStyle}>
+                  Problem Statement {idx + 1}: {problem.name}
+                </h3>
+                <p style={problemDescStyle}>{problem.desc}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
