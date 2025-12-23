@@ -6,12 +6,15 @@ export default function Home({ setTransition }) {
   const router = useNavigate();
 
   const goTo = (path) => {
+    console.log("nav.goTo ->", path);
     try {
       if (setTransition) setTransition(null);
     } catch (e) {}
     router(path);
     window.scrollTo(0, 0);
   };
+
+  // Problem statements stay blurred until manual removal of the blur feature
 
   const rounds = {
     r1: {
@@ -269,6 +272,8 @@ export default function Home({ setTransition }) {
     lineHeight: 1.8,
     fontSize: 15,
   };
+
+  
 
   return (
     <div className="vv-home">
@@ -548,11 +553,35 @@ export default function Home({ setTransition }) {
             <div style={{ height: 1, background: "rgba(255,255,255,0.03)", margin: "12px 0 24px 0" }} />
 
             {activeDomain.problems.map((problem, idx) => (
-              <div key={idx} style={problemCardStyle}>
-                <h3 style={problemTitleStyle}>
+              <div key={idx} style={{ ...problemCardStyle, position: 'relative' }}>
+                <h3
+                  style={{
+                    ...problemTitleStyle,
+                    filter: 'blur(14px)',
+                    WebkitFilter: 'blur(14px)',
+                    transition: 'filter 200ms ease',
+                    userSelect: 'none',
+                    pointerEvents: 'none',
+                    opacity: 0.95,
+                  }}
+                >
                   Problem Statement {idx + 1}: {problem.name}
                 </h3>
-                <p style={problemDescStyle}>{problem.desc}</p>
+
+                <p
+                  style={{
+                    ...problemDescStyle,
+                    filter: 'blur(14px)',
+                    WebkitFilter: 'blur(14px)',
+                    transition: 'filter 200ms ease',
+                    userSelect: 'none',
+                    pointerEvents: 'none',
+                    opacity: 0.95,
+                  }}
+                  aria-hidden={true}
+                >
+                  {problem.desc}
+                </p>
               </div>
             ))}
           </div>
