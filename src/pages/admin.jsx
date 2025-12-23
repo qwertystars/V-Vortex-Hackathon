@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import "../styles/admin.css";
-import ExcelJS from 'exceljs';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -86,6 +85,8 @@ export default function AdminDashboard() {
   const handleExport = async () => {
     setExporting(true);
     try {
+      // Lazy-load exceljs to avoid adding it to the main bundle
+      const ExcelJS = (await import('exceljs')).default;
       // Fetch teams with their members (exclude ids)
       const { data, error } = await supabase
         .from('teams')
