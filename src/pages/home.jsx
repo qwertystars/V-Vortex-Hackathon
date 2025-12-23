@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "../styles/home.css";
 
 export default function Home({ setTransition }) {
-  const navigate = (path) => {
-    console.log("GO TO CLICKED:", path);
-    // Navigation logic here
-  };
+  const router = useNavigate();
 
   const goTo = (path) => {
-    console.log("GO TO CLICKED:", path);
-    // setTransition logic here
+    try {
+      if (setTransition) setTransition(null);
+    } catch (e) {}
+    router(path);
+    window.scrollTo(0, 0);
   };
 
   const rounds = {
