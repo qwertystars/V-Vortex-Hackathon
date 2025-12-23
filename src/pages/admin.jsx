@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import "../styles/admin.css";
+import * as XLSX from 'xlsx';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -88,35 +89,50 @@ export default function AdminDashboard() {
       // Fetch teams with their members (exclude ids)
       const { data, error } = await supabase
         .from('teams')
-        .select('team_name, team_size, lead_name, lead_email, lead_reg_no, team_members(member_name, member_reg_no)');
+        .select('team_name, team_size, lead_name, lead_email, lead_reg_no, is_vit_chennai, team_members(member_name, member_reg_no, member_email, institution)');
 
       if (error) throw error;
 
-      // Build CSV rows
-      const header = ['Team Name','Team Size','Lead Name','Lead Email','Lead Reg No','Members'];
-      const rows = data.map(team => {
-        const members = (team.team_members || [])
-          .map(m => `${m.member_name} (${m.member_reg_no})`)
-          .join('; ');
-        return [team.team_name, team.team_size, team.lead_name, team.lead_email, team.lead_reg_no, members];
+      // Build XLSX rows (one row per member; if no members, include single row with empty member fields)
+      const header = [
+        'Team Name', 'Team Size',
+        'Lead Name', 'Lead Email', 'Lead Reg No', 'Lead Is VIT Chennai',
+        'Member Name', 'Member Email', 'Member Reg No', 'Member Is VIT Chennai'
+      ];
+
+      const rows = [];
+      (data || []).forEach(team => {
+        const leadIsVit = !!team.is_vit_chennai || !!team.lead_reg_no;
+        const members = team.team_members || [];
+        if (members.length === 0) {
+          rows.push([
+            team.team_name || '', team.team_size || '',
+            team.lead_name || '', team.lead_email || '', team.lead_reg_no || '', leadIsVit,
+            '', '', '', ''
+          ]);
+        } else {
+          members.forEach(m => {
+            const memberIsVit = (m.institution === 'VIT Chennai') || !!m.member_reg_no;
+            rows.push([
+              team.team_name || '', team.team_size || '',
+              team.lead_name || '', team.lead_email || '', team.lead_reg_no || '', leadIsVit,
+              m.member_name || '', m.member_email || '', m.member_reg_no || '', !!memberIsVit
+            ]);
+          });
+        }
       });
 
-      const csv = [header, ...rows].map(r => r.map(field => {
-        if (field === null || field === undefined) return '';
-        const s = String(field);
-        // escape quotes
-        if (s.includes(',') || s.includes('"') || s.includes('\n')) {
-          return '"' + s.replace(/"/g, '""') + '"';
-        }
-        return s;
-      }).join(',')).join('\n');
-
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const wsData = [header, ...rows];
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      XLSX.utils.book_append_sheet(wb, ws, 'Teams');
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([wbout], { type: 'application/octet-stream' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       const now = new Date().toISOString().slice(0,10);
-      a.download = `teams_export_${now}.csv`;
+      a.download = `teams_export_${now}.xlsx`;
       document.body.appendChild(a);
       a.click();
       a.remove();
