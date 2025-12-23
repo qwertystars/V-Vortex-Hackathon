@@ -11,6 +11,7 @@ import Register from "./pages/register";
 import OTP from "./pages/otp";
 import TeamDashboard from "./pages/dashboard";
 import Member from "./pages/member";
+import Admin from "./pages/admin";
 
 export default function App() {
   const [introDone, setIntroDone] = useState(false);
@@ -30,6 +31,7 @@ export default function App() {
           <Route path="/register" element={<Register setTransition={setTransition} />} />
           <Route path="/otp" element={<OTP setTransition={setTransition} />} />
           <Route path="/member" element={<Member />} />
+          <Route path="/admin" element={<Admin />} />
           <Route path="/dashboard" element={<TeamDashboard />} />
           <Route path="/dashboard/:teamId" element={<TeamDashboard />} />
 
