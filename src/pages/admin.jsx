@@ -1,36 +1,149 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import "../styles/admin.css";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
+  const [checking, setChecking] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [unauthorized, setUnauthorized] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState("");
 
   useEffect(() => {
     const checkAdmin = async () => {
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        alert("Unauthorized access. Redirecting to home.");
-        navigate("/");
-        return;
-      }
+      setChecking(true);
+      setUnauthorized(false);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { session } } = await supabase.auth.getSession();
 
-      // Check if user has admin role (you need to set this in Supabase)
-      const { data: { session } } = await supabase.auth.getSession();
-      const isAdmin = session?.user?.app_metadata?.role === 'admin';
-      
-      if (!isAdmin) {
-        alert("Admin access required. This incident will be logged.");
-        navigate("/");
-        return;
+        if (!user || !session) {
+          // not signed in -> show login form
+          setIsAdmin(false);
+          setChecking(false);
+          return;
+        }
+
+        const role = session?.user?.app_metadata?.role;
+        if (role === "admin") {
+          setIsAdmin(true);
+        } else {
+          setUnauthorized(true);
+          setIsAdmin(false);
+        }
+      } catch (err) {
+        console.error("admin check error:", err);
+      } finally {
+        setChecking(false);
       }
     };
 
     checkAdmin();
   }, [navigate]);
 
+  // Sign in handler for admin access via URL only (no button on main pages)
+  const handleSignIn = async (e) => {
+    e.preventDefault();
+    setAuthLoading(true);
+    setAuthError("");
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        setAuthError(error.message || "Sign-in failed");
+        setAuthLoading(false);
+        return;
+      }
+
+      // Re-check session/role
+      const { data: { session } } = await supabase.auth.getSession();
+      const role = session?.user?.app_metadata?.role;
+      if (role === "admin") {
+        setIsAdmin(true);
+        setUnauthorized(false);
+      } else {
+        setUnauthorized(true);
+      }
+    } catch (err) {
+      console.error(err);
+      setAuthError("Unexpected error during sign-in");
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setIsAdmin(false);
+    navigate("/");
+  };
+
+  if (checking) return <div className="adminWrapper"><p style={{paddingTop:80}}>Checking credentials…</p></div>;
+
+  if (!isAdmin) {
+    // If unauthorized user signed in
+    if (unauthorized) {
+      return (
+        <div className="adminWrapper">
+          <nav className="adminNav">
+            <div className="adminLeft">
+              <img src="/logo.jpg" className="adminLogo" alt="Logo" />
+              <span className="adminTitle">ADMIN CONTROL PANEL</span>
+            </div>
+
+            <div className="adminRight">
+              <button className="logoutBtn" onClick={handleSignOut}>
+                Logout
+              </button>
+            </div>
+          </nav>
+
+          <div style={{paddingTop:120, textAlign:'center'}}>
+            <h2>Access Denied</h2>
+            <p>You are signed in but do not have admin permissions.</p>
+          </div>
+        </div>
+      );
+    }
+
+    // Not signed in -> show login form (admins must access via URL)
+    return (
+      <div className="adminWrapper">
+        <nav className="adminNav">
+          <div className="adminLeft">
+            <img src="/logo.jpg" className="adminLogo" alt="Logo" />
+            <span className="adminTitle">ADMIN CONTROL PANEL</span>
+          </div>
+
+          <div className="adminRight">
+          </div>
+        </nav>
+
+        <div style={{maxWidth:420, margin:'140px auto 0', padding:20, background:'rgba(0,0,0,0.5)', borderRadius:8}}>
+          <h3 style={{color:'#00ffae'}}>Admin Login</h3>
+          <form onSubmit={handleSignIn}>
+            <div style={{marginBottom:10}}>
+              <label style={{display:'block', color:'#cfffec'}}>Email</label>
+              <input value={email} onChange={(e)=>setEmail(e.target.value)} type="email" required style={{width:'100%', padding:8, borderRadius:6}} />
+            </div>
+            <div style={{marginBottom:10}}>
+              <label style={{display:'block', color:'#cfffec'}}>Password</label>
+              <input value={password} onChange={(e)=>setPassword(e.target.value)} type="password" required style={{width:'100%', padding:8, borderRadius:6}} />
+            </div>
+            {authError && <div style={{color:'salmon', marginBottom:10}}>{authError}</div>}
+            <button className="logoutBtn" type="submit" disabled={authLoading} style={{background:'#00ff9d'}}>
+              {authLoading ? 'Signing in…' : 'Sign in as Admin'}
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  // isAdmin === true -> render dashboard
   return (
     <div className="adminWrapper">
 
