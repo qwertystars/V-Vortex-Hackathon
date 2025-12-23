@@ -50,10 +50,18 @@ export default function Home({ setTransition }) {
     },
   };
 
+  // SET THESE DATES TO CONTROL WHEN PROBLEM STATEMENTS ARE REVEALED
+  const releaseSchedule = {
+    iot: new Date('2026-01-01T00:00:00'), // January 1, 2026 (1 week early)
+    aiml: new Date('2026-01-07T00:00:00'), // January 7, 2026
+    fintech: new Date('2026-01-07T00:00:00'), // January 7, 2026
+  };
+
   const domains = {
     iot: {
       title: "IOT & ROBOTICS",
       icon: "🔌",
+      releaseDate: releaseSchedule.iot,
       problems: [
         {
           name: "Sky-Glow Sentinel (Urban Light Pollution Mapping)",
@@ -72,6 +80,7 @@ export default function Home({ setTransition }) {
     aiml: {
       title: "AI/ML",
       icon: "🤖",
+      releaseDate: releaseSchedule.aiml,
       problems: [
         {
           name: "AI-Generated Image Authenticity Detection",
@@ -90,6 +99,7 @@ export default function Home({ setTransition }) {
     fintech: {
       title: "FINTECH",
       icon: "💰",
+      releaseDate: releaseSchedule.fintech,
       problems: [
         {
           name: "Unified Payment Orchestration & Automated Settlements",
@@ -105,6 +115,12 @@ export default function Home({ setTransition }) {
         }
       ]
     }
+  };
+
+  // Check if problem statements are released
+  const isProblemReleased = (domainKey) => {
+    const now = new Date();
+    return now >= domains[domainKey].releaseDate;
   };
 
   const [activeRound, setActiveRound] = useState(null);
@@ -253,6 +269,50 @@ export default function Home({ setTransition }) {
     borderRadius: 8,
     padding: "20px",
     marginBottom: "20px",
+  };
+
+  const blurredProblemCardStyle = {
+    background: "rgba(0, 230, 255, 0.05)",
+    border: "1px solid rgba(0, 230, 255, 0.2)",
+    borderRadius: 8,
+    padding: "20px",
+    marginBottom: "20px",
+    position: "relative",
+    filter: "blur(8px)",
+    pointerEvents: "none",
+    userSelect: "none",
+  };
+
+  const lockedOverlayStyle = {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "rgba(10, 4, 14, 0.85)",
+    borderRadius: 8,
+    pointerEvents: "none",
+  };
+
+  const lockIconStyle = {
+    fontSize: 48,
+    marginBottom: 12,
+  };
+
+  const lockedTextStyle = {
+    color: "#00e6ff",
+    fontSize: 18,
+    fontWeight: 700,
+    marginBottom: 8,
+  };
+
+  const releaseTimeStyle = {
+    color: "#bfeffb",
+    fontSize: 14,
   };
 
   const problemTitleStyle = {
@@ -546,14 +606,37 @@ export default function Home({ setTransition }) {
 
             <div style={{ height: 1, background: "rgba(255,255,255,0.03)", margin: "12px 0 24px 0" }} />
 
-            {activeDomain.problems.map((problem, idx) => (
-              <div key={idx} style={problemCardStyle}>
-                <h3 style={problemTitleStyle}>
-                  Problem Statement {idx + 1}: {problem.name}
-                </h3>
-                <p style={problemDescStyle}>{problem.desc}</p>
-              </div>
-            ))}
+            {activeDomain.problems.map((problem, idx) => {
+              const domainKey = Object.keys(domains).find(key => domains[key] === activeDomain);
+              const isReleased = isProblemReleased(domainKey);
+              
+              return (
+                <div key={idx} style={{ position: "relative", marginBottom: "20px" }}>
+                  <div style={isReleased ? problemCardStyle : blurredProblemCardStyle}>
+                    <h3 style={problemTitleStyle}>
+                      Problem Statement {idx + 1}: {problem.name}
+                    </h3>
+                    <p style={problemDescStyle}>{problem.desc}</p>
+                  </div>
+                  
+                  {!isReleased && (
+                    <div style={lockedOverlayStyle}>
+                      <div style={lockIconStyle}>🔒</div>
+                      <div style={lockedTextStyle}>PROBLEM STATEMENTS LOCKED</div>
+                      <div style={releaseTimeStyle}>
+                        Releases on {activeDomain.releaseDate.toLocaleDateString('en-US', { 
+                          month: 'long', 
+                          day: 'numeric', 
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
