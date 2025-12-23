@@ -25,6 +25,7 @@
   "homepage": "https://github.com/V-Vortex-VIT/V-Vortex-Hackathon#readme",
   "dependencies": {
     "@supabase/supabase-js": "^2.87.1",
+    "exceljs": "^4.3.0",
     "dotenv": "^17.2.3",
     "node-fetch": "^2.7.0",
     "react": "^19.2.0",
@@ -41,7 +42,6 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
-    "vite": "^7.2.4",
-    "xlsx": "^0.18.5"
+    "vite": "^7.2.4"
   }
 }

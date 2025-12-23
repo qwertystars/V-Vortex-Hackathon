@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import "../styles/admin.css";
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -122,12 +122,14 @@ export default function AdminDashboard() {
         }
       });
 
-      const wsData = [header, ...rows];
-      const wb = XLSX.utils.book_new();
-      const ws = XLSX.utils.aoa_to_sheet(wsData);
-      XLSX.utils.book_append_sheet(wb, ws, 'Teams');
-      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-      const blob = new Blob([wbout], { type: 'application/octet-stream' });
+      // Use ExcelJS to generate the workbook in-memory
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Teams');
+      worksheet.addRow(header);
+      rows.forEach(r => worksheet.addRow(r));
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/octet-stream' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
