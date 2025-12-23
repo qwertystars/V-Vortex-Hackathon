@@ -287,7 +287,7 @@ export default function Home({ setTransition }) {
           <div className="coordinator-cards">
             <div className="coordinator-card">
               <div className="member-photo">SJ</div>
-              <h4 className="member-name">Suggest Jayaraj S.A</h4>
+              <h4 className="member-name">Sugeeth Jayaraj S.A.</h4>
               <p className="member-role">Student Coordinator</p>
               <p class="member-role">Feel free to reach out</p>
               <p className="member-role">+91 81226 54796</p>
@@ -327,7 +327,7 @@ export default function Home({ setTransition }) {
           </div>
           <div className="team-member">
             <div className="member-photo">SG</div>
-            <h4 className="member-name">Srijan Guchhait(Gucci)</h4>
+            <h4 className="member-name">Srijan Guchhait</h4>
             <p className="member-role">Special Contributor</p>
           </div>
         </div>
@@ -404,6 +404,7 @@ export default function Home({ setTransition }) {
     </div>
   );
 }
+
 
 
 
