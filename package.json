@@ -25,6 +25,8 @@
   "homepage": "https://github.com/V-Vortex-VIT/V-Vortex-Hackathon#readme",
   "dependencies": {
     "@supabase/supabase-js": "^2.87.1",
+    "dotenv": "^17.2.3",
+    "node-fetch": "^2.7.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.10.1"
