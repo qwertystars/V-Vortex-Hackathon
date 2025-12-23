@@ -187,7 +187,13 @@ export default function Login({ setTransition }) {
                   <button
                     type="button"
                     className="submitBtn"
-                    onClick={() => { setRole('Team Leader'); setNotFoundInfo(null); }}
+                    onClick={() => {
+                      // Pre-fill register intent and navigate to registration page
+                      try { if (setTransition) setTransition(null); } catch (e) {}
+                      sessionStorage.setItem('registerIntent', JSON.stringify({ role: 'team_leader', email: notFoundInfo.email }));
+                      setNotFoundInfo(null);
+                      navigate('/register');
+                    }}
                   >
                     Register as Team Leader
                   </button>
