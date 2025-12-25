@@ -552,38 +552,14 @@ export default function Home({ setTransition }) {
 
             <div style={{ height: 1, background: "rgba(255,255,255,0.03)", margin: "12px 0 24px 0" }} />
 
-            {activeDomain.problems.map((problem, idx) => (
-              <div key={idx} style={{ ...problemCardStyle, position: 'relative' }}>
-                <h3
-                  style={{
-                    ...problemTitleStyle,
-                    filter: 'blur(14px)',
-                    WebkitFilter: 'blur(14px)',
-                    transition: 'filter 200ms ease',
-                    userSelect: 'none',
-                    pointerEvents: 'none',
-                    opacity: 0.95,
-                  }}
-                >
-                  Problem Statement {idx + 1}: {problem.name}
-                </h3>
-
-                <p
-                  style={{
-                    ...problemDescStyle,
-                    filter: 'blur(14px)',
-                    WebkitFilter: 'blur(14px)',
-                    transition: 'filter 200ms ease',
-                    userSelect: 'none',
-                    pointerEvents: 'none',
-                    opacity: 0.95,
-                  }}
-                  aria-hidden={true}
-                >
-                  {problem.desc}
-                </p>
-              </div>
-            ))}
+            <div style={{ ...problemCardStyle, position: 'relative', color: '#bfeffb' }}>
+              <h3 style={{ ...problemTitleStyle, filter: 'none', WebkitFilter: 'none' }}>
+                Problem statements are not available on this page
+              </h3>
+              <p style={{ ...problemDescStyle, filter: 'none', WebkitFilter: 'none' }}>
+                The problem statements will be available soon. Please contact the organizers for more information.
+              </p>
+            </div>
           </div>
         )}
       </div>
