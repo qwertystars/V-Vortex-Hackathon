@@ -90,7 +90,7 @@ export default function AdminDashboard() {
       // Fetch teams with their members (exclude ids)
       const { data, error } = await supabase
         .from('teams')
-        .select('team_name, team_size, lead_name, lead_email, lead_reg_no, is_vit_chennai, receipt_link, team_members(member_name, member_reg_no, member_email, institution)');
+        .select('team_name, team_size, lead_name, lead_email, lead_reg_no, is_vit_chennai, institution, receipt_link, team_members(member_name, member_reg_no, member_email, institution)');
 
       if (error) throw error;
 
@@ -98,7 +98,7 @@ export default function AdminDashboard() {
       const header = [
         'Team Name', 'Team Size',
         'Lead Name', 'Lead Email', 'Lead Reg No', 'Lead Is VIT Chennai',
-        'Payment Link',
+        'Team Institution', 'Payment Link',
         'Member Name', 'Member Email', 'Member Reg No', 'Member Is VIT Chennai'
       ];
 
@@ -110,7 +110,7 @@ export default function AdminDashboard() {
           rows.push([
             team.team_name || '', team.team_size || '',
             team.lead_name || '', team.lead_email || '', team.lead_reg_no || '', leadIsVit,
-              team.receipt_link || '', '', '', ''
+              team.institution || '', team.receipt_link || '', '', '', ''
           ]);
         } else {
           members.forEach(m => {
@@ -118,7 +118,7 @@ export default function AdminDashboard() {
             rows.push([
               team.team_name || '', team.team_size || '',
               team.lead_name || '', team.lead_email || '', team.lead_reg_no || '', leadIsVit,
-                team.receipt_link || '', m.member_name || '', m.member_email || '', m.member_reg_no || '', !!memberIsVit
+                team.institution || '', team.receipt_link || '', m.member_name || '', m.member_email || '', m.member_reg_no || '', !!memberIsVit
             ]);
           });
         }
@@ -130,8 +130,8 @@ export default function AdminDashboard() {
       worksheet.addRow(header);
       rows.forEach(r => worksheet.addRow(r));
 
-      // Turn Payment Link column into clickable hyperlinks (column 7)
-      const paymentCol = 7;
+      // Turn Payment Link column into clickable hyperlinks (column 8 after adding Team Institution)
+      const paymentCol = 8;
       worksheet.eachRow((row, rowNumber) => {
         if (rowNumber === 1) return; // skip header
         const cell = row.getCell(paymentCol);
