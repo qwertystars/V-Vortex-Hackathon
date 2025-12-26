@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import BuildTeam from "../components/BuildTeam";
@@ -17,28 +17,78 @@ export default function TeamDashboard() {
   const [activeTab, setActiveTab] = useState("vortex");
   const [showSidebar, setShowSidebar] = useState(false);
   const [teamMembers, setTeamMembers] = useState([]);
-  
+  const [selectedDomains, setSelectedDomains] = useState([]);
+
+  // TODO: Replace the placeholder problem statements with the exact ones from home.jsx
+  const domainProblemStatements = {
+    "AI/ML": [
+      "AI-based carbon footprint predictor with adaptive learning.",
+      "LLM-powered eco-advisor for real-time sustainability tips.",
+      "Computer-vision waste sorting assistant for smart bins."
+    ],
+    Cybersecurity: [
+      "IoT intrusion detection tailored for smart grids.",
+      "Phishing-resistant authentication for distributed teams.",
+      "Secure keyless access management for connected devices."
+    ],
+    HealthCare: [
+      "Remote vitals anomaly detection with alerting.",
+      "Drug interaction and contraindication checker.",
+      "Personalized mental health companion with safe prompts."
+    ],
+    Fintech: [
+      "Real-time fraud detection on transaction streams.",
+      "Green investment recommender with carbon scoring.",
+      "Cross-border remittance optimizer with fee transparency."
+    ],
+    "IoT & Robotics": [
+      "Energy-aware drone routing for inspections.",
+      "Smart building climate controller for efficiency.",
+      "Warehouse robotics safety and collision avoidance monitor."
+    ]
+  };
+
+  const allProblemStatements = useMemo(() => {
+    return Object.entries(domainProblemStatements).flatMap(
+      ([domain, statements]) =>
+        statements.map((text, idx) => ({
+          id: `${domain}-${idx}`,
+          domain,
+          text
+        }))
+    );
+  }, [domainProblemStatements]);
+
+  const filteredProblemStatements = useMemo(() => {
+    if (selectedDomains.length === 0) return allProblemStatements;
+    return allProblemStatements.filter((ps) =>
+      selectedDomains.includes(ps.domain)
+    );
+  }, [allProblemStatements, selectedDomains]);
+
   // Calculated stats
-  const myRank = leaderboard.find(row => row.team_name === team?.team_name)?.position ?? "—";
+  const myRank =
+    leaderboard.find((row) => row.team_name === team?.team_name)?.position ??
+    "—";
   const totalTeams = leaderboard.length;
   const topScore = leaderboard[0]?.score ?? 0;
   const myScore = scorecard?.total_score ?? 0;
   const gapToAlpha = myRank === 1 ? 0 : Math.max(0, topScore - myScore);
-
 
   /* ===============================
      AUTH + DATA FETCH
   =============================== */
   useEffect(() => {
     const init = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user }
+      } = await supabase.auth.getUser();
       if (!user) {
         navigate("/login");
         return;
       }
 
       try {
-        // Optimize: Fetch all data in parallel for faster loading
         const [
           { data: teamData },
           { data: scoreData },
@@ -47,15 +97,19 @@ export default function TeamDashboard() {
         ] = await Promise.all([
           supabase.from("teams").select("*").eq("id", teamId).single(),
           supabase.from("scorecards").select("*").eq("team_id", teamId).single(),
-          supabase.from("leaderboard_view").select("*").order("position", { ascending: true }),
+          supabase
+            .from("leaderboard_view")
+            .select("*")
+            .order("position", { ascending: true }),
           supabase.from("team_members").select("*").eq("team_id", teamId)
         ]);
 
-        // SECURITY: Verify user is the team leader or a team member
         if (teamData) {
           const isLeader = teamData.lead_email === user.email;
-          const isMember = membersData?.some(m => m.member_email === user.email);
-          
+          const isMember = membersData?.some(
+            (m) => m.member_email === user.email
+          );
+
           if (!isLeader && !isMember) {
             alert("You don't have access to this team dashboard.");
             navigate("/login");
@@ -102,15 +156,28 @@ export default function TeamDashboard() {
     navigate("/");
   };
 
+  const toggleDomain = (domain) => {
+    setSelectedDomains((prev) =>
+      prev.includes(domain)
+        ? prev.filter((d) => d !== domain)
+        : [...prev, domain]
+    );
+  };
+
+  const selectAllDomains = () => {
+    setSelectedDomains(Object.keys(domainProblemStatements));
+  };
+
+  const clearDomains = () => setSelectedDomains([]);
+
   if (loading) {
     return <div className="loading">SYNCING VORTEX DATA…</div>;
   }
 
   return (
     <div className="dashboardWrapper">
-
       {/* ================= SIDEBAR ================= */}
-      <aside className={`sidebar ${showSidebar ? 'open' : ''}`}>
+      <aside className={`sidebar ${showSidebar ? "open" : ""}`}>
         <div className="sidebarLogo">
           <img src={logo} alt="V-VORTEX logo" className="sidebarLogoImg" />
           <span>HACKVORTEX</span>
@@ -120,35 +187,50 @@ export default function TeamDashboard() {
         <div className="sidebarNav">
           <button
             className={activeTab === "vortex" ? "active" : ""}
-            onClick={() => { setActiveTab("vortex"); setShowSidebar(false); }}
+            onClick={() => {
+              setActiveTab("vortex");
+              setShowSidebar(false);
+            }}
           >
             Vortex Hub
           </button>
 
           <button
             className={activeTab === "buildTeam" ? "active" : ""}
-            onClick={() => { setActiveTab("buildTeam"); setShowSidebar(false); }}
+            onClick={() => {
+              setActiveTab("buildTeam");
+              setShowSidebar(false);
+            }}
           >
             Build Your Team
           </button>
 
           <button
             className={activeTab === "leaderboard" ? "active" : ""}
-            onClick={() => { setActiveTab("leaderboard"); setShowSidebar(false); }}
+            onClick={() => {
+              setActiveTab("leaderboard");
+              setShowSidebar(false);
+            }}
           >
             Leaderboard
           </button>
 
           <button
             className={activeTab === "nexus" ? "active" : ""}
-            onClick={() => { setActiveTab("nexus"); setShowSidebar(false); }}
+            onClick={() => {
+              setActiveTab("nexus");
+              setShowSidebar(false);
+            }}
           >
             Nexus Entry
           </button>
 
           <button
             className={activeTab === "mission" ? "active" : ""}
-            onClick={() => { setActiveTab("mission"); setShowSidebar(false); }}
+            onClick={() => {
+              setActiveTab("mission");
+              setShowSidebar(false);
+            }}
           >
             The Mission
           </button>
@@ -168,15 +250,25 @@ export default function TeamDashboard() {
         </div>
       </aside>
 
-      {showSidebar && <div className="sidebarOverlay" onClick={() => setShowSidebar(false)} /> }
+      {showSidebar && (
+        <div
+          className="sidebarOverlay"
+          onClick={() => setShowSidebar(false)}
+        />
+      )}
 
       {/* ================= MAIN ================= */}
       <div className="mainArea">
-
         {/* HEADER */}
         <header className="mainHeader">
           <div className="headerLeft">
-            <button className="menuBtn" onClick={() => setShowSidebar(s => !s)} aria-label="Toggle sidebar">☰</button>
+            <button
+              className="menuBtn"
+              onClick={() => setShowSidebar((s) => !s)}
+              aria-label="Toggle sidebar"
+            >
+              ☰
+            </button>
 
             <div>
               <div className="headerTitle">
@@ -187,9 +279,7 @@ export default function TeamDashboard() {
                 {activeTab === "mission" && "The Mission"}
               </div>
 
-              <div className="headerSub">
-                OPERATIONAL OBJECTIVE DECRYPTION
-              </div>
+              <div className="headerSub">OPERATIONAL OBJECTIVE DECRYPTION</div>
             </div>
           </div>
 
@@ -201,25 +291,29 @@ export default function TeamDashboard() {
 
         {/* ================= CONTENT ================= */}
         <div className="pageContent">
-
           {/* ===== BUILD YOUR TEAM ===== */}
           {activeTab === "buildTeam" && (
-            <BuildTeam 
+            <BuildTeam
               teamId={teamId}
               currentTeamName={team?.team_name}
               hasMembers={teamMembers.length > 0}
               onTeamBuilt={async () => {
-                // Optimize: Reload all data including leaderboard in parallel
                 const [
                   { data: updatedTeam },
                   { data: updatedMembers },
                   { data: updatedLeaderboard }
                 ] = await Promise.all([
                   supabase.from("teams").select("*").eq("id", teamId).single(),
-                  supabase.from("team_members").select("*").eq("team_id", teamId),
-                  supabase.from("leaderboard_view").select("*").order("position", { ascending: true })
+                  supabase
+                    .from("team_members")
+                    .select("*")
+                    .eq("team_id", teamId),
+                  supabase
+                    .from("leaderboard_view")
+                    .select("*")
+                    .order("position", { ascending: true })
                 ]);
-                
+
                 setTeam(updatedTeam);
                 setTeamMembers(updatedMembers || []);
                 setLeaderboard(updatedLeaderboard || []);
@@ -231,52 +325,75 @@ export default function TeamDashboard() {
           {/* ===== VORTEX HUB ===== */}
           {activeTab === "vortex" && (
             <div className="vortexHub">
-              
-              {/* Show Build Team prompt if team not built yet */}
               {teamMembers.length === 0 && (
-                <div className="buildTeamPrompt" style={{
-                  background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(236, 72, 153, 0.2))',
-                  border: '2px solid rgba(139, 92, 246, 0.4)',
-                  borderRadius: '12px',
-                  padding: '1.5rem',
-                  marginBottom: '2rem',
-                  textAlign: 'center',
-                  cursor: 'pointer'
-                }} onClick={() => setActiveTab("buildTeam")}>
-                  <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🔨</div>
-                  <h3 style={{ color: '#e879f9', marginBottom: '0.5rem', fontSize: '1.4rem' }}>
+                <div
+                  className="buildTeamPrompt"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(236, 72, 153, 0.2))",
+                    border: "2px solid rgba(139, 92, 246, 0.4)",
+                    borderRadius: "12px",
+                    padding: "1.5rem",
+                    marginBottom: "2rem",
+                    textAlign: "center",
+                    cursor: "pointer"
+                  }}
+                  onClick={() => setActiveTab("buildTeam")}
+                >
+                  <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>
+                    🔨
+                  </div>
+                  <h3
+                    style={{
+                      color: "#e879f9",
+                      marginBottom: "0.5rem",
+                      fontSize: "1.4rem"
+                    }}
+                  >
                     Build Your Team First!
                   </h3>
-                  <p style={{ color: '#cbd5e1', marginBottom: '1rem' }}>
-                    Your team is not complete yet. Click here to add members and set your team name.
+                  <p style={{ color: "#cbd5e1", marginBottom: "1rem" }}>
+                    Your team is not complete yet. Click here to add members and
+                    set your team name.
                   </p>
-                  <div style={{ 
-                    display: 'inline-block',
-                    padding: '0.75rem 1.5rem',
-                    background: 'rgba(139, 92, 246, 0.3)',
-                    borderRadius: '8px',
-                    color: '#e9d5ff',
-                    fontWeight: '600'
-                  }}>
+                  <div
+                    style={{
+                      display: "inline-block",
+                      padding: "0.75rem 1.5rem",
+                      background: "rgba(139, 92, 246, 0.3)",
+                      borderRadius: "8px",
+                      color: "#e9d5ff",
+                      fontWeight: "600"
+                    }}
+                  >
                     Go to Build Your Team →
                   </div>
                 </div>
               )}
-              
+
               <div className="vortexGrid">
-                <div className="vortexCard" onClick={() => setActiveTab("leaderboard")}>
+                <div
+                  className="vortexCard"
+                  onClick={() => setActiveTab("leaderboard")}
+                >
                   <div className="vortexIcon">↗</div>
                   <h3>Leaderboard</h3>
                   <p>Analyze the competitive landscape and track your climb.</p>
                 </div>
 
-                <div className="vortexCard" onClick={() => setActiveTab("nexus")}>
+                <div
+                  className="vortexCard"
+                  onClick={() => setActiveTab("nexus")}
+                >
                   <div className="vortexIcon">⌁</div>
                   <h3>Nexus Entry</h3>
                   <p>Generate encrypted access credentials.</p>
                 </div>
 
-                <div className="vortexCard" onClick={() => setActiveTab("mission")}>
+                <div
+                  className="vortexCard"
+                  onClick={() => setActiveTab("mission")}
+                >
                   <div className="vortexIcon">💡</div>
                   <h3>The Mission</h3>
                   <p>Decrypt objectives and evaluation matrix.</p>
@@ -308,15 +425,21 @@ export default function TeamDashboard() {
               <div className="statsGrid">
                 <div className="statCard">
                   <div className="statLabel">TACTICAL RANK</div>
-                  <div className="statValue">{myRank} <span className="statSub">/{totalTeams}</span></div>
+                  <div className="statValue">
+                    {myRank} <span className="statSub">/{totalTeams}</span>
+                  </div>
                 </div>
                 <div className="statCard">
                   <div className="statLabel">ACCUMULATED DATA</div>
-                  <div className="statValue">{scorecard?.total_score ?? "—"}</div>
+                  <div className="statValue">
+                    {scorecard?.total_score ?? "—"}
+                  </div>
                 </div>
                 <div className="statCard">
                   <div className="statLabel">GAP TO ALPHA</div>
-                  <div className="statValue">{gapToAlpha} <span className="statSub">PTS</span></div>
+                  <div className="statValue">
+                    {gapToAlpha} <span className="statSub">PTS</span>
+                  </div>
                 </div>
               </div>
 
@@ -331,19 +454,28 @@ export default function TeamDashboard() {
                   const isYou = row.team_name === team.team_name;
 
                   const rankText =
-                    row.position === 1 ? "ULTRA-1" :
-                    row.position === 2 ? "ELITE-2" :
-                    row.position === 3 ? "APEX-3" :
-                    `#${row.position}`;
+                    row.position === 1
+                      ? "ULTRA-1"
+                      : row.position === 2
+                      ? "ELITE-2"
+                      : row.position === 3
+                      ? "APEX-3"
+                      : `#${row.position}`;
 
                   const rankClass =
-                    row.position === 1 ? "rank-ultra" :
-                    row.position === 2 ? "rank-elite" :
-                    row.position === 3 ? "rank-apex" :
-                    "rankDefault";
+                    row.position === 1
+                      ? "rank-ultra"
+                      : row.position === 2
+                      ? "rank-elite"
+                      : row.position === 3
+                      ? "rank-apex"
+                      : "rankDefault";
 
                   return (
-                    <div key={row.team_name} className={`lbRow ${isYou ? "you" : ""}`}>
+                    <div
+                      key={row.team_name}
+                      className={`lbRow ${isYou ? "you" : ""}`}
+                    >
                       <div className={`rankBadge ${rankClass}`}>{rankText}</div>
 
                       <div className="teamCell">
@@ -358,8 +490,11 @@ export default function TeamDashboard() {
 
                       <div className="payload">
                         <strong>{row.score}</strong>
-                        <div className={row.delta >= 0 ? "deltaUp" : "deltaDown"}>
-                          {row.delta >= 0 ? "+" : ""}{row.delta} PTS
+                        <div
+                          className={row.delta >= 0 ? "deltaUp" : "deltaDown"}
+                        >
+                          {row.delta >= 0 ? "+" : ""}
+                          {row.delta} PTS
                         </div>
                       </div>
                     </div>
@@ -380,12 +515,13 @@ export default function TeamDashboard() {
                 <div className="nexusTitle">SQUAD: {team.team_name}</div>
 
                 <div className="nexusDesc">
-                  Authorized personnel must scan this encrypted vortex key
-                  to gain access to the secure development environment.
+                  Authorized personnel must scan this encrypted vortex key to
+                  gain access to the secure development environment.
                 </div>
 
                 <div className="nexusCodeBar">
-                  HCK-2024-{team.team_name.slice(0, 2).toUpperCase()}-{team.id}-EPSILON
+                  HCK-2024-{team.team_name.slice(0, 2).toUpperCase()}-{team.id}
+                  -EPSILON
                 </div>
               </div>
             </div>
@@ -394,7 +530,6 @@ export default function TeamDashboard() {
           {/* ===== THE MISSION ===== */}
           {activeTab === "mission" && (
             <div className="missionWrapper">
-
               <div className="missionTag">OBJECTIVE PRIMARY</div>
 
               <div className="missionTitle">
@@ -403,13 +538,21 @@ export default function TeamDashboard() {
               </div>
 
               <div className="missionGrid">
-
                 <div className="missionCard">
                   <div className="reqTitle">Requirements</div>
                   <ul className="reqList">
-                    <li><span className="reqDot">✓</span> Real-time neural tracking of carbon outputs</li>
-                    <li><span className="reqDot">✓</span> Autonomous green-protocol recommendations</li>
-                    <li><span className="reqDot">✓</span> IoT Matrix integration for global analytics</li>
+                    <li>
+                      <span className="reqDot">✓</span> Real-time neural
+                      tracking of carbon outputs
+                    </li>
+                    <li>
+                      <span className="reqDot">✓</span> Autonomous
+                      green-protocol recommendations
+                    </li>
+                    <li>
+                      <span className="reqDot">✓</span> IoT Matrix integration
+                      for global analytics
+                    </li>
                   </ul>
                 </div>
 
@@ -417,25 +560,98 @@ export default function TeamDashboard() {
                   <div className="reqTitle">Evaluation Matrix</div>
 
                   <div className="evalRow">
-                    <div className="evalHeader"><span>INNOVATION ALPHA</span><span>30%</span></div>
-                    <div className="evalBar"><div className="evalFill" style={{ width: "30%" }} /></div>
+                    <div className="evalHeader">
+                      <span>INNOVATION ALPHA</span>
+                      <span>30%</span>
+                    </div>
+                    <div className="evalBar">
+                      <div className="evalFill" style={{ width: "30%" }} />
+                    </div>
                   </div>
 
                   <div className="evalRow">
-                    <div className="evalHeader"><span>TECH EXECUTION</span><span>40%</span></div>
-                    <div className="evalBar"><div className="evalFill" style={{ width: "40%" }} /></div>
+                    <div className="evalHeader">
+                      <span>TECH EXECUTION</span>
+                      <span>40%</span>
+                    </div>
+                    <div className="evalBar">
+                      <div className="evalFill" style={{ width: "40%" }} />
+                    </div>
                   </div>
 
                   <div className="evalRow">
-                    <div className="evalHeader"><span>UI SYNAPSE</span><span>30%</span></div>
-                    <div className="evalBar"><div className="evalFill" style={{ width: "30%" }} /></div>
+                    <div className="evalHeader">
+                      <span>UI SYNAPSE</span>
+                      <span>30%</span>
+                    </div>
+                    <div className="evalBar">
+                      <div className="evalFill" style={{ width: "30%" }} />
+                    </div>
                   </div>
                 </div>
+              </div>
 
+              {/* Domain Selector + Problem Statements */}
+              <div className="missionCard" style={{ marginTop: "1.5rem" }}>
+                <div className="reqTitle">Select Domains (multi-select)</div>
+                <div className="domainChips">
+                  {Object.keys(domainProblemStatements).map((domain) => {
+                    const active = selectedDomains.includes(domain);
+                    return (
+                      <button
+                        key={domain}
+                        className={`domainChip ${active ? "active" : ""}`}
+                        onClick={() => toggleDomain(domain)}
+                        type="button"
+                      >
+                        {active ? "☑" : "☐"} {domain}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "0.5rem",
+                    marginTop: "0.75rem",
+                    flexWrap: "wrap"
+                  }}
+                >
+                  <button
+                    className="domainChip secondary"
+                    type="button"
+                    onClick={selectAllDomains}
+                  >
+                    Select All
+                  </button>
+                  <button
+                    className="domainChip secondary"
+                    type="button"
+                    onClick={clearDomains}
+                  >
+                    Clear
+                  </button>
+                  <span style={{ color: "#cbd5e1", fontSize: "0.9rem" }}>
+                    Showing {filteredProblemStatements.length} problem statement
+                    {filteredProblemStatements.length === 1 ? "" : "s"} (
+                    {selectedDomains.length === 0
+                      ? "all domains"
+                      : selectedDomains.join(", ")})
+                  </span>
+                </div>
+
+                <div className="psList">
+                  {filteredProblemStatements.map((ps) => (
+                    <div key={ps.id} className="psRow">
+                      <div className="psDomain">{ps.domain}</div>
+                      <div className="psText">{ps.text}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}
-
         </div>
       </div>
     </div>
