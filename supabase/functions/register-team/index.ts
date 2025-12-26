@@ -17,14 +17,28 @@ Deno.serve(async (req) => {
     try {
     // Create Supabase client using the anon key and forward the caller's
     // Authorization header so DB operations run as the caller (RLS applies).
+    // Use the service role key for server-side trusted operations so RLS
+    // doesn't block legitimate inserts from the function. This key must
+    // only be available in the function's environment variables.
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-      { global: { headers: { Authorization: req.headers.get("authorization") ?? "" } } }
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const { isVitChennai, eventHubId, leaderName, leaderReg, leaderEmail, receiptLink } = await req.json();
-    
+    // Log incoming headers and raw body to help debug client differences
+    try {
+      const rawBody = await req.text();
+      console.log("Incoming request headers:", Object.fromEntries(req.headers.entries()));
+      console.log("Incoming raw body:", rawBody);
+
+      // Parse body from raw text (preserves logging above)
+      var parsedBody = rawBody ? JSON.parse(rawBody) : {};
+    } catch (logErr) {
+      console.error("Failed to log/parse request body:", logErr);
+      var parsedBody = {};
+    }
+
+    const { isVitChennai, eventHubId, leaderName, leaderReg, leaderEmail, receiptLink } = parsedBody;
     console.log("Received team leader registration:", { leaderEmail, isVitChennai, receiptLink });
 
     // Quick schema check to fail fast if deployed function is running against

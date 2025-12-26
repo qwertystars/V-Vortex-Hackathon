@@ -20,6 +20,8 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
+    
+
     const { teamId, teamName, teamSize, members } = await req.json();
     
     console.log("Building team:", { teamId, teamName, teamSize, memberCount: members?.length });
@@ -89,6 +91,8 @@ Deno.serve(async (req) => {
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    
 
     // Collect all member emails
     const memberEmails = members.map((m: any) => m.email);
