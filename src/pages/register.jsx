@@ -330,14 +330,14 @@ export default function Register() {
               <div className="tagline">Team Leader Registration</div>
               <div className="title">V-VORTEX</div>
               <p className="subtitle">
-                Register as a team leader to begin your journey. After registration, you'll build your team by adding 1-3 members in your dashboard.
+                Register as a team leader to begin your journey. After registration, you'll build your team by adding 1-4 members in your dashboard.
               </p>
             </div>
 
             <ul className="bullet-list">
               <li>Step 1: Register as team leader</li>
               <li>Step 2: Login to your dashboard</li>
-              <li>Step 3: Build your team with 2-4 total members</li>
+              <li>Step 3: Build your team with 2-5 total members</li>
             </ul>
           </aside>
 
@@ -346,7 +346,7 @@ export default function Register() {
               <div className="section-label">🛡️ Team Leader Registration</div>
               
               <p className="hint" style={{ marginBottom: '1.5rem', fontSize: '0.9rem', color: '#e879f9', lineHeight: '1.5' }}>
-                Register as a team leader first. After logging in, you'll be able to build your team by adding 1-3 members (2-4 total including yourself).
+                Register as a team leader first. After logging in, you'll be able to build your team by adding 1-4 members (2-5 total including yourself).
               </p>
 
               <div className="field">

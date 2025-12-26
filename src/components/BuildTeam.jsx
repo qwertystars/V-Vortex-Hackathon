@@ -127,7 +127,7 @@ export default function BuildTeam({ teamId, onTeamBuilt, currentTeamName, hasMem
       <div className="buildTeamCard">
         <h2 className="buildTeamTitle">🔨 Build Your Team</h2>
         <p className="buildTeamDesc">
-          Set your team name, choose team size (2-4 members including you), and add your team members.
+          Set your team name, choose team size (2-5 members including you), and add your team members.
         </p>
 
         {error && (
@@ -155,7 +155,7 @@ export default function BuildTeam({ teamId, onTeamBuilt, currentTeamName, hasMem
           <div className="buildField">
             <label>Team Size (including you as leader)</label>
             <div className="teamSizeButtons">
-              {[2, 3, 4].map((size) => (
+              {[2, 3, 4, 5].map((size) => (
                 <button
                   key={size}
                   type="button"

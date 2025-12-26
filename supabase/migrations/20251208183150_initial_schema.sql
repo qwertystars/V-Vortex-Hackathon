@@ -13,8 +13,8 @@ create table teams (
   
   user_id uuid references auth.users default auth.uid(),
   
-  -- Constraint: Team size must be between 2 and 4
-  constraint valid_team_size check (team_size >= 2 and team_size <= 4)
+  -- Constraint: Team size must be between 2 and 5
+  constraint valid_team_size check (team_size >= 2 and team_size <= 5)
 );
 
 -- This table stores the details of the additional members (excluding the lead)

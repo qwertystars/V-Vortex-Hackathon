@@ -31,9 +31,9 @@ Deno.serve(async (req) => {
     }
 
     // Validate team size
-    if (teamSize < 2 || teamSize > 4) {
+    if (teamSize < 2 || teamSize > 5) {
       return new Response(
-        JSON.stringify({ error: "Team size must be between 2 and 4" }),
+        JSON.stringify({ error: "Team size must be between 2 and 5" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
