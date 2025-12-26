@@ -507,6 +507,33 @@ footer .muted {
   font-size: 12px;
 }
 
+/* Footer Sponsors */
+.footer-sponsors { margin-bottom: 18px; }
+.sponsor-heading { color: #00f7ff; font-size: 18px; margin-bottom: 12px; letter-spacing: 2px; }
+.sponsor-logos {
+  display: flex;
+  gap: 22px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  max-width: 1100px;
+  margin: 0 auto 8px;
+}
+.sponsor-logos a { display: inline-block; display: flex; align-items: center; justify-content: center; }
+.sponsor-logos img {
+  max-width: 160px;
+  height: auto;
+  opacity: 0.95;
+  transition: transform 160ms ease, opacity 160ms ease;
+  filter: drop-shadow(0 6px 18px rgba(0,247,255,0.06));
+}
+.sponsor-logos a:hover img { transform: translateY(-6px); opacity: 1; }
+
+@media (max-width: 480px) {
+  .sponsor-logos img { max-width: 110px; }
+  .sponsor-heading { font-size: 16px; }
+}
+
 /* ===========================
    RESPONSIVE / MOBILE STYLES
    Breakpoints: 1024px, 768px, 480px

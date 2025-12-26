@@ -456,6 +456,25 @@ export default function Home({ setTransition }) {
       </section>
 
       <footer>
+        <div className="footer-sponsors">
+          <h3 className="sponsor-heading">Supported By</h3>
+          <div className="sponsor-logos">
+            <a href="https://vit.ac.in" target="_blank" rel="noopener noreferrer">
+              <img src="/sponsors/vit-logo.png" alt="VIT Chennai" />
+            </a>
+            <a href="https://180degreesconsulting.com" target="_blank" rel="noopener noreferrer">
+              <img src="/sponsors/180degrees.png" alt="180 Degrees Consulting" />
+            </a>
+            <a href = "https://unstop.com" target = "_blank" rel = "noopener noreferrer">
+              <img src="/sponsors/unstop.png" alt="Unstop" />
+            </a>
+            <a href="https://www.shnorh.com/" target="_blank" rel="noopener noreferrer">
+              <img src="/sponsors/shnorh.jpg" alt="Shnorh" />
+            </a>
+            < img src="/sponsors/bavesh.jpeg" alt="V-Nest" />
+          </div>
+        </div>
+
         <p>🌀 V-VORTEX 2026 • WHERE LEGENDS ARE BORN 🌀</p>
         <p className="muted">VIT Chennai • National Level Hackathon</p>
       </footer>
