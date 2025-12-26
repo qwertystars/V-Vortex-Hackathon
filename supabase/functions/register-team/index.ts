@@ -25,6 +25,14 @@ Deno.serve(async (req) => {
     
     console.log("Received team leader registration:", { leaderEmail, isVitChennai, receiptLink });
 
+    // Quick schema check to fail fast if deployed function is running against
+    // a DB with a mismatched schema (avoids obscure PostgREST cache errors).
+    const { error: schemaCheckError } = await supabase.from("teams").select("lead_name").limit(0);
+    if (schemaCheckError) {
+      console.error("Schema validation failed:", schemaCheckError);
+      throw new Error(`Schema validation failed: ${schemaCheckError.message}`);
+    }
+
     // Validate input - conditional validation based on VIT Chennai status
     if (!leaderName || !leaderEmail || !receiptLink) {
       return new Response(
