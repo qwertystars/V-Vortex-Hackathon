@@ -2,7 +2,7 @@ import { useState } from "react";
 import { supabase } from "../supabaseClient";
 import "../styles/build-team.css";
 
-export default function BuildTeam({ teamId, onTeamBuilt, currentTeamName, hasMembers }) {
+export default function BuildTeam({ teamId, onTeamBuilt, currentTeamName, hasMembers, team, teamMembers }) {
   const [teamName, setTeamName] = useState("");
   const [teamSize, setTeamSize] = useState(2);
   const [members, setMembers] = useState([
@@ -11,15 +11,43 @@ export default function BuildTeam({ teamId, onTeamBuilt, currentTeamName, hasMem
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  // Check if team is already built
+  // Check if team is already built — show team details instead of generic message
   if (hasMembers) {
+    const displayTeamName = currentTeamName || team?.team_name || "Unnamed Team";
+    const leadName = team?.lead_name || "Team Leader";
+    const leadEmail = team?.lead_email || "-";
+
     return (
       <div className="buildTeamContainer">
         <div className="buildTeamCard">
           <h2 className="buildTeamTitle">✅ Team Already Built</h2>
-          <p className="buildTeamDesc">
-            Your team has already been built and is complete. You cannot modify the team composition after it has been finalized.
-          </p>
+          <p className="buildTeamDesc">Your team has already been built. Below are the team details.</p>
+
+          <div className="teamDetails">
+            <div className="buildField">
+              <label>Team Name</label>
+              <div className="buildStatic">{displayTeamName}</div>
+            </div>
+
+            <div className="buildField">
+              <label>Team Lead</label>
+              <div className="buildStatic">{leadName} — {leadEmail}</div>
+            </div>
+
+            <div className="membersSection">
+              <h3 className="membersSectionTitle">Team Members</h3>
+              {(teamMembers || []).length === 0 ? (
+                <div className="buildStatic">No additional members found.</div>
+              ) : (
+                (teamMembers || []).map((m, idx) => (
+                  <div key={m.id || idx} className="memberRow">
+                    <strong>{m.member_name || m.name || `Member ${idx + 1}`}</strong>
+                    <div className="memberEmail">{m.member_email || m.email || "-"}</div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
       </div>
     );

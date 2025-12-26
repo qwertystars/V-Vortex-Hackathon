@@ -208,6 +208,8 @@ export default function TeamDashboard() {
               teamId={teamId}
               currentTeamName={team?.team_name}
               hasMembers={teamMembers.length > 0}
+              team={team}
+              teamMembers={teamMembers}
               onTeamBuilt={async () => {
                 // Optimize: Reload all data including leaderboard in parallel
                 const [
