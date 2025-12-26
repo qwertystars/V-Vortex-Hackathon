@@ -81,8 +81,12 @@ Deno.serve(async (req) => {
       team_name: `TEMP-${randomId}`, // Temporary random name, will be updated when building team
       team_size: 2, // Set to minimum size (2) to satisfy constraint, will be updated when building team
       lead_name: leaderName,
+      // For VIT Chennai leaders we store `lead_reg_no` and leave `institution` NULL to satisfy the
+      // check constraint added in migrations. For non-VIT leaders we store `institution` and leave
+      // `lead_reg_no` NULL.
       lead_reg_no: isVitChennai === "yes" ? leaderReg : null,
-      institution: isVitChennai === "yes" ? "VIT Chennai" : eventHubId,
+      // Store a readable institution value for VIT leaders as requested.
+      institution: isVitChennai === "no" ? eventHubId : "VIT Chennai",
       lead_email: leaderEmail,
       receipt_link: receiptLink,
     };
