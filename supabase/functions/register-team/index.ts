@@ -12,10 +12,13 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  try {
+    try {
+    // Create Supabase client using the anon key and forward the caller's
+    // Authorization header so DB operations run as the caller (RLS applies).
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      { global: { headers: { Authorization: req.headers.get("authorization") ?? "" } } }
     );
 
     const { isVitChennai, eventHubId, leaderName, leaderReg, leaderEmail, receiptLink } = await req.json();
