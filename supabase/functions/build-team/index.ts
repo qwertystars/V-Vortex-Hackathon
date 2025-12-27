@@ -1,9 +1,13 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
+/* =========================
+   CORS
+   ========================= */
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, accept",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, accept",
   "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
   "Access-Control-Allow-Credentials": "true",
 };
@@ -15,70 +19,88 @@ Deno.serve(async (req) => {
   }
 
   try {
+    /* =========================
+       1️⃣ AUTHENTICATION
+       ========================= */
+    const authHeader = req.headers.get("authorization");
+
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized: Missing token" }),
+        { status: 401, headers: corsHeaders }
+      );
+    }
+
+    // Auth client (validates JWT)
+    const authClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      {
+        global: {
+          headers: { Authorization: authHeader },
+        },
+      }
+    );
+
+    const {
+      data: { user },
+      error: authError,
+    } = await authClient.auth.getUser();
+
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized: Invalid session" }),
+        { status: 401, headers: corsHeaders }
+      );
+    }
+
+    /* =========================
+       2️⃣ ADMIN CLIENT (DB)
+       ========================= */
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    
-
+    /* =========================
+       3️⃣ INPUT
+       ========================= */
     const { teamId, teamName, teamSize, members } = await req.json();
-    
-    console.log("Building team:", { teamId, teamName, teamSize, memberCount: members?.length });
 
-    // Validate input
+    console.log("Building team:", {
+      teamId,
+      teamName,
+      teamSize,
+      memberCount: members?.length,
+      caller: user.email,
+    });
+
     if (!teamId || !teamName || !teamSize || !members) {
       return new Response(
         JSON.stringify({ error: "Missing required fields" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 400, headers: corsHeaders }
       );
     }
 
-    // Validate team size
     if (teamSize < 2 || teamSize > 5) {
       return new Response(
         JSON.stringify({ error: "Team size must be between 2 and 5" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 400, headers: corsHeaders }
       );
     }
 
-    // Validate member count matches team size (team size includes leader)
     if (members.length !== teamSize - 1) {
       return new Response(
-        JSON.stringify({ error: `Expected ${teamSize - 1} members for team size ${teamSize}` }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          error: `Expected ${teamSize - 1} members for team size ${teamSize}`,
+        }),
+        { status: 400, headers: corsHeaders }
       );
     }
 
-    // Check if team already has members
-    const { data: existingMembers } = await supabase
-      .from("team_members")
-      .select("id")
-      .eq("team_id", teamId);
-
-    if (existingMembers && existingMembers.length > 0) {
-      return new Response(
-        JSON.stringify({ error: "Team already has members. Cannot rebuild team." }),
-        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Check if team name is already taken by another team
-    const { data: existingTeamName } = await supabase
-      .from("teams")
-      .select("id")
-      .eq("team_name", teamName)
-      .neq("id", teamId)
-      .maybeSingle();
-
-    if (existingTeamName) {
-      return new Response(
-        JSON.stringify({ error: "Team name already taken. Please choose a different name." }),
-        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Get team leader email to check against member emails
+    /* =========================
+       4️⃣ AUTHORIZE TEAM OWNER
+       ========================= */
     const { data: team } = await supabase
       .from("teams")
       .select("lead_email")
@@ -88,149 +110,120 @@ Deno.serve(async (req) => {
     if (!team) {
       return new Response(
         JSON.stringify({ error: "Team not found" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 404, headers: corsHeaders }
       );
     }
 
-    
+    if (team.lead_email !== user.email) {
+      return new Response(
+        JSON.stringify({ error: "Not allowed to build this team" }),
+        { status: 403, headers: corsHeaders }
+      );
+    }
 
-    // Collect all member emails
+    /* =========================
+       5️⃣ VALIDATIONS
+       ========================= */
+    const { data: existingMembers } = await supabase
+      .from("team_members")
+      .select("id")
+      .eq("team_id", teamId);
+
+    if (existingMembers?.length) {
+      return new Response(
+        JSON.stringify({ error: "Team already has members" }),
+        { status: 409, headers: corsHeaders }
+      );
+    }
+
     const memberEmails = members.map((m: any) => m.email);
 
-    // Check if leader email is in member emails
     if (memberEmails.includes(team.lead_email)) {
       return new Response(
-        JSON.stringify({ error: "Team leader email cannot be used as a member email" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          error: "Team leader email cannot be used as a member email",
+        }),
+        { status: 400, headers: corsHeaders }
       );
     }
 
-    // Check for duplicate emails within members
-    const emailSet = new Set(memberEmails);
-    if (emailSet.size !== memberEmails.length) {
+    if (new Set(memberEmails).size !== memberEmails.length) {
       return new Response(
-        JSON.stringify({ error: "Duplicate emails detected in team members" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: "Duplicate member emails detected" }),
+        { status: 400, headers: corsHeaders }
       );
     }
 
-    // Check each member email against existing records
     for (const member of members) {
-      if (!member.email) continue;
-
-      // Check in teams table (leader emails)
-      const { data: existingInTeams } = await supabase
-        .from("teams")
-        .select("id")
-        .eq("lead_email", member.email)
-        .maybeSingle();
-
-      if (existingInTeams) {
-        return new Response(
-          JSON.stringify({ error: `Email ${member.email} is already registered as a team leader` }),
-          { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      // Check in team_members table
-      const { data: existingInMembers } = await supabase
+      const { data: exists } = await supabase
         .from("team_members")
         .select("id")
         .eq("member_email", member.email)
         .maybeSingle();
 
-      if (existingInMembers) {
+      if (exists) {
         return new Response(
-          JSON.stringify({ error: `Email ${member.email} is already registered as a team member` }),
-          { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({
+            error: `Email ${member.email} is already registered`,
+          }),
+          { status: 409, headers: corsHeaders }
         );
       }
     }
 
-    // 1. Update team with name and size
+    /* =========================
+       6️⃣ UPDATE TEAM
+       ========================= */
     const { error: updateError } = await supabase
       .from("teams")
-      .update({
-        team_name: teamName,
-        team_size: teamSize,
-      })
+      .update({ team_name: teamName, team_size: teamSize })
       .eq("id", teamId);
 
     if (updateError) {
-      console.error("Team update error:", updateError);
-      throw new Error(`Failed to update team: ${updateError.message}`);
+      throw new Error(updateError.message);
     }
 
-    console.log("Team updated successfully");
-
-    // 2. Insert team members
+    /* =========================
+       7️⃣ INSERT MEMBERS
+       ========================= */
     const memberRecords = members.map((m: any) => ({
       team_id: teamId,
       member_name: m.name,
       member_email: m.email,
-      member_reg_no: m.isVitChennai && m.regNo ? m.regNo : null,
-      institution: m.isVitChennai ? "VIT Chennai" : (m.eventHubId || null),
+      member_reg_no: m.isVitChennai ? m.regNo ?? null : null,
+      institution: m.isVitChennai ? "VIT Chennai" : m.eventHubId ?? null,
     }));
 
-    const { error: membersError } = await supabase
-      .from("team_members")
-      .insert(memberRecords);
+    await supabase.from("team_members").insert(memberRecords);
 
-    if (membersError) {
-      console.error("Members insert error:", membersError);
-      throw new Error(`Failed to add members: ${membersError.message}`);
-    }
-
-    console.log("Team members inserted successfully");
-
-    // 3. Create scorecard for the team if it doesn't exist
-    const { data: existingScorecard } = await supabase
+    /* =========================
+       8️⃣ SCORECARD
+       ========================= */
+    const { data: scorecard } = await supabase
       .from("scorecards")
       .select("id")
       .eq("team_id", teamId)
       .maybeSingle();
 
-    if (!existingScorecard) {
-      // Runtime schema probes to help diagnose PostgREST schema cache issues.
-      try {
-        await supabase.from("scorecards").select("innovation_score,implementation_score,presentation_score,impact_score").limit(0);
-        console.log("Scorecards: expected score columns present");
-      } catch (probeErr) {
-        console.warn("Scorecards: missing expected score columns or schema cache issue:", probeErr);
-      }
-
-      try {
-        await supabase.from("scorecards").select("technical_score").limit(0);
-        console.log("Scorecards: technical_score column exists");
-      } catch (probeErr2) {
-        console.log("Scorecards: technical_score column NOT present (this is expected unless you added it):", probeErr2?.message || probeErr2);
-      }
-
-      const { error: scorecardError } = await supabase
-        .from("scorecards")
-        .insert({
-          team_id: teamId,
-          innovation_score: 0,
-          implementation_score: 0,
-          presentation_score: 0,
-          impact_score: 0,
-        });
-
-      if (scorecardError) {
-        console.error("Scorecard creation error:", scorecardError);
-        // Don't fail the whole operation if scorecard creation fails
-      }
+    if (!scorecard) {
+      await supabase.from("scorecards").insert({
+        team_id: teamId,
+        innovation_score: 0,
+        implementation_score: 0,
+        presentation_score: 0,
+        impact_score: 0,
+      });
     }
 
     return new Response(
       JSON.stringify({ success: true, message: "Team built successfully" }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 200, headers: corsHeaders }
     );
-  } catch (error) {
-    console.error("Build team error:", error);
+  } catch (err) {
+    console.error("Build team error:", err);
     return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ error: "Internal server error" }),
+      { status: 500, headers: corsHeaders }
     );
   }
 });
