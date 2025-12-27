@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { supabase } from "../supabaseClient";
+import { buildTeam } from "../utils/buildTeam";
 import "../styles/build-team.css";
 
 export default function BuildTeam({ teamId, onTeamBuilt, currentTeamName, hasMembers, team, teamMembers }) {
@@ -112,32 +113,19 @@ export default function BuildTeam({ teamId, onTeamBuilt, currentTeamName, hasMem
         }
       }
 
-      // Call the build-team edge function
-      const { data, error: buildError } = await supabase.functions.invoke("build-team", {
-        body: {
-          teamId,
-          teamName,
-          teamSize,
-          members: members.map(m => ({
-            name: m.name,
-            email: m.email,
-            isVitChennai: m.isVitChennai === "yes",
-            regNo: m.isVitChennai === "yes" ? m.regNo : null,
-            eventHubId: m.isVitChennai === "no" ? m.eventHubId : null,
-          })),
-        },
+      // Call the build-team edge function via helper (sends Authorization header)
+      await buildTeam({
+        teamId,
+        teamName,
+        teamSize,
+        members: members.map((m) => ({
+          name: m.name,
+          email: m.email,
+          isVitChennai: m.isVitChennai === "yes",
+          regNo: m.isVitChennai === "yes" ? m.regNo : null,
+          eventHubId: m.isVitChennai === "no" ? m.eventHubId : null,
+        })),
       });
-
-      if (buildError) {
-        // Parse error from edge function response
-        const errorMsg = buildError.message || buildError.error || "Failed to build team";
-        throw new Error(errorMsg);
-      }
-      
-      // Check for errors in the response data
-      if (data?.error) {
-        throw new Error(data.error);
-      }
 
       // Success!
       alert("✅ Team successfully built! Your team is now complete.");
