@@ -465,9 +465,6 @@ export default function Home({ setTransition }) {
             <a href="https://180degreesconsulting.com" target="_blank" rel="noopener noreferrer">
               <img src="/sponsors/180degrees.png" alt="180 Degrees Consulting" />
             </a>
-            <a href = "https://unstop.com" target = "_blank" rel = "noopener noreferrer">
-              <img src="/sponsors/unstop.png" alt="Unstop" />
-            </a>
             <a href="https://www.shnorh.com/" target="_blank" rel="noopener noreferrer">
               <img src="/sponsors/shnorh.jpg" alt="Shnorh" />
             </a>
