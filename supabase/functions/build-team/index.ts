@@ -191,6 +191,21 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (!existingScorecard) {
+      // Runtime schema probes to help diagnose PostgREST schema cache issues.
+      try {
+        await supabase.from("scorecards").select("innovation_score,implementation_score,presentation_score,impact_score").limit(0);
+        console.log("Scorecards: expected score columns present");
+      } catch (probeErr) {
+        console.warn("Scorecards: missing expected score columns or schema cache issue:", probeErr);
+      }
+
+      try {
+        await supabase.from("scorecards").select("technical_score").limit(0);
+        console.log("Scorecards: technical_score column exists");
+      } catch (probeErr2) {
+        console.log("Scorecards: technical_score column NOT present (this is expected unless you added it):", probeErr2?.message || probeErr2);
+      }
+
       const { error: scorecardError } = await supabase
         .from("scorecards")
         .insert({
