@@ -195,10 +195,10 @@ Deno.serve(async (req) => {
         .from("scorecards")
         .insert({
           team_id: teamId,
-          total_score: 0,
           innovation_score: 0,
-          technical_score: 0,
+          implementation_score: 0,
           presentation_score: 0,
+          impact_score: 0,
         });
 
       if (scorecardError) {
