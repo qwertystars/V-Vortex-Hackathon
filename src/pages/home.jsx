@@ -440,17 +440,17 @@ export default function Home({ setTransition }) {
           <div className="team-member">
             <div className="member-photo">IM</div>
             <h4 className="member-name">Ibhan Mukherjee</h4>
-            <p className="member-role">Special Contributor</p>
+            <p className="member-role">Frontend Developer</p>
           </div>
           <div className="team-member">
             <div className="member-photo">DP</div>
             <h4 className="member-name">Devangshu Pandey</h4>
-            <p className="member-role">Special Contributor</p>
+            <p className="member-role">Frontend Developer</p>
           </div>
           <div className="team-member">
             <div className="member-photo">SG</div>
             <h4 className="member-name">Srijan Guchhait</h4>
-            <p className="member-role">Special Contributor</p>
+            <p className="member-role">System Architect</p>
           </div>
         </div>
       </section>
@@ -585,3 +585,4 @@ export default function Home({ setTransition }) {
     </div>
   );
 }
+
