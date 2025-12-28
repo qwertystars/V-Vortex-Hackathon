@@ -238,14 +238,35 @@ export default function TeamDashboard() {
     return gradients[domain];
   };
 
+  // Calculate total seats for each domain
+  const getDomainSeats = (domain) => {
+    const statements = problemStatements[domain];
+    const totalSeats = statements.reduce((sum, ps) => sum + ps.totalSeats, 0);
+    const bookedSeats = statements.reduce((sum, ps) => sum + ps.seatsBooked, 0);
+    const availableSeats = totalSeats - bookedSeats;
+    const percentageAvailable = (availableSeats / totalSeats) * 100;
+    
+    return {
+      totalSeats,
+      bookedSeats,
+      availableSeats,
+      percentageAvailable,
+      isFull: availableSeats === 0
+    };
+  };
+
   const handleDomainSelect = (domain) => {
     if (isSubmitted) return;
+    const domainSeats = getDomainSeats(domain);
+    if (domainSeats.isFull) return;
     setSelectedDomain(domain);
     setSelectedPS(null);
   };
 
   const handlePSSelect = (ps) => {
     if (isSubmitted) return;
+    const { isFull } = getSeatStatus(ps);
+    if (isFull) return;
     setSelectedPS(ps);
   };
 
@@ -259,6 +280,11 @@ export default function TeamDashboard() {
     setShowSuccessModal(true);
     setIsSubmitted(true);
     // Here you would typically save to database
+  };
+
+  const handleBackToDomains = () => {
+    setSelectedPS(null);
+    setSelectedDomain(null);
   };
 
   if (loading) {
@@ -592,676 +618,83 @@ export default function TeamDashboard() {
                   marginBottom: '2rem'
                 }}>
                   {/* AI/ML Domain */}
-                  <div
-                    onClick={() => handleDomainSelect('ai')}
-                    style={{
-                      position: 'relative',
-                      background: 'linear-gradient(135deg, rgba(10, 10, 20, 0.9) 0%, rgba(20, 20, 35, 0.8) 100%)',
-                      border: selectedDomain === 'ai' ? '2px solid #f0ff00' : '1px solid rgba(0, 245, 255, 0.2)',
-                      borderRadius: '1rem',
-                      padding: '2rem',
-                      cursor: isSubmitted ? 'not-allowed' : 'pointer',
-                      opacity: isSubmitted ? 0.5 : 1,
-                      transition: 'all 0.4s ease',
-                      boxShadow: selectedDomain === 'ai' ? '0 0 40px rgba(240, 255, 0, 0.4)' : 'none'
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-                      <div style={{
-                        width: '4rem',
-                        height: '4rem',
-                        borderRadius: '0.75rem',
-                        background: 'linear-gradient(to bottom right, #9333ea, #a855f7)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}>
-                        <span style={{ fontSize: '2rem' }}>🖥️</span>
-                      </div>
-                      <div>
-                        <h3 style={{ color: '#c084fc', margin: 0, fontSize: '1.5rem', fontFamily: 'Orbitron, sans-serif' }}>AI/ML</h3>
-                        <p style={{ color: '#9ca3af', fontSize: '0.875rem', margin: 0 }}>Artificial Intelligence & Machine Learning</p>
-                      </div>
-                    </div>
-                    <p style={{ color: '#d1d5db', fontSize: '0.875rem', lineHeight: '1.5', marginBottom: '1.5rem' }}>
-                      Push the boundaries of what's possible with intelligent systems. Solve real-world problems using cutting-edge AI algorithms.
-                    </p>
-                                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <span style={{
-                          width: '2rem',
-                          height: '2rem',
-                          borderRadius: '0.5rem',
-                          background: 'rgba(219, 39, 119, 0.2)',
-                          color: '#f9a8d4',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontWeight: 'bold'
-                        }}>03</span>
-                        <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Challenges</span>
-                      </div>
-                    </div>
-                    {selectedDomain === 'fintech' && (
-                      <div style={{
-                        position: 'absolute',
-                        top: '1rem',
-                        right: '1rem',
-                        width: '2rem',
-                        height: '2rem',
-                        background: '#f0ff00',
-                        borderRadius: '50%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}>
-                        ✓
-                      </div>
-                    )}
-                  </div>
-
-                  {/* IOT Domain */}
-                  <div
-                    onClick={() => handleDomainSelect('iot')}
-                    style={{
-                      position: 'relative',
-                      background: 'linear-gradient(135deg, rgba(10, 10, 20, 0.9) 0%, rgba(20, 20, 35, 0.8) 100%)',
-                      border: selectedDomain === 'iot' ? '2px solid #f0ff00' : '1px solid rgba(0, 245, 255, 0.2)',
-                      borderRadius: '1rem',
-                      padding: '2rem',
-                      cursor: isSubmitted ? 'not-allowed' : 'pointer',
-                      opacity: isSubmitted ? 0.5 : 1,
-                      transition: 'all 0.4s ease',
-                      boxShadow: selectedDomain === 'iot' ? '0 0 40px rgba(240, 255, 0, 0.4)' : 'none'
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-                      <div style={{
-                        width: '4rem',
-                        height: '4rem',
-                        borderRadius: '0.75rem',
-                        background: 'linear-gradient(to bottom right, #0891b2, #06b6d4)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}>
-                        <span style={{ fontSize: '2rem' }}>🤖</span>
-                      </div>
-                      <div>
-                        <h3 style={{ color: '#67e8f9', margin: 0, fontSize: '1.5rem', fontFamily: 'Orbitron, sans-serif' }}>IOT & ROBOTICS</h3>
-                        <p style={{ color: '#9ca3af', fontSize: '0.875rem', margin: 0 }}>Internet of Things & Robotics Systems</p>
-                      </div>
-                    </div>
-                    <p style={{ color: '#d1d5db', fontSize: '0.875rem', lineHeight: '1.5', marginBottom: '1.5rem' }}>
-                      Build the connected future. Design intelligent systems that bridge the physical and digital worlds.
-                    </p>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <span style={{
-                          width: '2rem',
-                          height: '2rem',
-                          borderRadius: '0.5rem',
-                          background: 'rgba(8, 145, 178, 0.2)',
-                          color: '#67e8f9',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontWeight: 'bold'
-                        }}>03</span>
-                        <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Challenges</span>
-                      </div>
-                    </div>
-                    {selectedDomain === 'iot' && (
-                      <div style={{
-                        position: 'absolute',
-                        top: '1rem',
-                        right: '1rem',
-                        width: '2rem',
-                        height: '2rem',
-                        background: '#f0ff00',
-                        borderRadius: '50%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}>
-                        ✓
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </section>
-
-              {/* Step 2: Problem Statement Selection */}
-              {selectedDomain && (
-                <section style={{ marginBottom: '4rem' }}>
-                  <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-                      <span style={{
-                        width: '2.5rem',
-                        height: '2.5rem',
-                        background: 'linear-gradient(to right, #ec4899, #06b6d4)',
-                        borderRadius: '0.5rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontWeight: 'bold',
-                        color: 'white',
-                        fontFamily: 'Orbitron, sans-serif'
-                      }}>02</span>
-                      <h2 style={{
-                        fontSize: '1.875rem',
-                        fontWeight: 'bold',
-                        color: 'white',
-                        fontFamily: 'Orbitron, sans-serif',
-                        margin: 0
-                      }}>
-                        SELECT <span style={{ color: '#f0ff00' }}>PROBLEM STATEMENT</span>
-                      </h2>
-                    </div>
-                    <p style={{ color: '#9ca3af', maxWidth: '42rem', margin: '0 auto' }}>
-                      Choose your challenge wisely. Each statement presents a unique opportunity to innovate and make an impact.
-                    </p>
-                  </div>
-
-                  <div style={{ maxWidth: '56rem', margin: '0 auto' }}>
-                    {problemStatements[selectedDomain].map((ps) => {
-                      const { seatsLeft, isFull, seatClass, seatColor, seatIcon, seatPercentage } = getSeatStatus(ps);
-                      
-                      return (
-                        <div
-                          key={ps.id}
-                          onClick={() => !isFull && !isSubmitted && handlePSSelect(ps)}
-                          style={{
-                            position: 'relative',
-                            background: selectedPS?.id === ps.id 
-                              ? 'linear-gradient(135deg, rgba(240, 255, 0, 0.1) 0%, rgba(240, 255, 0, 0.05) 100%)'
-                              : 'linear-gradient(135deg, rgba(15, 15, 30, 0.95) 0%, rgba(25, 25, 45, 0.8) 100%)',
-                            border: selectedPS?.id === ps.id ? '1px solid #f0ff00' : '1px solid rgba(0, 245, 255, 0.15)',
-                            borderLeft: selectedPS?.id === ps.id ? '4px solid #f0ff00' : '1px solid rgba(0, 245, 255, 0.15)',
+                  {(() => {
+                    const domainSeats = getDomainSeats('ai');
+                    return (
+                      <div
+                        onClick={() => handleDomainSelect('ai')}
+                        style={{
+                          position: 'relative',
+                          background: 'linear-gradient(135deg, rgba(10, 10, 20, 0.9) 0%, rgba(20, 20, 35, 0.8) 100%)',
+                          border: selectedDomain === 'ai' ? '2px solid #f0ff00' : '1px solid rgba(0, 245, 255, 0.2)',
+                          borderRadius: '1rem',
+                          padding: '2rem',
+                          cursor: (isSubmitted || domainSeats.isFull) ? 'not-allowed' : 'pointer',
+                          opacity: (isSubmitted || domainSeats.isFull) ? 0.5 : 1,
+                          transition: 'all 0.4s ease',
+                          boxShadow: selectedDomain === 'ai' ? '0 0 40px rgba(240, 255, 0, 0.4)' : 'none'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+                          <div style={{
+                            width: '4rem',
+                            height: '4rem',
                             borderRadius: '0.75rem',
-                            padding: '1.5rem',
-                            marginBottom: '1rem',
-                            cursor: isFull || isSubmitted ? 'not-allowed' : 'pointer',
-                            opacity: isFull || isSubmitted ? 0.5 : 1,
-                            transition: 'all 0.3s ease'
-                          }}
-                        >
-                          <div style={{ display: 'flex', gap: '1.25rem' }}>
-                            <div style={{
-                              width: '3.5rem',
-                              height: '3.5rem',
-                              borderRadius: '0.75rem',
-                              background: getDomainGradient(selectedDomain),
+                            background: 'linear-gradient(to bottom right, #9333ea, #a855f7)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}>
+                            <span style={{ fontSize: '2rem' }}>🖥️</span>
+                          </div>
+                          <div>
+                            <h3 style={{ color: '#c084fc', margin: 0, fontSize: '1.5rem', fontFamily: 'Orbitron, sans-serif' }}>AI/ML</h3>
+                            <p style={{ color: '#9ca3af', fontSize: '0.875rem', margin: 0 }}>Artificial Intelligence & Machine Learning</p>
+                          </div>
+                        </div>
+                        <p style={{ color: '#d1d5db', fontSize: '0.875rem', lineHeight: '1.5', marginBottom: '1.5rem' }}>
+                          Push the boundaries of what's possible with intelligent systems. Solve real-world problems using cutting-edge AI algorithms.
+                        </p>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span style={{
+                              width: '2rem',
+                              height: '2rem',
+                              borderRadius: '0.5rem',
+                              background: 'rgba(147, 51, 234, 0.2)',
+                              color: '#c084fc',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              flexShrink: 0,
-                              fontWeight: 'bold',
-                              fontSize: '0.875rem',
-                              color: 'white',
-                              fontFamily: 'Orbitron, sans-serif'
-                            }}>
-                              {ps.code.split(' ')[ps.code.split(' ').length - 1]}
-                            </div>
-                            
-                            <div style={{ flex: 1 }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: '1rem', marginBottom: '0.75rem' }}>
-                                <h4 style={{ fontWeight: 'bold', fontSize: '1.125rem', color: 'white', margin: 0, fontFamily: 'Orbitron, sans-serif' }}>
-                                  {ps.title}
-                                </h4>
-                                
-                                <div style={{
-                                  border: `1px solid ${seatColor}`,
-                                  borderRadius: '0.5rem',
-                                  padding: '0.375rem 0.75rem',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '0.5rem',
-                                  flexShrink: 0,
-                                  background: `${seatColor}20`
-                                }}>
-                                  <span style={{ color: seatColor, fontSize: '1.125rem' }}>{seatIcon}</span>
-                                  <div style={{ textAlign: 'right' }}>
-                                    <p style={{ color: seatColor, fontWeight: 'bold', fontSize: '0.875rem', margin: 0, fontFamily: 'Orbitron, sans-serif' }}>
-                                      {seatsLeft}/{ps.totalSeats}
-                                    </p>
-                                    <p style={{ color: '#9ca3af', fontSize: '0.75rem', margin: 0 }}>SEATS</p>
-                                  </div>
-                                </div>
-                              </div>
-                              
-                              {isFull && (
-                                <div style={{
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '0.5rem',
-                                  padding: '0.375rem 0.75rem',
-                                  background: 'rgba(239, 68, 68, 0.2)',
-                                  border: '1px solid rgba(239, 68, 68, 0.4)',
-                                  borderRadius: '9999px',
-                                  marginBottom: '0.75rem'
-                                }}>
-                                  <span style={{ color: '#f87171', fontSize: '0.75rem', fontWeight: '600', letterSpacing: '0.05em' }}>⚠️ FULLY BOOKED</span>
-                                </div>
-                              )}
-                              
-                              <p style={{ color: '#9ca3af', fontSize: '0.875rem', lineHeight: '1.5', marginBottom: '0.75rem' }}>
-                                {ps.description}
-                              </p>
-                              
-                              {!isFull && seatPercentage <= 25 && (
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.75rem', color: '#fb923c', fontSize: '0.75rem' }}>
-                                  <span>⏱️</span>
-                                  <span style={{ fontWeight: '600' }}>FILLING FAST - Only {seatsLeft} seat{seatsLeft === 1 ? '' : 's'} remaining!</span>
-                                </div>
-                              )}
-                            </div>
-                            
-                            {selectedPS?.id === ps.id && (
-                              <div style={{
-                                width: '2.5rem',
-                                height: '2.5rem',
-                                background: '#f0ff00',
-                                borderRadius: '50%',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                flexShrink: 0
-                              }}>
-                                ✓
-                              </div>
-                            )}
+                              fontWeight: 'bold'
+                            }}>03</span>
+                            <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Challenges</span>
                           </div>
                         </div>
-                      );
-                    })}
-                  </div>
-                </section>
-              )}
-
-              {/* Step 3: Submit Section */}
-              {selectedDomain && selectedPS && (
-                <section>
-                  <div style={{ maxWidth: '42rem', margin: '0 auto' }}>
-                    <div style={{
-                      background: 'linear-gradient(135deg, rgba(10, 10, 20, 0.9) 0%, rgba(20, 20, 35, 0.8) 100%)',
-                      border: '1px solid #f0ff00',
-                      borderRadius: '1rem',
-                      padding: '2rem',
-                      marginBottom: '1.5rem'
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                        
+                        {/* Domain Seats Info */}
                         <div style={{
-                          width: '2.5rem',
-                          height: '2.5rem',
-                          background: 'rgba(240, 255, 0, 0.2)',
+                          background: domainSeats.isFull ? 'rgba(239, 68, 68, 0.1)' : 'rgba(147, 51, 234, 0.1)',
+                          border: domainSeats.isFull ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid rgba(147, 51, 234, 0.3)',
                           borderRadius: '0.5rem',
+                          padding: '0.75rem 1rem',
                           display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
+                          justifyContent: 'space-between',
+                          alignItems: 'center'
                         }}>
-                          ✓
-                        </div>
-                        <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: 'white', margin: 0, fontFamily: 'Orbitron, sans-serif' }}>
-                          SELECTION SUMMARY
-                        </h3>
-                      </div>
-                      
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                          <div style={{ width: '0.75rem', height: '0.75rem', borderRadius: '50%', background: '#4ade80' }} />
-                          <span style={{ color: '#9ca3af' }}>TEAM:</span>
-                          <span style={{ color: 'white', fontWeight: 'bold', fontFamily: 'Orbitron, sans-serif' }}>{team.team_name.toUpperCase()}</span>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                          <div style={{ width: '0.75rem', height: '0.75rem', borderRadius: '50%', background: '#22d3ee' }} />
-                          <span style={{ color: '#9ca3af' }}>DOMAIN:</span>
-                          <span style={{ color: 'white', fontWeight: '600', fontFamily: 'Orbitron, sans-serif' }}>{domainShortNames[selectedDomain]}</span>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                          <div style={{ width: '0.75rem', height: '0.75rem', borderRadius: '50%', background: '#facc15' }} />
-                          <span style={{ color: '#9ca3af' }}>CHALLENGE:</span>
-                          <span style={{ color: '#facc15', fontWeight: '600', flex: 1 }}>{selectedPS.code}: {selectedPS.title}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div style={{
-                      background: 'rgba(239, 68, 68, 0.1)',
-                      border: '1px solid rgba(239, 68, 68, 0.3)',
-                      borderRadius: '0.75rem',
-                      padding: '1rem',
-                      marginBottom: '1.5rem',
-                      display: 'flex',
-                      gap: '0.75rem'
-                    }}>
-                      <span style={{ color: '#f87171', fontSize: '1.25rem' }}>⚠️</span>
-                      <div>
-                        <p style={{ color: '#f87171', fontWeight: '600', margin: '0 0 0.25rem 0' }}>IRREVERSIBLE ACTION</p>
-                        <p style={{ color: '#9ca3af', fontSize: '0.875rem', margin: 0 }}>
-                          Once submitted, your selection cannot be changed. Choose wisely, innovator.
-                        </p>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={handleSubmit}
-                      disabled={isSubmitted}
-                      style={{
-                        width: '100%',
-                        padding: '1.25rem 2rem',
-                        background: isSubmitted ? '#374151' : 'linear-gradient(to right, #9333ea, #7e22ce)',
-                        border: 'none',
-                        borderRadius: '0.75rem',
-                        color: 'white',
-                        fontWeight: 'bold',
-                        fontSize: '1.125rem',
-                        letterSpacing: '0.05em',
-                        cursor: isSubmitted ? 'not-allowed' : 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '0.75rem',
-                        fontFamily: 'Orbitron, sans-serif',
-                        transition: 'all 0.3s ease'
-                      }}
-                    >
-                      <span>✓</span>
-                      CONFIRM SELECTION
-                    </button>
-                  </div>
-                </section>
-              )}
-
-              {/* Confirmation Modal */}
-              {showConfirmModal && (
-                <div
-                  onClick={(e) => e.target.classList.contains('modal-overlay') && setShowConfirmModal(false)}
-                  className="modal-overlay"
-                  style={{
-                    position: 'fixed',
-                    inset: 0,
-                    background: 'rgba(0, 0, 0, 0.9)',
-                    backdropFilter: 'blur(8px)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000,
-                    padding: '1rem'
-                  }}
-                >
-                  <div style={{
-                    background: 'linear-gradient(135deg, rgba(10, 10, 25, 0.98) 0%, rgba(20, 20, 40, 0.98) 100%)',
-                    border: '2px solid #f0ff00',
-                    boxShadow: '0 0 50px rgba(240, 255, 0, 0.3)',
-                    borderRadius: '1rem',
-                    padding: '2rem',
-                    maxWidth: '32rem',
-                    width: '100%'
-                  }}>
-                    <div style={{
-                      width: '5rem',
-                      height: '5rem',
-                      margin: '0 auto 1.5rem',
-                      borderRadius: '50%',
-                      background: 'rgba(240, 255, 0, 0.2)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}>
-                      <span style={{ fontSize: '2.5rem' }}>⚠️</span>
-                    </div>
-                    
-                    <h3 style={{
-                      fontSize: '1.5rem',
-                      fontWeight: 'bold',
-                      textAlign: 'center',
-                      color: 'white',
-                      marginBottom: '0.5rem',
-                      fontFamily: 'Orbitron, sans-serif'
-                    }}>
-                      CONFIRM SELECTION
-                    </h3>
-                    <p style={{ textAlign: 'center', color: '#9ca3af', marginBottom: '1.5rem' }}>
-                      You are about to lock in your choice. This action is <span style={{ color: '#facc15', fontWeight: '600' }}>FINAL</span> and cannot be undone.
-                    </p>
-                    
-                    <div style={{
-                      background: 'rgba(0, 0, 0, 0.5)',
-                      border: '1px solid rgba(240, 255, 0, 0.2)',
-                      borderRadius: '0.75rem',
-                      padding: '1.25rem',
-                      marginBottom: '1.5rem'
-                    }}>
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '1rem',
-                        marginBottom: '1rem',
-                        paddingBottom: '0.75rem',
-                        borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
-                      }}>
-                        <div style={{
-                          width: '2.5rem',
-                          height: '2.5rem',
-                          borderRadius: '0.5rem',
-                          background: 'linear-gradient(to bottom right, #eab308, #f97316)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flexShrink: 0
-                        }}>
-                          👥
-                        </div>
-                        <div>
-                          <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>TEAM</p>
-                          <p style={{ fontWeight: 'bold', color: 'white', margin: 0, fontFamily: 'Orbitron, sans-serif' }}>
-                            {team.team_name.toUpperCase()}
-                          </p>
-                        </div>
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                          <span style={{ color: '#6b7280', width: '6rem' }}>DOMAIN:</span>
-                          <span style={{ fontWeight: '600', color: '#22d3ee', fontFamily: 'Orbitron, sans-serif' }}>
-                            {domainShortNames[selectedDomain]}
-                          </span>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'start', gap: '0.75rem' }}>
-                          <span style={{ color: '#6b7280', width: '6rem', flexShrink: 0 }}>PS:</span>
-                          <span style={{ fontWeight: '600', color: '#facc15', flex: 1 }}>
-                            {selectedPS.code}: {selectedPS.title}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div style={{ display: 'flex', gap: '1rem' }}>
-                      <button
-                        onClick={() => setShowConfirmModal(false)}
-                        style={{
-                          flex: 1,
-                          padding: '1rem',
-                          background: '#374151',
-                          color: 'white',
-                          border: '1px solid #4b5563',
-                          borderRadius: '0.75rem',
-                          fontWeight: '600',
-                          cursor: 'pointer',
-                          transition: 'all 0.3s ease'
-                        }}
-                      >
-                        CANCEL
-                      </button>
-                      <button
-                        onClick={handleConfirmSubmit}
-                        style={{
-                          flex: 1,
-                          padding: '1rem',
-                          background: 'linear-gradient(to right, #9333ea, #7e22ce)',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '0.75rem',
-                          fontWeight: '600',
-                          cursor: 'pointer',
-                          transition: 'all 0.3s ease',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '0.5rem'
-                        }}
-                      >
-                        <span>✓</span>
-                        CONFIRM
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {showSuccessModal && (
-                <div
-                  onClick={(e) => e.target.classList.contains('modal-overlay') && setShowSuccessModal(false)}
-                  className="modal-overlay"
-                  style={{
-                    position: 'fixed',
-                    inset: 0,
-                    background: 'rgba(0, 0, 0, 0.9)',
-                    backdropFilter: 'blur(8px)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000,
-                    padding: '1rem'
-                  }}
-                >
-                  <div style={{
-                    background: 'linear-gradient(135deg, rgba(10, 10, 25, 0.98) 0%, rgba(20, 20, 40, 0.98) 100%)',
-                    border: '2px solid #00ff88',
-                    boxShadow: '0 0 50px rgba(0, 255, 136, 0.3)',
-                    borderRadius: '1rem',
-                    padding: '2rem',
-                    maxWidth: '32rem',
-                    width: '100%'
-                  }}>
-                    <div style={{
-                      width: '5rem',
-                      height: '5rem',
-                      margin: '0 auto 1.5rem',
-                      borderRadius: '50%',
-                      background: 'rgba(0, 255, 136, 0.2)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      position: 'relative'
-                    }}>
-                      <span style={{ fontSize: '3rem', color: '#00ff88' }}>✓</span>
-                    </div>
-                    
-                    <h3 style={{
-                      fontSize: '1.5rem',
-                      fontWeight: 'bold',
-                      textAlign: 'center',
-                      color: '#4ade80',
-                      marginBottom: '0.5rem',
-                      fontFamily: 'Orbitron, sans-serif'
-                    }}>
-                      SUBMISSION COMPLETE
-                    </h3>
-                    <p style={{ textAlign: 'center', color: '#9ca3af', marginBottom: '1.5rem' }}>
-                      Your journey begins now. Prepare to innovate!
-                    </p>
-                    
-                    <div style={{
-                      background: 'rgba(0, 0, 0, 0.5)',
-                      border: '1px solid rgba(0, 255, 136, 0.2)',
-                      borderRadius: '0.75rem',
-                      padding: '1.25rem',
-                      marginBottom: '1.5rem'
-                    }}>
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '1rem',
-                        marginBottom: '1rem',
-                        paddingBottom: '1rem',
-                        borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
-                      }}>
-                        <div style={{
-                          width: '3rem',
-                          height: '3rem',
-                          borderRadius: '0.5rem',
-                          background: 'linear-gradient(to bottom right, #eab308, #f97316)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}>
-                          👥
-                        </div>
-                        <div style={{ flex: 1 }}>
-                          <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>TEAM</p>
-                          <p style={{ fontWeight: 'bold', fontSize: '1.125rem', color: 'white', margin: 0, fontFamily: 'Orbitron, sans-serif' }}>
-                            {team.team_name.toUpperCase()}
-                          </p>
-                        </div>
-                        <div style={{ textAlign: 'right' }}>
-                          <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>EMAIL</p>
-                          <p style={{ color: '#22d3ee', fontSize: '0.875rem', margin: 0, fontFamily: 'monospace' }}>
-                            {team.lead_email}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-                        <div style={{
-                          width: '3.5rem',
-                          height: '3.5rem',
-                          borderRadius: '0.5rem',
-                          background: getDomainGradient(selectedDomain),
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}>
-                          {selectedDomain === 'ai' && '🖥️'}
-                          {selectedDomain === 'fintech' && '💰'}
-                          {selectedDomain === 'iot' && '🤖'}
-                        </div>
-                        <div>
-                          <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: 0 }}>SELECTED DOMAIN</p>
-                          <p style={{ fontWeight: 'bold', fontSize: '1.125rem', color: 'white', margin: 0, fontFamily: 'Orbitron, sans-serif' }}>
-                            {domainShortNames[selectedDomain]}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '0.75rem' }}>
-                      <button
-                        onClick={() => setShowSuccessModal(false)}
-                        style={{
-                          flex: 1,
-                          padding: '1rem',
-                          background: '#059669',
-                          color: 'white',
-                          border: '1px solid #10b981',
-                          borderRadius: '0.75rem',
-                          fontWeight: '600',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        ACKNOWLEDGED
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-            </div>
-          )}
-
-        </div>
-      </div>
-    </div>
-  );
-}
-
+                          <div>
+                            <p style={{ color: domainSeats.isFull ? '#f87171' : '#c084fc', fontSize: '0.75rem', margin: 0, fontWeight: '600' }}>
+                              {domainSeats.isFull ? '🔒 DOMAIN FULL' : '🎯 TOTAL SEATS'}
+                            </p>
+                            <p style={{ color: '#d1d5db', fontSize: '0.875rem', margin: 0, fontWeight: 'bold' }}>
+                              {domainSeats.availableSeats} / {domainSeats.totalSeats} Available
+                            </p>
+                          </div>
+                          <div style={{
+                            width: '3rem',
+                            height: '3rem',
+                            borderRadius: '50%',
+                            background: domainSeats.isFull ? 'rgba(239, 68, 68, 0.2)' : `conic-gradient(#c084fc ${domainSeats.percentageAvailable * 3.6}deg, rgba(147, 51, 234, 0.2) 0deg)`,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent:
