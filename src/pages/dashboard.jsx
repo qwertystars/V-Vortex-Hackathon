@@ -514,55 +514,6 @@ export default function TeamDashboard() {
                           <span>{isYou ? "YOUR SQUAD" : "ACTIVE"}</span>
                         </div>
                       </div>
-                      <div style={{ height: '1px', background: 'rgba(255, 255, 255, 0.1)', marginBottom: '1rem' }} />
-                      <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.5rem' }}>CHOSEN CHALLENGE</p>
-                      <p style={{ fontWeight: '600', color: '#facc15', fontSize: '0.875rem', margin: 0 }}>
-                        {selectedPS.code}: {selectedPS.title}
-                      </p>
-                    </div>
-
-                    <div style={{
-                      background: 'linear-gradient(to right, rgba(147, 51, 234, 0.1), rgba(6, 182, 212, 0.1))',
-                      border: '1px solid rgba(147, 51, 234, 0.3)',
-                      borderRadius: '0.75rem',
-                      padding: '1rem',
-                      marginBottom: '1.5rem'
-                    }}>
-                      <p style={{ color: 'white', fontWeight: '600', margin: '0 0 0.25rem 0', fontFamily: 'Orbitron, sans-serif' }}>
-                        🚀 LET THE INNOVATION BEGIN!
-                      </p>
-                      <p style={{ color: '#9ca3af', fontSize: '0.875rem', margin: 0 }}>
-                        The future belongs to those who dare to create.
-                      </p>
-                    </div>
-                    
-                    <button
-                      onClick={() => setShowSuccessModal(false)}
-                      style={{
-                        width: '100%',
-                        padding: '1rem',
-                        background: '#059669',
-                        color: 'white',
-                        border: '1px solid #10b981',
-                        borderRadius: '0.75rem',
-                        fontWeight: '600',
-                        cursor: 'pointer',
-                        transition: 'all 0.3s ease'
-                      }}
-                    >
-                      ACKNOWLEDGED
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-        </div>
-      </div>
-    </div>
-  );
-}
 
                       <div className="payload">
                         <strong>{row.score}</strong>
@@ -1168,7 +1119,6 @@ export default function TeamDashboard() {
                 </div>
               )}
 
-              {/* Success Modal */}
               {showSuccessModal && (
                 <div
                   onClick={(e) => e.target.classList.contains('modal-overlay') && setShowSuccessModal(false)}
@@ -1283,72 +1233,35 @@ export default function TeamDashboard() {
                           </p>
                         </div>
                       </div>
-                        <span style={{
-                          width: '2rem',
-                          height: '2rem',
-                          borderRadius: '0.5rem',
-                          background: 'rgba(147, 51, 234, 0.2)',
-                          color: '#c084fc',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontWeight: 'bold'
-                        }}>03</span>
-                        <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Challenges</span>
-                      </div>
                     </div>
-                    {selectedDomain === 'ai' && (
-                      <div style={{
-                        position: 'absolute',
-                        top: '1rem',
-                        right: '1rem',
-                        width: '2rem',
-                        height: '2rem',
-                        background: '#f0ff00',
-                        borderRadius: '50%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}>
-                        ✓
-                      </div>
-                    )}
-                  </div>
 
-                  {/* FINTECH Domain */}
-                  <div
-                    onClick={() => handleDomainSelect('fintech')}
-                    style={{
-                      position: 'relative',
-                      background: 'linear-gradient(135deg, rgba(10, 10, 20, 0.9) 0%, rgba(20, 20, 35, 0.8) 100%)',
-                      border: selectedDomain === 'fintech' ? '2px solid #f0ff00' : '1px solid rgba(0, 245, 255, 0.2)',
-                      borderRadius: '1rem',
-                      padding: '2rem',
-                      cursor: isSubmitted ? 'not-allowed' : 'pointer',
-                      opacity: isSubmitted ? 0.5 : 1,
-                      transition: 'all 0.4s ease',
-                      boxShadow: selectedDomain === 'fintech' ? '0 0 40px rgba(240, 255, 0, 0.4)' : 'none'
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-                      <div style={{
-                        width: '4rem',
-                        height: '4rem',
-                        borderRadius: '0.75rem',
-                        background: 'linear-gradient(to bottom right, #db2777, #ec4899)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}>
-                        <span style={{ fontSize: '2rem' }}>💰</span>
-                      </div>
-                      <div>
-                        <h3 style={{ color: '#f9a8d4', margin: 0, fontSize: '1.5rem', fontFamily: 'Orbitron, sans-serif' }}>FINTECH</h3>
-                        <p style={{ color: '#9ca3af', fontSize: '0.875rem', margin: 0 }}>Financial Technology & Digital Payments</p>
-                      </div>
+                    <div style={{ display: 'flex', gap: '0.75rem' }}>
+                      <button
+                        onClick={() => setShowSuccessModal(false)}
+                        style={{
+                          flex: 1,
+                          padding: '1rem',
+                          background: '#059669',
+                          color: 'white',
+                          border: '1px solid #10b981',
+                          borderRadius: '0.75rem',
+                          fontWeight: '600',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        ACKNOWLEDGED
+                      </button>
                     </div>
-                    <p style={{ color: '#d1d5db', fontSize: '0.875rem', lineHeight: '1.5', marginBottom: '1.5rem' }}>
-                      Revolutionize the financial world. Build next-generation solutions for payments, fraud detection, and smart pricing.
-                    </p>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  </div>
+                </div>
+              )}
+
+            </div>
+          )}
+
+        </div>
+      </div>
+    </div>
+  );
+}
+
