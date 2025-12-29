@@ -36,24 +36,24 @@ export default function TeamDashboard() {
   const problemStatements = {
     ai: [
       {
-        id: 'ps7',
-        code: 'PS 7',
+        id: 'ps1',
+        code: 'PS 1',
         title: 'AI-Generated Image Authenticity Detection',
         description: 'Design a system that determines whether an image is AI-generated or real, remaining robust to compression, resizing, and post-processing, while providing confidence-aware and explainable authenticity assessments across diverse image sources.',
         totalSeats: 15,
         seatsBooked: 3
       },
       {
-        id: 'ps8',
-        code: 'PS 8',
+        id: 'ps2',
+        code: 'PS 2',
         title: 'AI-Powered Mind Map Search Engine',
         description: 'Design a search system that retrieves information for a user query and organizes results into an interactive mind map, automatically revealing key concepts, subtopics, and relationships to support exploratory learning and research.',
         totalSeats: 12,
         seatsBooked: 8
       },
       {
-        id: 'ps9',
-        code: 'PS 9',
+        id: 'ps3',
+        code: 'PS 3',
         title: 'AI-Powered Mental Well-Being Risk Indicator (Non-Clinical)',
         description: 'Design a non-clinical system that analyzes anonymized behavioral patterns over time to identify early mental well-being risk indicators, while preserving user privacy, avoiding medical diagnosis, and providing transparent, uncertainty-aware insights.',
         totalSeats: 10,
@@ -718,7 +718,7 @@ export default function TeamDashboard() {
                     <p style={{ color: '#d1d5db', fontSize: '0.875rem', lineHeight: '1.5', marginBottom: '1.5rem' }}>
                       Push the boundaries of what's possible with intelligent systems. Solve real-world problems using cutting-edge AI algorithms.
                     </p>
-                                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <span style={{
                           width: '2rem',
@@ -734,7 +734,211 @@ export default function TeamDashboard() {
                         <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Challenges</span>
                       </div>
                     </div>
+                    {selectedDomain === 'ai' && (
+                      <div style={{
+                        position: 'absolute',
+                        top: '1rem',
+                        right: '1rem',
+                        width: '2rem',
+                        height: '2rem',
+                        background: '#f0ff00',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        ✓
+                      </div>
+                    )}
+                  </div>
+
+                  {/* FINTECH Domain */}
+                  <div
+                    onClick={() => handleDomainSelect('fintech')}
+                    style={{
+                      position: 'relative',
+                      background: 'linear-gradient(135deg, rgba(10, 10, 20, 0.9) 0%, rgba(20, 20, 35, 0.8) 100%)',
+                      border: selectedDomain === 'fintech' ? '2px solid #f0ff00' : '1px solid rgba(0, 245, 255, 0.2)',
+                      borderRadius: '1rem',
+                      padding: '2rem',
+                      cursor: isSubmitted ? 'not-allowed' : 'pointer',
+                      opacity: isSubmitted ? 0.5 : 1,
+                      transition: 'all 0.4s ease',
+                      boxShadow: selectedDomain === 'fintech' ? '0 0 40px rgba(240, 255, 0, 0.4)' : 'none'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+                      <div style={{
+                        width: '4rem',
+                        height: '4rem',
+                        borderRadius: '0.75rem',
+                        background: 'linear-gradient(to bottom right, #f97316, #f59e0b)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <span style={{ fontSize: '2rem' }}>💰</span>
+                      </div>
+                      <div>
+                        <h3 style={{ color: '#fb923c', margin: 0, fontSize: '1.5rem', fontFamily: 'Orbitron, sans-serif' }}>FINTECH</h3>
+                        <p style={{ color: '#9ca3af', fontSize: '0.875rem', margin: 0 }}>Financial Technology & Digital Payments</p>
+                      </div>
+                    </div>
+                    <p style={{ color: '#d1d5db', fontSize: '0.875rem', lineHeight: '1.5', marginBottom: '1.5rem' }}>
+                      Innovate payment flows, settlement systems and privacy-preserving financial services for the modern economy.
+                    </p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span style={{
+                          width: '2rem',
+                          height: '2rem',
+                          borderRadius: '0.5rem',
+                          padding: '0.75rem 1rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontWeight: 'bold'
+                        }}>03</span>
+                        <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Challenges</span>
+                      </div>
+                    </div>
                     {selectedDomain === 'fintech' && (
+                      <div style={{
+                        position: 'absolute',
+                        top: '1rem',
+                        right: '1rem',
+                        width: '2rem',
+                        height: '2rem',
+                        background: '#f0ff00',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        ✓
+                      </div>
+                    )}
+                  </div>
+
+                  {/* CYBERSECURITY Domain */}
+                  <div
+                    onClick={() => handleDomainSelect('cybersecurity')}
+                    style={{
+                      position: 'relative',
+                      background: 'linear-gradient(135deg, rgba(10, 10, 20, 0.9) 0%, rgba(20, 20, 35, 0.8) 100%)',
+                      border: selectedDomain === 'cybersecurity' ? '2px solid #f0ff00' : '1px solid rgba(0, 245, 255, 0.2)',
+                      borderRadius: '1rem',
+                      padding: '2rem',
+                      cursor: isSubmitted ? 'not-allowed' : 'pointer',
+                      opacity: isSubmitted ? 0.5 : 1,
+                      transition: 'all 0.4s ease',
+                      boxShadow: selectedDomain === 'cybersecurity' ? '0 0 40px rgba(240, 255, 0, 0.4)' : 'none'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+                      <div style={{
+                        width: '4rem',
+                        height: '4rem',
+                        borderRadius: '0.75rem',
+                        background: 'linear-gradient(to bottom right, #0ea5a4, #0891b2)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <span style={{ fontSize: '2rem' }}>🛡️</span>
+                      </div>
+                      <div>
+                        <h3 style={{ color: '#67e8f9', margin: 0, fontSize: '1.5rem', fontFamily: 'Orbitron, sans-serif' }}>CYBERSECURITY</h3>
+                        <p style={{ color: '#9ca3af', fontSize: '0.875rem', margin: 0 }}>Security & Privacy</p>
+                      </div>
+                    </div>
+                    <p style={{ color: '#d1d5db', fontSize: '0.875rem', lineHeight: '1.5', marginBottom: '1.5rem' }}>
+                      Build systems and defenses to protect users and infrastructure from evolving threats while preserving privacy.
+                    </p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span style={{
+                          width: '2rem',
+                          height: '2rem',
+                          borderRadius: '0.5rem',
+                          padding: '0.75rem 1rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontWeight: 'bold'
+                        }}>03</span>
+                        <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Challenges</span>
+                      </div>
+                    </div>
+                    {selectedDomain === 'cybersecurity' && (
+                      <div style={{
+                        position: 'absolute',
+                        top: '1rem',
+                        right: '1rem',
+                        width: '2rem',
+                        height: '2rem',
+                        background: '#f0ff00',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        ✓
+                      </div>
+                    )}
+                  </div>
+
+                  {/* HEALTHCARE Domain */}
+                  <div
+                    onClick={() => handleDomainSelect('healthcare')}
+                    style={{
+                      position: 'relative',
+                      background: 'linear-gradient(135deg, rgba(10, 10, 20, 0.9) 0%, rgba(20, 20, 35, 0.8) 100%)',
+                      border: selectedDomain === 'healthcare' ? '2px solid #f0ff00' : '1px solid rgba(0, 245, 255, 0.2)',
+                      borderRadius: '1rem',
+                      padding: '2rem',
+                      cursor: isSubmitted ? 'not-allowed' : 'pointer',
+                      opacity: isSubmitted ? 0.5 : 1,
+                      transition: 'all 0.4s ease',
+                      boxShadow: selectedDomain === 'healthcare' ? '0 0 40px rgba(240, 255, 0, 0.4)' : 'none'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+                      <div style={{
+                        width: '4rem',
+                        height: '4rem',
+                        borderRadius: '0.75rem',
+                        background: 'linear-gradient(to bottom right, #06b6d4, #3b82f6)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <span style={{ fontSize: '2rem' }}>🏥</span>
+                      </div>
+                      <div>
+                        <h3 style={{ color: '#60a5fa', margin: 0, fontSize: '1.5rem', fontFamily: 'Orbitron, sans-serif' }}>HEALTHCARE</h3>
+                        <p style={{ color: '#9ca3af', fontSize: '0.875rem', margin: 0 }}>Medical Innovation & Digital Health</p>
+                      </div>
+                    </div>
+                    <p style={{ color: '#d1d5db', fontSize: '0.875rem', lineHeight: '1.5', marginBottom: '1.5rem' }}>
+                      Design patient-centered digital health solutions, remote monitoring, and AI-assisted diagnostics with privacy-first principles.
+                    </p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span style={{
+                          width: '2rem',
+                          height: '2rem',
+                          borderRadius: '0.5rem',
+                          padding: '0.75rem 1rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontWeight: 'bold'
+                        }}>03</span>
+                        <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Challenges</span>
+                      </div>
+                    </div>
+                    {selectedDomain === 'healthcare' && (
                       <div style={{
                         position: 'absolute',
                         top: '1rem',
@@ -1315,6 +1519,8 @@ export default function TeamDashboard() {
                         }}>
                           {selectedDomain === 'ai' && '🖥️'}
                           {selectedDomain === 'fintech' && '💰'}
+                          {selectedDomain === 'cybersecurity' && '🛡️'}
+                          {selectedDomain === 'healthcare' && '🏥'}
                           {selectedDomain === 'iot' && '🤖'}
                         </div>
                         <div>

@@ -174,13 +174,38 @@ Deno.serve(async (req) => {
     /* =========================
        6️⃣ UPDATE TEAM
        ========================= */
+    // Prevent duplicate team names (case-insensitive). If another team
+    // already uses this name, return a 409 conflict with a helpful message.
+    const { data: nameConflict } = await supabase
+      .from("teams")
+      .select("id")
+      .ilike("team_name", teamName)
+      .neq("id", teamId)
+      .limit(1);
+
+    if (nameConflict && nameConflict.length > 0) {
+      return new Response(
+        JSON.stringify({ error: "Team name already in use" }),
+        { status: 409, headers: corsHeaders }
+      );
+    }
+
     const { error: updateError } = await supabase
       .from("teams")
       .update({ team_name: teamName, team_size: teamSize })
       .eq("id", teamId);
 
     if (updateError) {
-      throw new Error(updateError.message);
+      // Map common unique-violation to a friendly 409 response.
+      const msg = updateError.message || "Database update failed";
+      if (msg.toLowerCase().includes("duplicate") || msg.includes("unique")) {
+        return new Response(
+          JSON.stringify({ error: "Team name already in use" }),
+          { status: 409, headers: corsHeaders }
+        );
+      }
+
+      throw new Error(msg);
     }
 
     /* =========================
