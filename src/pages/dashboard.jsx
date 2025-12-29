@@ -4,6 +4,7 @@ import { supabase } from "../supabaseClient";
 import BuildTeam from "../components/BuildTeam";
 import "../styles/dashboard.css";
 import logo from "/logo.jpg";
+import { selectProblem } from "../utils/selectProblem";
 
 export default function TeamDashboard() {
   const { teamId } = useParams();
@@ -22,8 +23,11 @@ export default function TeamDashboard() {
   const [selectedDomain, setSelectedDomain] = useState(null);
   const [selectedPS, setSelectedPS] = useState(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isSubmittingSelection, setIsSubmittingSelection] = useState(false);
+  const [lastRequest, setLastRequest] = useState(null);
+  const [lastResponse, setLastResponse] = useState(null);
+  const [lastError, setLastError] = useState(null);
+  const [successInfo, setSuccessInfo] = useState(null);
   
   // Calculated stats
   const myRank = leaderboard.find(row => row.team_name === team?.team_name)?.position ?? "—";
@@ -256,6 +260,11 @@ export default function TeamDashboard() {
     return () => clearInterval(i);
   }, []);
 
+  // Debug: ensure initial load state
+  useEffect(() => {
+    if (!loading) console.debug('dashboard loaded');
+  }, [loading]);
+
   /* ===============================
      LOGOUT
   =============================== */
@@ -270,7 +279,7 @@ export default function TeamDashboard() {
   const getSeatStatus = (ps) => {
     const seatsLeft = ps.totalSeats - ps.seatsBooked;
     const isFull = seatsLeft === 0;
-    const seatPercentage = (seatsLeft / ps.totalSeats) * 100;
+    const seatPercentage = ps.totalSeats ? (seatsLeft / ps.totalSeats) * 100 : 0;
     
     let seatClass = 'seat-high';
     let seatColor = '#4ade80';
@@ -322,7 +331,7 @@ export default function TeamDashboard() {
   };
 
   const handleDomainSelect = (domain) => {
-    if (isSubmitted) return;
+    if (isSubmitted || isSubmittingSelection) return;
     const domainSeats = getDomainSeats(domain);
     if (domainSeats.isFull) return;
     setSelectedDomain(domain);
@@ -330,22 +339,54 @@ export default function TeamDashboard() {
   };
 
   const handlePSSelect = (ps) => {
-    if (isSubmitted) return;
+    if (isSubmitted || isSubmittingSelection) return;
     const { isFull } = getSeatStatus(ps);
     if (isFull) return;
     setSelectedPS(ps);
   };
 
-  const handleSubmit = () => {
-    if (!selectedDomain || !selectedPS) return;
-    setShowConfirmModal(true);
-  };
+  // NOTE: `handleConfirmSubmit` is used directly for submission.
 
-  const handleConfirmSubmit = () => {
-    setShowConfirmModal(false);
-    setShowSuccessModal(true);
-    setIsSubmitted(true);
-    // Here you would typically save to database
+  const handleConfirmSubmit = async () => {
+    setIsSubmittingSelection(true);
+
+    try {
+      console.debug("Submitting problem selection", { teamId: team.id, domain: selectedDomain, ps: selectedPS });
+
+      const payload = {
+        teamId: team.id,
+        domain: selectedDomain,
+        psId: selectedPS.id,
+        problemName: selectedPS.title,
+        problemDescription: selectedPS.description,
+      };
+
+      setLastRequest(payload);
+      setLastResponse(null);
+      setLastError(null);
+
+      // Call edge function to persist selection (only team lead should be able to do this)
+      const resp = await selectProblem(payload);
+      setLastResponse(resp || { success: true });
+
+      // Refresh team data from DB
+      const { data: refreshedTeam, error: teamError } = await supabase.from("teams").select("*").eq("id", team.id).single();
+      if (teamError) throw teamError;
+      setTeam(refreshedTeam);
+
+      setIsSubmitted(true);
+      // show immediate success info to user
+      setSuccessInfo({ domain: selectedDomain, ps: selectedPS });
+      // auto-hide after 6s
+      setTimeout(() => setSuccessInfo(null), 6000);
+      setIsSubmitted(true);
+    } catch (err) {
+      console.error("Failed to submit problem selection:", err);
+      setLastError(err.message || String(err));
+      alert(err.message || "Failed to save selection. Please try again.");
+    } finally {
+      setIsSubmittingSelection(false);
+    }
   };
 
   const handleBackToDomains = () => {
@@ -550,6 +591,15 @@ export default function TeamDashboard() {
                   <strong>{scorecard?.total_score ?? "—"} PTS</strong>
                 </div>
               </div>
+              {team?.domain && team?.problem_statement && (
+                <div style={{ maxWidth: 800, margin: '1rem auto 2rem', padding: '0.75rem 1rem', borderRadius: 8, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.03)' }}>
+                  <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                    <div style={{ fontWeight: 700, color: '#22d3ee' }}>Assigned</div>
+                    <div style={{ color: '#9ca3af' }}>{domainShortNames[team.domain] || team.domain} ·</div>
+                    <div style={{ color: '#facc15', fontWeight: 700 }}>{team.problem_statement}</div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -685,7 +735,10 @@ export default function TeamDashboard() {
                 }}>
                   {/* AI/ML Domain */}
                   <div
-                    onClick={() => handleDomainSelect('ai')}
+                    onClick={() => {
+                      if (isSubmitted) return;
+                      handleDomainSelect('ai');
+                    }}
                     style={{
                       position: 'relative',
                       background: 'linear-gradient(135deg, rgba(10, 10, 20, 0.9) 0%, rgba(20, 20, 35, 0.8) 100%)',
@@ -754,7 +807,10 @@ export default function TeamDashboard() {
 
                   {/* FINTECH Domain */}
                   <div
-                    onClick={() => handleDomainSelect('fintech')}
+                    onClick={() => {
+                      if (isSubmitted) return;
+                      handleDomainSelect('fintech');
+                    }}
                     style={{
                       position: 'relative',
                       background: 'linear-gradient(135deg, rgba(10, 10, 20, 0.9) 0%, rgba(20, 20, 35, 0.8) 100%)',
@@ -793,7 +849,6 @@ export default function TeamDashboard() {
                           width: '2rem',
                           height: '2rem',
                           borderRadius: '0.5rem',
-                          padding: '0.75rem 1rem',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -822,7 +877,10 @@ export default function TeamDashboard() {
 
                   {/* CYBERSECURITY Domain */}
                   <div
-                    onClick={() => handleDomainSelect('cybersecurity')}
+                    onClick={() => {
+                      if (isSubmitted) return;
+                      handleDomainSelect('cybersecurity');
+                    }}
                     style={{
                       position: 'relative',
                       background: 'linear-gradient(135deg, rgba(10, 10, 20, 0.9) 0%, rgba(20, 20, 35, 0.8) 100%)',
@@ -861,7 +919,6 @@ export default function TeamDashboard() {
                           width: '2rem',
                           height: '2rem',
                           borderRadius: '0.5rem',
-                          padding: '0.75rem 1rem',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -890,7 +947,10 @@ export default function TeamDashboard() {
 
                   {/* HEALTHCARE Domain */}
                   <div
-                    onClick={() => handleDomainSelect('healthcare')}
+                    onClick={() => {
+                      if (isSubmitted) return;
+                      handleDomainSelect('healthcare');
+                    }}
                     style={{
                       position: 'relative',
                       background: 'linear-gradient(135deg, rgba(10, 10, 20, 0.9) 0%, rgba(20, 20, 35, 0.8) 100%)',
@@ -929,7 +989,6 @@ export default function TeamDashboard() {
                           width: '2rem',
                           height: '2rem',
                           borderRadius: '0.5rem',
-                          padding: '0.75rem 1rem',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -958,7 +1017,10 @@ export default function TeamDashboard() {
 
                   {/* IOT Domain */}
                   <div
-                    onClick={() => handleDomainSelect('iot')}
+                    onClick={() => {
+                      if (isSubmitted) return;
+                      handleDomainSelect('iot');
+                    }}
                     style={{
                       position: 'relative',
                       background: 'linear-gradient(135deg, rgba(10, 10, 20, 0.9) 0%, rgba(20, 20, 35, 0.8) 100%)',
@@ -997,7 +1059,6 @@ export default function TeamDashboard() {
                           width: '2rem',
                           height: '2rem',
                           borderRadius: '0.5rem',
-                          padding: '0.75rem 1rem',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -1059,13 +1120,16 @@ export default function TeamDashboard() {
                   </div>
 
                   <div style={{ maxWidth: '56rem', margin: '0 auto' }}>
-                    {problemStatements[selectedDomain].map((ps) => {
+                    {problemStatements[selectedDomain]?.map((ps) => {
                       const { seatsLeft, isFull, seatClass, seatColor, seatIcon, seatPercentage } = getSeatStatus(ps);
                       
                       return (
                         <div
                           key={ps.id}
-                          onClick={() => !isFull && !isSubmitted && handlePSSelect(ps)}
+                          onClick={() => {
+                            if (isFull || isSubmitted) return;
+                            handlePSSelect(ps);
+                          }}
                           style={{
                             position: 'relative',
                             background: selectedPS?.id === ps.id 
@@ -1240,8 +1304,9 @@ export default function TeamDashboard() {
                     </div>
 
                     <button
-                      onClick={handleSubmit}
-                      disabled={isSubmitted}
+                      disabled={isSubmitted || isSubmittingSelection}
+                      aria-busy={isSubmittingSelection}
+                      onClick={handleConfirmSubmit}
                       style={{
                         width: '100%',
                         padding: '1.25rem 2rem',
@@ -1252,302 +1317,46 @@ export default function TeamDashboard() {
                         fontWeight: 'bold',
                         fontSize: '1.125rem',
                         letterSpacing: '0.05em',
-                        cursor: isSubmitted ? 'not-allowed' : 'pointer',
+                        cursor: isSubmitted || isSubmittingSelection ? 'not-allowed' : 'pointer',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: '0.75rem',
                         fontFamily: 'Orbitron, sans-serif',
-                        transition: 'all 0.3s ease'
+                        transition: 'all 0.3s ease',
+                        opacity: isSubmittingSelection ? 0.9 : 1
                       }}
                     >
-                      <span>✓</span>
-                      CONFIRM SELECTION
+                      <span>{isSubmittingSelection ? '⏳' : '✓'}</span>
+                      {isSubmittingSelection ? 'PROCESSING…' : 'CONFIRM SELECTION'}
                     </button>
                   </div>
                 </section>
               )}
 
-              {/* Confirmation Modal */}
-              {showConfirmModal && (
-                <div
-                  onClick={(e) => e.target.classList.contains('modal-overlay') && setShowConfirmModal(false)}
-                  className="modal-overlay"
-                  style={{
-                    position: 'fixed',
-                    inset: 0,
-                    background: 'rgba(0, 0, 0, 0.9)',
-                    backdropFilter: 'blur(8px)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000,
-                    padding: '1rem'
-                  }}
-                >
-                  <div style={{
-                    background: 'linear-gradient(135deg, rgba(10, 10, 25, 0.98) 0%, rgba(20, 20, 40, 0.98) 100%)',
-                    border: '2px solid #f0ff00',
-                    boxShadow: '0 0 50px rgba(240, 255, 0, 0.3)',
-                    borderRadius: '1rem',
-                    padding: '2rem',
-                    maxWidth: '32rem',
-                    width: '100%'
-                  }}>
-                    <div style={{
-                      width: '5rem',
-                      height: '5rem',
-                      margin: '0 auto 1.5rem',
-                      borderRadius: '50%',
-                      background: 'rgba(240, 255, 0, 0.2)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}>
-                      <span style={{ fontSize: '2.5rem' }}>⚠️</span>
-                    </div>
-                    
-                    <h3 style={{
-                      fontSize: '1.5rem',
-                      fontWeight: 'bold',
-                      textAlign: 'center',
-                      color: 'white',
-                      marginBottom: '0.5rem',
-                      fontFamily: 'Orbitron, sans-serif'
-                    }}>
-                      CONFIRM SELECTION
-                    </h3>
-                    <p style={{ textAlign: 'center', color: '#9ca3af', marginBottom: '1.5rem' }}>
-                      You are about to lock in your choice. This action is <span style={{ color: '#facc15', fontWeight: '600' }}>FINAL</span> and cannot be undone.
-                    </p>
-                    
-                    <div style={{
-                      background: 'rgba(0, 0, 0, 0.5)',
-                      border: '1px solid rgba(240, 255, 0, 0.2)',
-                      borderRadius: '0.75rem',
-                      padding: '1.25rem',
-                      marginBottom: '1.5rem'
-                    }}>
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '1rem',
-                        marginBottom: '1rem',
-                        paddingBottom: '0.75rem',
-                        borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
-                      }}>
-                        <div style={{
-                          width: '2.5rem',
-                          height: '2.5rem',
-                          borderRadius: '0.5rem',
-                          background: 'linear-gradient(to bottom right, #eab308, #f97316)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flexShrink: 0
-                        }}>
-                          👥
-                        </div>
-                        <div>
-                          <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>TEAM</p>
-                          <p style={{ fontWeight: 'bold', color: 'white', margin: 0, fontFamily: 'Orbitron, sans-serif' }}>
-                            {team.team_name.toUpperCase()}
-                          </p>
-                        </div>
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                          <span style={{ color: '#6b7280', width: '6rem' }}>DOMAIN:</span>
-                          <span style={{ fontWeight: '600', color: '#22d3ee', fontFamily: 'Orbitron, sans-serif' }}>
-                            {domainShortNames[selectedDomain]}
-                          </span>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'start', gap: '0.75rem' }}>
-                          <span style={{ color: '#6b7280', width: '6rem', flexShrink: 0 }}>PS:</span>
-                          <span style={{ fontWeight: '600', color: '#facc15', flex: 1 }}>
-                            {selectedPS.code}: {selectedPS.title}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div style={{ display: 'flex', gap: '1rem' }}>
-                      <button
-                        onClick={() => setShowConfirmModal(false)}
-                        style={{
-                          flex: 1,
-                          padding: '1rem',
-                          background: '#374151',
-                          color: 'white',
-                          border: '1px solid #4b5563',
-                          borderRadius: '0.75rem',
-                          fontWeight: '600',
-                          cursor: 'pointer',
-                          transition: 'all 0.3s ease'
-                        }}
-                      >
-                        CANCEL
-                      </button>
-                      <button
-                        onClick={handleConfirmSubmit}
-                        style={{
-                          flex: 1,
-                          padding: '1rem',
-                          background: 'linear-gradient(to right, #9333ea, #7e22ce)',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '0.75rem',
-                          fontWeight: '600',
-                          cursor: 'pointer',
-                          transition: 'all 0.3s ease',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '0.5rem'
-                        }}
-                      >
-                        <span>✓</span>
-                        CONFIRM
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
+              {/* Confirmation modal removed: direct-submit UX enabled */}
 
-              {showSuccessModal && (
-                <div
-                  onClick={(e) => e.target.classList.contains('modal-overlay') && setShowSuccessModal(false)}
-                  className="modal-overlay"
-                  style={{
-                    position: 'fixed',
-                    inset: 0,
-                    background: 'rgba(0, 0, 0, 0.9)',
-                    backdropFilter: 'blur(8px)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000,
-                    padding: '1rem'
-                  }}
-                >
-                  <div style={{
-                    background: 'linear-gradient(135deg, rgba(10, 10, 25, 0.98) 0%, rgba(20, 20, 40, 0.98) 100%)',
-                    border: '2px solid #00ff88',
-                    boxShadow: '0 0 50px rgba(0, 255, 136, 0.3)',
-                    borderRadius: '1rem',
-                    padding: '2rem',
-                    maxWidth: '32rem',
-                    width: '100%'
-                  }}>
-                    <div style={{
-                      width: '5rem',
-                      height: '5rem',
-                      margin: '0 auto 1.5rem',
-                      borderRadius: '50%',
-                      background: 'rgba(0, 255, 136, 0.2)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      position: 'relative'
-                    }}>
-                      <span style={{ fontSize: '3rem', color: '#00ff88' }}>✓</span>
-                    </div>
-                    
-                    <h3 style={{
-                      fontSize: '1.5rem',
-                      fontWeight: 'bold',
-                      textAlign: 'center',
-                      color: '#4ade80',
-                      marginBottom: '0.5rem',
-                      fontFamily: 'Orbitron, sans-serif'
-                    }}>
-                      SUBMISSION COMPLETE
-                    </h3>
-                    <p style={{ textAlign: 'center', color: '#9ca3af', marginBottom: '1.5rem' }}>
-                      Your journey begins now. Prepare to innovate!
-                    </p>
-                    
-                    <div style={{
-                      background: 'rgba(0, 0, 0, 0.5)',
-                      border: '1px solid rgba(0, 255, 136, 0.2)',
-                      borderRadius: '0.75rem',
-                      padding: '1.25rem',
-                      marginBottom: '1.5rem'
-                    }}>
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '1rem',
-                        marginBottom: '1rem',
-                        paddingBottom: '1rem',
-                        borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
-                      }}>
-                        <div style={{
-                          width: '3rem',
-                          height: '3rem',
-                          borderRadius: '0.5rem',
-                          background: 'linear-gradient(to bottom right, #eab308, #f97316)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}>
-                          👥
-                        </div>
-                        <div style={{ flex: 1 }}>
-                          <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>TEAM</p>
-                          <p style={{ fontWeight: 'bold', fontSize: '1.125rem', color: 'white', margin: 0, fontFamily: 'Orbitron, sans-serif' }}>
-                            {team.team_name.toUpperCase()}
-                          </p>
-                        </div>
-                        <div style={{ textAlign: 'right' }}>
-                          <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>EMAIL</p>
-                          <p style={{ color: '#22d3ee', fontSize: '0.875rem', margin: 0, fontFamily: 'monospace' }}>
-                            {team.lead_email}
-                          </p>
-                        </div>
+              {/* Inline success banner (shows briefly after submission) */}
+              {successInfo && (
+                <div style={{
+                  position: 'fixed',
+                  right: 16,
+                  top: 16,
+                  background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.06), rgba(129, 140, 248, 0.06))',
+                  border: '1px solid rgba(148,163,184,0.12)',
+                  color: '#d1d5db',
+                  padding: '0.75rem 1rem',
+                  borderRadius: 8,
+                  zIndex: 4000,
+                  boxShadow: '0 6px 20px rgba(0,0,0,0.6)'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ fontSize: 20, color: '#34d399' }}>✓</div>
+                    <div>
+                      <div style={{ fontWeight: 700 }}>Selection saved</div>
+                      <div style={{ fontSize: 12, color: '#9ca3af' }}>
+                        {domainShortNames[successInfo.domain] || successInfo.domain} · {successInfo.ps?.code}: {successInfo.ps?.title}
                       </div>
-
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-                        <div style={{
-                          width: '3.5rem',
-                          height: '3.5rem',
-                          borderRadius: '0.5rem',
-                          background: getDomainGradient(selectedDomain),
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}>
-                          {selectedDomain === 'ai' && '🖥️'}
-                          {selectedDomain === 'fintech' && '💰'}
-                          {selectedDomain === 'cybersecurity' && '🛡️'}
-                          {selectedDomain === 'healthcare' && '🏥'}
-                          {selectedDomain === 'iot' && '🤖'}
-                        </div>
-                        <div>
-                          <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: 0 }}>SELECTED DOMAIN</p>
-                          <p style={{ fontWeight: 'bold', fontSize: '1.125rem', color: 'white', margin: 0, fontFamily: 'Orbitron, sans-serif' }}>
-                            {domainShortNames[selectedDomain]}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '0.75rem' }}>
-                      <button
-                        onClick={() => setShowSuccessModal(false)}
-                        style={{
-                          flex: 1,
-                          padding: '1rem',
-                          background: '#059669',
-                          color: 'white',
-                          border: '1px solid #10b981',
-                          borderRadius: '0.75rem',
-                          fontWeight: '600',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        ACKNOWLEDGED
-                      </button>
                     </div>
                   </div>
                 </div>
@@ -1558,6 +1367,7 @@ export default function TeamDashboard() {
 
         </div>
       </div>
+      {/* Dev debug panel removed to avoid lingering modal in UI */}
     </div>
   );
 }
