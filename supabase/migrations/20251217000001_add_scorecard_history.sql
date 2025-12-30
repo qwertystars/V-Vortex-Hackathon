@@ -4,11 +4,12 @@ CREATE TABLE scorecard_history (
   team_id UUID NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
   recorded_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
   
-  innovation_score INTEGER NOT NULL CHECK (innovation_score >= 0 AND innovation_score <= 100),
-  implementation_score INTEGER NOT NULL CHECK (implementation_score >= 0 AND implementation_score <= 100),
-  presentation_score INTEGER NOT NULL CHECK (presentation_score >= 0 AND presentation_score <= 100),
-  impact_score INTEGER NOT NULL CHECK (impact_score >= 0 AND impact_score <= 100),
-  total_score INTEGER NOT NULL,
+    ideavortex INTEGER NOT NULL CHECK (ideavortex >= 0 AND ideavortex <= 100),
+    review_1 INTEGER NOT NULL CHECK (review_1 >= 0 AND review_1 <= 100),
+    review_2 INTEGER NOT NULL CHECK (review_2 >= 0 AND review_2 <= 100),
+    review_3 INTEGER NOT NULL CHECK (review_3 >= 0 AND review_3 <= 100),
+    pitch_vortex INTEGER NOT NULL CHECK (pitch_vortex >= 0 AND pitch_vortex <= 100),
+    total_score INTEGER NOT NULL,
   
   snapshot_type TEXT DEFAULT 'update' CHECK (snapshot_type IN ('initial', 'update', 'final'))
 );
@@ -63,10 +64,11 @@ SELECT
   COALESCE(s.total_score, 0) as score,
   COALESCE(get_score_delta(t.id), 0) as delta,
   t.id as team_id,
-  s.innovation_score,
-  s.implementation_score,
-  s.presentation_score,
-  s.impact_score,
+    s.ideavortex,
+    s.review_1,
+    s.review_2,
+    s.review_3,
+    s.pitch_vortex,
   COALESCE(s.total_score, 0) as total_score
 FROM teams t
 LEFT JOIN scorecards s ON t.id = s.team_id
@@ -79,18 +81,20 @@ BEGIN
   -- Record the new score in history
   INSERT INTO scorecard_history (
     team_id,
-    innovation_score,
-    implementation_score,
-    presentation_score,
-    impact_score,
+    ideavortex,
+    review_1,
+    review_2,
+    review_3,
+    pitch_vortex,
     total_score,
     snapshot_type
   ) VALUES (
     NEW.team_id,
-    NEW.innovation_score,
-    NEW.implementation_score,
-    NEW.presentation_score,
-    NEW.impact_score,
+    NEW.ideavortex,
+    NEW.review_1,
+    NEW.review_2,
+    NEW.review_3,
+    NEW.pitch_vortex,
     NEW.total_score,
     CASE 
       WHEN TG_OP = 'INSERT' THEN 'initial'
@@ -105,7 +109,7 @@ $$ LANGUAGE plpgsql;
 -- Create trigger on scorecards table
 DROP TRIGGER IF EXISTS scorecard_history_trigger ON scorecards;
 CREATE TRIGGER scorecard_history_trigger
-  AFTER INSERT OR UPDATE OF innovation_score, implementation_score, presentation_score, impact_score
+  AFTER INSERT OR UPDATE OF ideavortex, review_1, review_2, review_3, pitch_vortex
   ON scorecards
   FOR EACH ROW
   EXECUTE FUNCTION record_scorecard_change();

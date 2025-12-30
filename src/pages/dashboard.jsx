@@ -37,138 +37,89 @@ export default function TeamDashboard() {
   const gapToAlpha = myRank === 1 ? 0 : Math.max(0, topScore - myScore);
 
   // Problem Statements Data
-  const problemStatements = {
-    ai: [
-      {
-        id: 'ps1',
-        code: 'PS 1',
-        title: 'AI-Generated Image Authenticity Detection',
-        description: 'Design a system that determines whether an image is AI-generated or real, remaining robust to compression, resizing, and post-processing, while providing confidence-aware and explainable authenticity assessments across diverse image sources.',
-        totalSeats: 15,
-        seatsBooked: 3
-      },
-      {
-        id: 'ps2',
-        code: 'PS 2',
-        title: 'AI-Powered Mind Map Search Engine',
-        description: 'Design a search system that retrieves information for a user query and organizes results into an interactive mind map, automatically revealing key concepts, subtopics, and relationships to support exploratory learning and research.',
-        totalSeats: 12,
-        seatsBooked: 8
-      },
-      {
-        id: 'ps3',
-        code: 'PS 3',
-        title: 'AI-Powered Mental Well-Being Risk Indicator (Non-Clinical)',
-        description: 'Design a non-clinical system that analyzes anonymized behavioral patterns over time to identify early mental well-being risk indicators, while preserving user privacy, avoiding medical diagnosis, and providing transparent, uncertainty-aware insights.',
-        totalSeats: 10,
-        seatsBooked: 10
+  const [problemStatements, setProblemStatements] = useState({
+    ai: [],
+    fintech: [],
+    cybersecurity: [],
+    healthcare: [],
+    iot: []
+  });
+
+  const mapRow = (r) => ({
+    id: r.id,
+    code: r.code || '',
+    title: r.title || '',
+    description: r.description || '',
+    totalSeats: r.total_seats ?? 10,
+    seatsBooked: r.seats_booked ?? 0
+  });
+
+  // Load current problem statements from DB and subscribe to realtime updates
+  useEffect(() => {
+    let channel;
+
+    const load = async () => {
+      try {
+        const { data, error } = await supabase.from('problem_statements').select('*');
+        if (error) throw error;
+
+        const grouped = { ai: [], fintech: [], cybersecurity: [], healthcare: [], iot: [] };
+        data.forEach(r => {
+          const domain = r.domain || 'iot';
+          grouped[domain] = grouped[domain] || [];
+          grouped[domain].push(mapRow(r));
+        });
+        setProblemStatements(grouped);
+
+        // subscribe to changes
+        channel = supabase
+          .channel('public:problem_statements')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'problem_statements' }, (payload) => {
+            const eventType = payload.eventType || payload.event;
+            const newRow = payload.new;
+            const oldRow = payload.old;
+
+            setProblemStatements(prev => {
+              const next = { ...prev };
+
+              const applyInsert = (row) => {
+                const d = row.domain || 'iot';
+                next[d] = (next[d] || []).filter(Boolean);
+                next[d] = [...next[d], mapRow(row)];
+              };
+
+              const applyUpdate = (row, old) => {
+                const d = row.domain || 'iot';
+                next[d] = (next[d] || []).map(ps => ps.id === row.id ? mapRow(row) : ps);
+                if (old && old.domain && old.domain !== row.domain) {
+                  next[old.domain] = (next[old.domain] || []).filter(ps => ps.id !== row.id);
+                }
+              };
+
+              const applyDelete = (old) => {
+                const d = old.domain || 'iot';
+                next[d] = (next[d] || []).filter(ps => ps.id !== old.id);
+              };
+
+              if (eventType === 'INSERT') applyInsert(newRow);
+              else if (eventType === 'UPDATE') applyUpdate(newRow, oldRow);
+              else if (eventType === 'DELETE') applyDelete(oldRow);
+
+              return next;
+            });
+          })
+          .subscribe();
+      } catch (err) {
+        console.error('Failed to load problem statements:', err);
       }
-    ],
-    fintech: [
-      {
-        id: 'fintech1',
-        code: 'PS 1',
-        title: 'Unified Payment Orchestration & Automated Settlements',
-        description: 'Design and prototype a unified payment orchestration platform that allows merchants to accept payments across multiple channels through a single interface, while automating post-payment workflows such as settlements, refunds, splits, and conditional payouts using configurable logic.',
-        totalSeats: 20,
-        seatsBooked: 5
-      },
-      {
-        id: 'fintech2',
-        code: 'PS 2',
-        title: 'Privacy-Preserving Collaborative Fraud Intelligence Platform',
-        description: 'Design and prototype a real-time transaction monitoring and compliance intelligence platform that detects suspicious activity and assigns risk levels while enabling privacy-preserving collaboration across multiple independent entities.',
-        totalSeats: 18,
-        seatsBooked: 14
-      },
-      {
-        id: 'fintech3',
-        code: 'PS 3',
-        title: 'Adaptive Pricing in Real-Time Digital Marketplaces',
-        description: 'Design a real-time adaptive pricing system for digital marketplaces that continuously adjusts prices under uncertain and evolving demand conditions to maximize long-term business value while maintaining fairness, customer trust, and regulatory compliance.',
-        totalSeats: 15,
-        seatsBooked: 2
-      }
-    ],
-    cybersecurity: [
-      {
-        id: 'cybersecurity1',
-        code: 'PS 1',
-        title: 'Secure Identity & Authentication',
-        description: 'Design a privacy-preserving identity framework that enables verifiable authentication across services while minimizing centralized exposure and preserving user control.',
-        totalSeats: 16,
-        seatsBooked: 9
-      },
-      {
-        id: 'cybersecurity2',
-        code: 'PS 2',
-        title: 'Automated Vulnerability Detection',
-        description: 'Create a system that detects software and infrastructure vulnerabilities, correlates threat intelligence, and prioritizes remediation for high-risk exposures in distributed systems.',
-        totalSeats: 14,
-        seatsBooked: 6
-      },
-      {
-        id: 'cybersecurity3',
-        code: 'PS 3',
-        title: 'Resilient Network Defense Architecture',
-        description: 'Design defensive architectures and rapid incident response tooling to detect, contain, and recover from advanced cyber attacks targeting critical services and infrastructure.',
-        totalSeats: 12,
-        seatsBooked: 11
-      }
-    ],
-    healthcare: [
-      {
-        id: 'healthcare1',
-        code: 'PS 1',
-        title: 'AI-Powered Early Disease Detection System',
-        description: 'Create an intelligent diagnostic system that analyzes patient data, medical imaging, and biomarkers to detect early signs of chronic diseases, providing risk assessments and recommendations while maintaining HIPAA compliance and patient privacy.',
-        totalSeats: 18,
-        seatsBooked: 4
-      },
-      {
-        id: 'healthcare2',
-        code: 'PS 2',
-        title: 'Telemedicine Platform with Remote Monitoring',
-        description: 'Design a comprehensive telemedicine platform that integrates real-time patient monitoring, wearable device data, and virtual consultations to provide continuous care for patients with chronic conditions in remote or underserved areas.',
-        totalSeats: 20,
-        seatsBooked: 13
-      },
-      {
-        id: 'healthcare3',
-        code: 'PS 3',
-        title: 'Medical Supply Chain Transparency System',
-        description: 'Develop a blockchain-enabled supply chain tracking system for pharmaceuticals and medical equipment that ensures authenticity, prevents counterfeit products, and maintains complete traceability from manufacturer to patient.',
-        totalSeats: 15,
-        seatsBooked: 7
-      }
-    ],
-    iot: [
-      {
-        id: 'iot1',
-        code: 'PS 1',
-        title: 'Sky-Glow Sentinel (Urban Light Pollution Mapping)',
-        description: 'Urban light pollution creates skyglow that obscures stars and disrupts natural biological cycles. The objective is to design a high-sensitivity Sky Quality Monitoring system capable of accurately measuring night-sky brightness in urban environments.',
-        totalSeats: 12,
-        seatsBooked: 7
-      },
-      {
-        id: 'iot2',
-        code: 'PS 2',
-        title: 'Decentralized Communication in Infrastructure-Denied Environments',
-        description: 'Modern communication systems fail in environments without internet, cellular networks, Wi-Fi, or cloud access. The objective is to develop a decentralized, peer-to-peer hardware communication network that enables reliable data exchange.',
-        totalSeats: 10,
-        seatsBooked: 1
-      },
-      {
-        id: 'iot3',
-        code: 'PS 3',
-        title: 'Smart Parking Occupancy Detection System',
-        description: 'In urban areas, drivers spend significant time searching for vacant parking spaces, leading to traffic congestion and fuel wastage. The objective is to design a low-cost IoT-based system that detects parking spot occupancy in real time.',
-        totalSeats: 16,
-        seatsBooked: 11
-      }
-    ]
-  };
+    };
+
+    load();
+
+    return () => {
+      if (channel) supabase.removeChannel(channel);
+    };
+  }, []);
 
   const domainNames = {
     ai: 'AI/ML - Artificial Intelligence & Machine Learning',
@@ -1063,7 +1014,7 @@ export default function TeamDashboard() {
                           alignItems: 'center',
                           justifyContent: 'center',
                           fontWeight: 'bold'
-                        }}>03</span>
+                        }}>04</span>
                         <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Challenges</span>
                       </div>
                     </div>

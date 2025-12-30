@@ -8,10 +8,11 @@ SELECT
   t.id as team_id,
   t.team_name,
   COALESCE(s.total_score, 0) as total_score,
-  s.innovation_score,
-  s.implementation_score,
-  s.presentation_score,
-  s.impact_score
+  s.ideavortex,
+  s.review_1,
+  s.review_2,
+  s.review_3,
+  s.pitch_vortex
 FROM teams t
 LEFT JOIN scorecards s ON t.id = s.team_id
 ORDER BY COALESCE(s.total_score, 0) DESC, t.team_name ASC;

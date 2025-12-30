@@ -48,18 +48,20 @@ BEGIN
   -- Record the new score in history
   INSERT INTO scorecard_history (
     team_id,
-    innovation_score,
-    implementation_score,
-    presentation_score,
-    impact_score,
+    ideavortex,
+    review_1,
+    review_2,
+    review_3,
+    pitch_vortex,
     total_score,
     snapshot_type
   ) VALUES (
     NEW.team_id,
-    NEW.innovation_score,
-    NEW.implementation_score,
-    NEW.presentation_score,
-    NEW.impact_score,
+    NEW.ideavortex,
+    NEW.review_1,
+    NEW.review_2,
+    NEW.review_3,
+    NEW.pitch_vortex,
     NEW.total_score,
     CASE 
       WHEN TG_OP = 'INSERT' THEN 'initial'

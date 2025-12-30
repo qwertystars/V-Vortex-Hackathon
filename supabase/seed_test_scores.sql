@@ -6,13 +6,13 @@
 
 -- Example test data structure (customize with real team IDs):
 /*
-INSERT INTO scorecards (team_id, innovation_score, implementation_score, presentation_score, impact_score, judge_comments)
+INSERT INTO scorecards (team_id, ideavortex, review_1, review_2, review_3, pitch_vortex, judge_comments)
 VALUES 
-  ('TEAM_ID_1', 85, 90, 78, 82, 'Excellent innovation and solid implementation'),
-  ('TEAM_ID_2', 92, 88, 95, 89, 'Outstanding presentation with great impact'),
-  ('TEAM_ID_3', 75, 80, 70, 77, 'Good effort, needs improvement in presentation'),
-  ('TEAM_ID_4', 88, 85, 92, 86, 'Well-rounded project with strong execution'),
-  ('TEAM_ID_5', 70, 72, 68, 71, 'Decent concept, implementation could be better');
+  ('TEAM_ID_1', 85, 90, 78, 82, 80, 'Excellent innovation and solid implementation'),
+  ('TEAM_ID_2', 92, 88, 95, 89, 90, 'Outstanding presentation with great impact'),
+  ('TEAM_ID_3', 75, 80, 70, 77, 72, 'Good effort, needs improvement in presentation'),
+  ('TEAM_ID_4', 88, 85, 92, 86, 88, 'Well-rounded project with strong execution'),
+  ('TEAM_ID_5', 70, 72, 68, 71, 70, 'Decent concept, implementation could be better');
 */
 
 -- Or use this dynamic approach to add scores to ALL existing teams:
@@ -25,15 +25,17 @@ BEGIN
   FOR team_record IN SELECT id FROM teams LOOP
     INSERT INTO scorecards (
       team_id, 
-      innovation_score, 
-      implementation_score, 
-      presentation_score, 
-      impact_score,
+      ideavortex,
+      review_1,
+      review_2,
+      review_3,
+      pitch_vortex,
       judge_comments
     )
     VALUES (
       team_record.id,
       FLOOR(RANDOM() * 40 + 60)::integer,  -- Random score between 60-100
+      FLOOR(RANDOM() * 40 + 60)::integer,
       FLOOR(RANDOM() * 40 + 60)::integer,
       FLOOR(RANDOM() * 40 + 60)::integer,
       FLOOR(RANDOM() * 40 + 60)::integer,
