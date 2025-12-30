@@ -165,7 +165,7 @@ export default function TeamDashboard() {
         ] = await Promise.all([
           supabase.from("teams").select("*").eq("id", teamId).single(),
           supabase.from("scorecards").select("*").eq("team_id", teamId).single(),
-          supabase.from("leaderboard_view").select("position, team_id, team_name, total_score AS score, 0 AS delta, ideavortex, review_1, review_2, review_3, pitch_vortex").order("position", { ascending: true }),
+          supabase.from("leaderboard_view").select("*").order("position", { ascending: true }),
           supabase.from("team_members").select("*").eq("team_id", teamId)
         ]);
 
@@ -202,9 +202,30 @@ export default function TeamDashboard() {
         .select('*')
         .order('position', { ascending: true });
       if (error) throw error;
-      setLeaderboard(data || []);
+      // Normalize returned rows: some view versions expose `score` or `total_score`
+      const normalized = (data || []).map(r => ({ ...r, score: r.score ?? r.total_score ?? 0, delta: r.delta ?? 0 }));
+      setLeaderboard(normalized);
     } catch (err) {
       console.error('Failed to refresh leaderboard:', err);
+    }
+  };
+
+  // Helper to refresh the current team's scorecard
+  const refreshScorecard = async () => {
+    if (!teamId) return;
+    try {
+      const { data, error } = await supabase.from('scorecards').select('*').eq('team_id', teamId).single();
+      if (error) {
+        // if no row found, clear scorecard
+        if (error.code === 'PGRST116' || /No rows? returned/.test(error.message || '')) {
+          setScorecard(null);
+          return;
+        }
+        throw error;
+      }
+      setScorecard(data || null);
+    } catch (err) {
+      console.error('Failed to refresh scorecard:', err);
     }
   };
 
@@ -213,13 +234,17 @@ export default function TeamDashboard() {
     const channel = supabase
       .channel('public:leaderboard_updates')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'scorecards' }, () => {
+        // leaderboard ranking changes and per-team score may change
         refreshLeaderboard();
+        refreshScorecard();
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'teams' }, () => {
         refreshLeaderboard();
+        refreshScorecard();
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'scorecard_history' }, () => {
         refreshLeaderboard();
+        refreshScorecard();
       })
       .subscribe();
 
@@ -495,12 +520,13 @@ export default function TeamDashboard() {
                 ] = await Promise.all([
                   supabase.from("teams").select("*").eq("id", teamId).single(),
                   supabase.from("team_members").select("*").eq("team_id", teamId),
-                  supabase.from("leaderboard_view").select("position, team_id, team_name, total_score AS score, 0 AS delta, ideavortex, review_1, review_2, review_3, pitch_vortex").order("position", { ascending: true })
+                  supabase.from("leaderboard_view").select("*").order("position", { ascending: true })
                 ]);
                 
                 setTeam(updatedTeam);
                 setTeamMembers(updatedMembers || []);
-                setLeaderboard(updatedLeaderboard || []);
+                const norm = (updatedLeaderboard || []).map(r => ({ ...r, score: r.score ?? r.total_score ?? 0, delta: r.delta ?? 0 }));
+                setLeaderboard(norm);
                 setActiveTab("vortex");
               }}
             />

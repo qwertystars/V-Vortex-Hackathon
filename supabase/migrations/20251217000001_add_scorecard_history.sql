@@ -7,7 +7,8 @@ CREATE TABLE scorecard_history (
     ideavortex INTEGER NOT NULL CHECK (ideavortex >= 0 AND ideavortex <= 100),
     review_1 INTEGER NOT NULL CHECK (review_1 >= 0 AND review_1 <= 100),
     review_2 INTEGER NOT NULL CHECK (review_2 >= 0 AND review_2 <= 100),
-    review_3 INTEGER NOT NULL CHECK (review_3 >= 0 AND review_3 <= 100),
+    -- Review 3 is weighted in admin UI; allow up to 165 in history snapshots as well
+    review_3 INTEGER NOT NULL CHECK (review_3 >= 0 AND review_3 <= 165),
     pitch_vortex INTEGER NOT NULL CHECK (pitch_vortex >= 0 AND pitch_vortex <= 100),
     total_score INTEGER NOT NULL,
   
