@@ -14,6 +14,7 @@ export default function AdminDashboard() {
   const [authError, setAuthError] = useState("");
   const [exporting, setExporting] = useState(false);
   const [teams, setTeams] = useState([]);
+  const [teamQuery, setTeamQuery] = useState('');
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [review1Open, setReview1Open] = useState(false);
   const [review1Scores, setReview1Scores] = useState({});
@@ -23,6 +24,8 @@ export default function AdminDashboard() {
   const [review3Scores, setReview3Scores] = useState({});
   const [ideaOpen, setIdeaOpen] = useState(false);
   const [ideaScores, setIdeaScores] = useState({});
+  const [pitchOpen, setPitchOpen] = useState(false);
+  const [pitchScores, setPitchScores] = useState({});
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -346,10 +349,29 @@ export default function AdminDashboard() {
       {/* LARGE PANEL BELOW */}
       <div className="adminPanel" style={{display:'flex', gap:20, alignItems:'flex-start'}}>
         <div style={{flex:'0 0 320px'}}>
-          <h2 className="panelTitle">Teams</h2>
+          <h2 className="panelTitle">Teams <span style={{fontSize:12, color:'#9ca3af', marginLeft:8}}>{teams.length} total</span></h2>
+          <div style={{marginBottom:8, display:'flex', gap:8, alignItems:'center'}}>
+            <input
+              aria-label="Search teams by name"
+              placeholder="Search team name..."
+              value={teamQuery}
+              onChange={(e) => setTeamQuery(e.target.value)}
+              style={{flex:1, padding:8, borderRadius:6, border:'1px solid rgba(255,255,255,0.06)'}}
+            />
+            {teamQuery && (
+              <button onClick={() => setTeamQuery('')} className="logoutBtn" style={{padding:'8px 10px'}}>Clear</button>
+            )}
+          </div>
           <div style={{background:'rgba(0,0,0,0.5)', borderRadius:8, padding:12, maxHeight:480, overflow:'auto'}}>
             {teams.length === 0 && <div style={{color:'#9ca3af'}}>No teams found.</div>}
-                {teams.map(t => (
+                {teams
+                  .filter(t => {
+                    if (!teamQuery) return true;
+                    try {
+                      return (t.team_name || '').toLowerCase().includes(teamQuery.toLowerCase());
+                    } catch (e) { return true; }
+                  })
+                  .map(t => (
                   <div key={t.id} onClick={() => setSelectedTeam(t)} style={{padding:10, borderRadius:6, cursor:'pointer', marginBottom:8, background: selectedTeam?.id === t.id ? 'rgba(0,255,157,0.07)' : 'transparent'}}>
                     <strong style={{color:'#e6fffa'}}>{t.team_name || '(Unnamed)'}</strong>
                     <div style={{fontSize:12, color:'#9ca3af'}}>{t.lead_name || t.lead_email || ''}</div>
@@ -405,9 +427,26 @@ export default function AdminDashboard() {
                             <div style={{color:'#9ca3af'}}>{scores.presentation}</div>
                           </div>
 
-                          <div style={{display:'flex', justifyContent:'flex-end', marginTop:6}}>
+                          <div style={{display:'flex', justifyContent:'flex-end', marginTop:6, gap:8}}>
                             <div style={{background:'rgba(255,255,255,0.02)', padding:'8px 12px', borderRadius:8, color:'#e6fffa'}}>
                               <strong>IdeaVortex Weighted Total:</strong> {weighted} / 65
+                            </div>
+                            <div>
+                              <button className="logoutBtn" onClick={async () => {
+                                try {
+                                  const { error } = await supabase.from('scorecards').upsert({ team_id: selectedTeam.id, ideavortex: Number(weighted) }, { onConflict: 'team_id' });
+                                  if (error) throw error;
+                                  const { data: refreshedTeams } = await supabase.from('teams').select('id, team_name, lead_name, lead_email, domain, problem_statement, team_members(member_name)').order('team_name', { ascending: true });
+                                  setTeams(refreshedTeams || []);
+                                  const updated = refreshedTeams?.find(t => t.id === selectedTeam.id) || selectedTeam;
+                                  setSelectedTeam(updated);
+                                  setIdeaOpen(false);
+                                } catch (err) {
+                                  console.error('Failed to save idea score:', err);
+                                  alert('Failed to save idea score: ' + (err.message || err));
+                                }
+                              }}>Update Score</button>
+                              <button className="logoutBtn" onClick={closeIdea} style={{marginLeft:8}}>Cancel</button>
                             </div>
                           </div>
                         </div>
@@ -469,9 +508,25 @@ export default function AdminDashboard() {
                     </div>
                   </div>
 
-                  <div style={{flex:'1 1 180px', minWidth:140, background:'rgba(255,255,255,0.02)', border:'1px solid rgba(255,255,255,0.03)', padding:12, borderRadius:8}}>
+                  <div onClick={async () => {
+                      if (!selectedTeam) return;
+                      setPitchOpen(true);
+                      // load existing pitch score if any
+                      try {
+                        const { data, error } = await supabase.from('scorecards').select('pitch_vortex').eq('team_id', selectedTeam.id).single();
+                        if (!error && data) {
+                          setPitchScores(prev => ({ ...prev, [selectedTeam.id]: data.pitch_vortex ?? 0 }));
+                        } else {
+                          setPitchScores(prev => ({ ...prev, [selectedTeam.id]: 0 }));
+                        }
+                      } catch (e) {
+                        setPitchScores(prev => ({ ...prev, [selectedTeam.id]: 0 }));
+                      }
+                    }} style={{cursor: selectedTeam ? 'pointer' : 'not-allowed', flex:'1 1 180px', minWidth:140, background:'rgba(255,255,255,0.02)', border:'1px solid rgba(255,255,255,0.03)', padding:12, borderRadius:8}}>
                     <div style={{fontSize:12, color:'#9ca3af', marginBottom:8}}>PitchVortex</div>
-                    <div style={{height:60, background:'rgba(0,0,0,0.35)', borderRadius:6}} />
+                    <div style={{height:60, background:'rgba(0,0,0,0.35)', borderRadius:6, display:'flex', alignItems:'center', justifyContent:'center'}}>
+                      <small style={{color:'#9ca3af'}}>{selectedTeam ? 'Click to enter manual score' : 'Select a team'}</small>
+                    </div>
                   </div>
                 </div>
 
@@ -527,9 +582,28 @@ export default function AdminDashboard() {
                               <div style={{color:'#9ca3af'}}>{scores.planning}</div>
                             </div>
 
-                            <div style={{display:'flex', justifyContent:'flex-end', marginTop:6}}>
+                            <div style={{display:'flex', justifyContent:'flex-end', marginTop:6, gap:8}}>
                               <div style={{background:'rgba(255,255,255,0.02)', padding:'8px 12px', borderRadius:8, color:'#e6fffa'}}>
                                 <strong>Review 1 Total:</strong> {scores.review_1_total ?? (Number(scores.faculty||0)+Number(scores.idea||0)+Number(scores.technical||0)+Number(scores.architecture||0)+Number(scores.innovation||0)+Number(scores.planning||0))} / 50
+                              </div>
+                              <div>
+                                <button className="logoutBtn" onClick={async () => {
+                                  const total = Number(scores.review_1_total ?? (Number(scores.faculty||0)+Number(scores.idea||0)+Number(scores.technical||0)+Number(scores.architecture||0)+Number(scores.innovation||0)+Number(scores.planning||0)));
+                                  try {
+                                    const { error } = await supabase.from('scorecards').upsert({ team_id: selectedTeam.id, review_1: total }, { onConflict: 'team_id' });
+                                    if (error) throw error;
+                                    // refresh teams list and selected team
+                                    const { data: refreshedTeams } = await supabase.from('teams').select('id, team_name, lead_name, lead_email, domain, problem_statement, team_members(member_name)').order('team_name', { ascending: true });
+                                    setTeams(refreshedTeams || []);
+                                    const updated = refreshedTeams?.find(t => t.id === selectedTeam.id) || selectedTeam;
+                                    setSelectedTeam(updated);
+                                    setReview1Open(false);
+                                  } catch (err) {
+                                    console.error('Failed to save review1 score:', err);
+                                    alert('Failed to save review score: ' + (err.message || err));
+                                  }
+                                }}>Update Score</button>
+                                <button className="logoutBtn" onClick={closeReview1} style={{marginLeft:8}}>Cancel</button>
                               </div>
                             </div>
 
@@ -597,9 +671,27 @@ export default function AdminDashboard() {
                               <div style={{color:'#9ca3af'}}>{scores.roadmap}</div>
                             </div>
 
-                            <div style={{display:'flex', justifyContent:'flex-end', marginTop:6}}>
+                            <div style={{display:'flex', justifyContent:'flex-end', marginTop:6, gap:8}}>
                               <div style={{background:'rgba(255,255,255,0.02)', padding:'8px 12px', borderRadius:8, color:'#e6fffa'}}>
                                 <strong>Review 2 Total:</strong> {scores.review_2_total ?? (Number(scores.progress||0)+Number(scores.demo||0)+Number(scores.code||0)+Number(scores.difficulty||0)+Number(scores.fit||0)+Number(scores.workflow||0)+Number(scores.roadmap||0))} / 50
+                              </div>
+                              <div>
+                                <button className="logoutBtn" onClick={async () => {
+                                  const total = Number(scores.review_2_total ?? (Number(scores.progress||0)+Number(scores.demo||0)+Number(scores.code||0)+Number(scores.difficulty||0)+Number(scores.fit||0)+Number(scores.workflow||0)+Number(scores.roadmap||0)));
+                                  try {
+                                    const { error } = await supabase.from('scorecards').upsert({ team_id: selectedTeam.id, review_2: total }, { onConflict: 'team_id' });
+                                    if (error) throw error;
+                                    const { data: refreshedTeams } = await supabase.from('teams').select('id, team_name, lead_name, lead_email, domain, problem_statement, team_members(member_name)').order('team_name', { ascending: true });
+                                    setTeams(refreshedTeams || []);
+                                    const updated = refreshedTeams?.find(t => t.id === selectedTeam.id) || selectedTeam;
+                                    setSelectedTeam(updated);
+                                    setReview2Open(false);
+                                  } catch (err) {
+                                    console.error('Failed to save review2 score:', err);
+                                    alert('Failed to save review score: ' + (err.message || err));
+                                  }
+                                }}>Update Score</button>
+                                <button className="logoutBtn" onClick={closeReview2} style={{marginLeft:8}}>Cancel</button>
                               </div>
                             </div>
                           </div>
@@ -672,10 +764,83 @@ export default function AdminDashboard() {
                               <div style={{color:'#9ca3af'}}>{scores.response}</div>
                             </div>
 
-                            <div style={{display:'flex', justifyContent:'flex-end', marginTop:6}}>
+                            <div style={{display:'flex', justifyContent:'flex-end', marginTop:6, gap:8}}>
                               <div style={{background:'rgba(255,255,255,0.02)', padding:'8px 12px', borderRadius:8, color:'#e6fffa'}}>
                                 <strong>Review 3 Total (weighted):</strong> {Math.round((scores.review_3_total ?? (Number(scores.final_product||0)+Number(scores.technical||0)+Number(scores.innovation||0)+Number(scores.uiux||0)+Number(scores.impact||0)+Number(scores.presentation||0)+Number(scores.docs||0)+Number(scores.response||0))) * 3.3)} / 165
                               </div>
+                              <div>
+                                <button className="logoutBtn" onClick={async () => {
+                                  const raw = Number(scores.review_3_total ?? (Number(scores.final_product||0)+Number(scores.technical||0)+Number(scores.innovation||0)+Number(scores.uiux||0)+Number(scores.impact||0)+Number(scores.presentation||0)+Number(scores.docs||0)+Number(scores.response||0)));
+                                  const weighted = Math.round(raw * 3.3);
+                                  try {
+                                    const { error } = await supabase.from('scorecards').upsert({ team_id: selectedTeam.id, review_3: weighted }, { onConflict: 'team_id' });
+                                    if (error) throw error;
+                                    const { data: refreshedTeams } = await supabase.from('teams').select('id, team_name, lead_name, lead_email, domain, problem_statement, team_members(member_name)').order('team_name', { ascending: true });
+                                    setTeams(refreshedTeams || []);
+                                    const updated = refreshedTeams?.find(t => t.id === selectedTeam.id) || selectedTeam;
+                                    setSelectedTeam(updated);
+                                    setReview3Open(false);
+                                  } catch (err) {
+                                    console.error('Failed to save review3 score:', err);
+                                    alert('Failed to save review score: ' + (err.message || err));
+                                  }
+                                }}>Update Score</button>
+                                <button className="logoutBtn" onClick={closeReview3} style={{marginLeft:8}}>Cancel</button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                )}
+                {pitchOpen && selectedTeam && (
+                  <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1200}}>
+                    <div style={{width:'min(520px,96%)', maxHeight:'90vh', overflowY:'auto', background:'#0b1620', borderRadius:10, padding:18, boxShadow:'0 10px 30px rgba(0,0,0,0.6)'}}>
+                      <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12}}>
+                        <h3 style={{margin:0, color:'#fff'}}>PitchVortex — {selectedTeam.team_name}</h3>
+                        <div>
+                          <button onClick={() => setPitchOpen(false)} className="logoutBtn" style={{marginLeft:8}}>Close</button>
+                        </div>
+                      </div>
+
+                      <div style={{color:'#cbd5e1', marginBottom:12}}>Enter a manual overall score for the Pitch round (0–100).</div>
+
+                      {(() => {
+                        const current = pitchScores[selectedTeam.id] ?? 0;
+                        return (
+                          <div style={{display:'grid', gridTemplateColumns:'1fr', gap:12}}>
+                            <div style={{background:'rgba(255,255,255,0.02)', padding:12, borderRadius:8}}>
+                              <input
+                                type="number"
+                                min={0}
+                                max={100}
+                                step={1}
+                                value={current}
+                                onChange={(e) => setPitchScores(prev => ({ ...prev, [selectedTeam.id]: Number(e.target.value) }))}
+                                style={{width:'100%', padding:8, borderRadius:6}}
+                              />
+                              <div style={{color:'#9ca3af', marginTop:8}}>Current: {current}</div>
+                            </div>
+
+                            <div style={{display:'flex', justifyContent:'flex-end', gap:8}}>
+                              <button className="logoutBtn" onClick={async () => {
+                                const val = Number(pitchScores[selectedTeam.id] ?? 0);
+                                try {
+                                  // upsert the pitch_vortex value for the team's scorecard
+                                  const { data, error } = await supabase.from('scorecards').upsert(
+                                    { team_id: selectedTeam.id, pitch_vortex: val },
+                                    { onConflict: 'team_id' }
+                                  );
+                                  if (error) throw error;
+                                  setPitchOpen(false);
+                                  // Optionally refresh leaderboard/teams if needed
+                                } catch (err) {
+                                  console.error('Failed to save pitch score:', err);
+                                  alert('Failed to save pitch score: ' + (err.message || err));
+                                }
+                              }}>Save</button>
+                              <button className="logoutBtn" onClick={() => setPitchOpen(false)}>Cancel</button>
                             </div>
                           </div>
                         );

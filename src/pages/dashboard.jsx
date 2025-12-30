@@ -165,7 +165,7 @@ export default function TeamDashboard() {
         ] = await Promise.all([
           supabase.from("teams").select("*").eq("id", teamId).single(),
           supabase.from("scorecards").select("*").eq("team_id", teamId).single(),
-          supabase.from("leaderboard_view").select("*").order("position", { ascending: true }),
+          supabase.from("leaderboard_view").select("position, team_id, team_name, total_score AS score, 0 AS delta, ideavortex, review_1, review_2, review_3, pitch_vortex").order("position", { ascending: true }),
           supabase.from("team_members").select("*").eq("team_id", teamId)
         ]);
 
@@ -193,6 +193,40 @@ export default function TeamDashboard() {
 
     init();
   }, [teamId, navigate]);
+
+  // Helper to refresh leaderboard from the DB
+  const refreshLeaderboard = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('leaderboard_view')
+        .select('*')
+        .order('position', { ascending: true });
+      if (error) throw error;
+      setLeaderboard(data || []);
+    } catch (err) {
+      console.error('Failed to refresh leaderboard:', err);
+    }
+  };
+
+  // Subscribe to realtime changes so leaderboard updates automatically
+  useEffect(() => {
+    const channel = supabase
+      .channel('public:leaderboard_updates')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'scorecards' }, () => {
+        refreshLeaderboard();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'teams' }, () => {
+        refreshLeaderboard();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'scorecard_history' }, () => {
+        refreshLeaderboard();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   /* ===============================
      LIVE CLOCK
@@ -461,7 +495,7 @@ export default function TeamDashboard() {
                 ] = await Promise.all([
                   supabase.from("teams").select("*").eq("id", teamId).single(),
                   supabase.from("team_members").select("*").eq("team_id", teamId),
-                  supabase.from("leaderboard_view").select("*").order("position", { ascending: true })
+                  supabase.from("leaderboard_view").select("position, team_id, team_name, total_score AS score, 0 AS delta, ideavortex, review_1, review_2, review_3, pitch_vortex").order("position", { ascending: true })
                 ]);
                 
                 setTeam(updatedTeam);
