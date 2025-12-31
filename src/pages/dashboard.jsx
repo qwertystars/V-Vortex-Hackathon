@@ -611,6 +611,35 @@ export default function TeamDashboard() {
                   </div>
                 </div>
               )}
+              {/* ===== SCORECARD (per-round breakdown) ===== */}
+              {scorecard && (
+                <div style={{ maxWidth: 800, margin: '0.5rem auto 2rem', padding: '0.75rem 1rem', borderRadius: 8, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.03)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <h3 style={{ margin: 0, color: '#e9d5ff' }}>Scorecard</h3>
+                    <div style={{ fontSize: 12, color: '#9ca3af' }}>Per-round breakdown</div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px', rowGap: 8, columnGap: 16, alignItems: 'center' }}>
+                    <div style={{ color: '#9ca3af' }}>IdeaVortex</div>
+                    <div style={{ textAlign: 'right', fontWeight: 700 }}>{scorecard.ideavortex ?? 0} PTS</div>
+
+                    <div style={{ color: '#9ca3af' }}>Review 1</div>
+                    <div style={{ textAlign: 'right', fontWeight: 700 }}>{scorecard.review_1 ?? 0} PTS</div>
+
+                    <div style={{ color: '#9ca3af' }}>Review 2</div>
+                    <div style={{ textAlign: 'right', fontWeight: 700 }}>{scorecard.review_2 ?? 0} PTS</div>
+
+                    <div style={{ color: '#9ca3af' }}>Review 3</div>
+                    <div style={{ textAlign: 'right', fontWeight: 700 }}>{scorecard.review_3 ?? 0} PTS</div>
+
+                    <div style={{ color: '#9ca3af' }}>Pitch Vortex</div>
+                    <div style={{ textAlign: 'right', fontWeight: 700 }}>{scorecard.pitch_vortex ?? 0} PTS</div>
+
+                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: 8, color: '#9ca3af' }}>Total</div>
+                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: 8, textAlign: 'right', fontWeight: 900 }}>{scorecard.total_score ?? 0} PTS</div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
