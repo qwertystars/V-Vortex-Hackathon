@@ -15,6 +15,10 @@ export default function AdminDashboard() {
   const [exporting, setExporting] = useState(false);
   const [teams, setTeams] = useState([]);
   const [teamQuery, setTeamQuery] = useState('');
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [lbLoading, setLbLoading] = useState(false);
+  const [leaderboardPublic, setLeaderboardPublic] = useState(false);
+  const [lbToggleLoading, setLbToggleLoading] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [review1Open, setReview1Open] = useState(false);
   const [review1Scores, setReview1Scores] = useState({});
@@ -78,6 +82,57 @@ export default function AdminDashboard() {
 
     loadTeams();
   }, [isAdmin]);
+
+  // Helper to refresh leaderboard from the DB
+  const refreshLeaderboard = async () => {
+    setLbLoading(true);
+    try {
+      const { data, error } = await supabase.from('leaderboard_view').select('*').order('position', { ascending: true });
+      if (error) throw error;
+      setLeaderboard(data || []);
+    } catch (err) {
+      console.error('Failed to refresh leaderboard:', err);
+      setLeaderboard([]);
+    } finally {
+      setLbLoading(false);
+    }
+  };
+
+  // Load leaderboard when admin is confirmed
+  useEffect(() => {
+    if (!isAdmin) return;
+    refreshLeaderboard();
+  }, [isAdmin]);
+
+  // Load leaderboard visibility setting
+  useEffect(() => {
+    if (!isAdmin) return;
+    const loadSetting = async () => {
+      try {
+        const { data, error } = await supabase.from('app_settings').select('leaderboard_public').eq('id', 'main').single();
+        if (!error && data) setLeaderboardPublic(!!data.leaderboard_public);
+      } catch (err) {
+        console.error('Failed to load leaderboard visibility setting:', err);
+      }
+    };
+    loadSetting();
+  }, [isAdmin]);
+
+  // Toggle leaderboard visibility
+  const toggleLeaderboardPublic = async () => {
+    setLbToggleLoading(true);
+    try {
+      const newVal = !leaderboardPublic;
+      const { error } = await supabase.from('app_settings').update({ leaderboard_public: newVal, updated_at: new Date().toISOString() }).eq('id', 'main');
+      if (error) throw error;
+      setLeaderboardPublic(newVal);
+    } catch (err) {
+      console.error('Failed to toggle leaderboard visibility:', err);
+      alert('Failed to update setting: ' + (err.message || err));
+    } finally {
+      setLbToggleLoading(false);
+    }
+  };
 
   // Sign in handler for admin access via URL only (no button on main pages)
   const handleSignIn = async (e) => {
@@ -378,8 +433,35 @@ export default function AdminDashboard() {
                   </div>
                 ))}
                 </div>
+
+          <div style={{marginTop:12}}>
+            <h3 style={{margin:'6px 0', color:'#e6fffa', display:'flex', alignItems:'center', justifyContent:'space-between'}}>
+              <span>Leaderboard</span>
+              <div style={{display:'flex', gap:8, alignItems:'center'}}>
+                <label style={{display:'flex', alignItems:'center', gap:6, cursor:'pointer', fontSize:12, color: leaderboardPublic ? '#00ff9d' : '#9ca3af'}}>
+                  <input type="checkbox" checked={leaderboardPublic} onChange={toggleLeaderboardPublic} disabled={lbToggleLoading} style={{width:16, height:16, accentColor:'#00ff9d'}} />
+                  {leaderboardPublic ? 'Public' : 'Hidden'}
+                </label>
+                <button className="logoutBtn" onClick={refreshLeaderboard} style={{padding:'6px 8px', fontSize:12}} disabled={lbLoading}>{lbLoading ? 'Refreshing…' : 'Refresh'}</button>
+              </div>
+            </h3>
+            <div style={{background:'rgba(0,0,0,0.5)', borderRadius:8, padding:10, maxHeight:400, overflow:'auto'}}>
+              {leaderboard.length === 0 && !lbLoading && <div style={{color:'#9ca3af'}}>No leaderboard data.</div>}
+              {lbLoading && <div style={{color:'#9ca3af'}}>Loading…</div>}
+              {leaderboard.map((row, idx) => (
+                <div key={row.team_id || idx} style={{display:'flex', justifyContent:'space-between', padding:'8px 6px', borderBottom:'1px solid rgba(255,255,255,0.02)'}}>
+                  <div style={{display:'flex', gap:8, alignItems:'center'}}>
+                    <div style={{width:28, height:28, borderRadius:6, background:'rgba(255,255,255,0.02)', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:700}}>{row.position}</div>
+                    <div style={{color:'#e6fffa'}}>{row.team_name}</div>
+                  </div>
+                  <div style={{color:'#9ca3af'}}>{row.score ?? '—'}</div>
+                </div>
+              ))}
             </div>
-    
+          </div>
+
+            </div>
+
             {ideaOpen && selectedTeam && (
                 <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1200}}>
                   <div style={{width:'min(920px,96%)', maxHeight:'90vh', overflowY:'auto', background:'#0b1620', borderRadius:10, padding:18, boxShadow:'0 10px 30px rgba(0,0,0,0.6)'}}>

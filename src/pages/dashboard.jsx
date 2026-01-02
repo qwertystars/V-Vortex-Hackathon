@@ -13,6 +13,7 @@ export default function TeamDashboard() {
   const [team, setTeam] = useState(null);
   const [scorecard, setScorecard] = useState(null);
   const [leaderboard, setLeaderboard] = useState([]);
+  const [leaderboardPublic, setLeaderboardPublic] = useState(true);
   const [loading, setLoading] = useState(true);
   const [time, setTime] = useState("");
   const [activeTab, setActiveTab] = useState("vortex");
@@ -154,6 +155,15 @@ export default function TeamDashboard() {
       if (!user) {
         navigate("/login");
         return;
+      }
+
+      try {
+        const [settingsRes] = await Promise.all([
+          supabase.from('app_settings').select('leaderboard_public').eq('id', 'main').single()
+        ]);
+        if (settingsRes.data) setLeaderboardPublic(!!settingsRes.data.leaderboard_public);
+      } catch (err) {
+        console.error('Failed to load app settings:', err);
       }
 
       try {
@@ -646,6 +656,14 @@ export default function TeamDashboard() {
           {/* ===== LEADERBOARD ===== */}
           {activeTab === "leaderboard" && (
             <>
+              {!leaderboardPublic ? (
+                <div style={{textAlign:'center', padding:'60px 20px', background:'rgba(0,0,0,0.3)', borderRadius:12, marginTop:20}}>
+                  <div style={{fontSize:48, marginBottom:16}}>🔒</div>
+                  <h2 style={{color:'#e6fffa', marginBottom:8}}>Leaderboard Coming Soon</h2>
+                  <p style={{color:'#9ca3af'}}>The leaderboard will be made public once the results are released.</p>
+                </div>
+              ) : (
+              <>
               <div className="statsGrid">
                 <div className="statCard">
                   <div className="statLabel">TACTICAL RANK</div>
@@ -707,6 +725,8 @@ export default function TeamDashboard() {
                   );
                 })}
               </div>
+              </>
+              )}
             </>
           )}
 
