@@ -180,8 +180,9 @@ export default function TeamDashboard() {
         ]);
 
         if (teamData) {
-          const isLeader = teamData.lead_email === user.email;
-          const isMember = membersData?.some(m => m.member_email === user.email);
+          const userEmail = user.email?.toLowerCase();
+          const isLeader = teamData.lead_email?.toLowerCase() === userEmail;
+          const isMember = membersData?.some(m => m.member_email?.toLowerCase() === userEmail);
           
           if (!isLeader && !isMember) {
             alert("You don't have access to this team dashboard.");
