@@ -351,6 +351,8 @@ export default function TeamDashboard() {
     };
   };
 
+  const getChallengeCount = (domain) => String(problemStatements[domain]?.length || 0).padStart(2, '0');
+
   const handleDomainSelect = (domain) => {
     if (isSubmitted || isSubmittingSelection) return;
     const domainSeats = getDomainSeats(domain);
@@ -844,7 +846,7 @@ export default function TeamDashboard() {
                           alignItems: 'center',
                           justifyContent: 'center',
                           fontWeight: 'bold'
-                        }}>03</span>
+                          }}>{getChallengeCount('ai')}</span>
                         <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Challenges</span>
                       </div>
                     </div>
@@ -914,7 +916,7 @@ export default function TeamDashboard() {
                           alignItems: 'center',
                           justifyContent: 'center',
                           fontWeight: 'bold'
-                        }}>03</span>
+                          }}>{getChallengeCount('fintech')}</span>
                         <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Challenges</span>
                       </div>
                     </div>
@@ -984,7 +986,7 @@ export default function TeamDashboard() {
                           alignItems: 'center',
                           justifyContent: 'center',
                           fontWeight: 'bold'
-                        }}>03</span>
+                          }}>{getChallengeCount('cybersecurity')}</span>
                         <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Challenges</span>
                       </div>
                     </div>
@@ -1054,7 +1056,7 @@ export default function TeamDashboard() {
                           alignItems: 'center',
                           justifyContent: 'center',
                           fontWeight: 'bold'
-                        }}>03</span>
+                          }}>{getChallengeCount('healthcare')}</span>
                         <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Challenges</span>
                       </div>
                     </div>
@@ -1124,7 +1126,7 @@ export default function TeamDashboard() {
                           alignItems: 'center',
                           justifyContent: 'center',
                           fontWeight: 'bold'
-                        }}>04</span>
+                          }}>{getChallengeCount('iot')}</span>
                         <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Challenges</span>
                       </div>
                     </div>

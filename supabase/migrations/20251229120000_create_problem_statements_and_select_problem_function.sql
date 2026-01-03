@@ -31,7 +31,7 @@ VALUES
   ('iot1', 'iot', 'PS 1', 'Sky-Glow Sentinel (Urban Light Pollution Mapping)', 'Design a high-sensitivity Sky Quality Monitoring system...', 10, 0),
   ('iot2', 'iot', 'PS 2', 'Decentralized Communication in Infrastructure-Denied Environments', 'Develop a decentralized, peer-to-peer hardware communication network...', 10, 0),
   ('iot3', 'iot', 'PS 3', 'Smart Parking Occupancy Detection System', 'Design a low-cost IoT-based system that detects parking spot occupancy...', 10, 0),
-  ('iot4', 'iot', 'PS 4', 'Autonomous Robotics Swarm Coordination', 'Design a system for coordinating multiple autonomous robots for cooperative tasks, including communication, collision avoidance, and distributed task allocation.', 10, 0)
+  ('cybersecurity4', 'cybersecurity', 'PS 4', 'Autonomous Threat Hunting & Response', 'Design an autonomous security system that proactively hunts for threats, analyzes attack patterns, and implements automated response mechanisms to neutralize cyber threats in real-time.', 10, 0)
 ON CONFLICT (id) DO NOTHING;
 
 -- Atomic selection function: verifies team lead, checks/locks seats, updates both tables in one transaction
