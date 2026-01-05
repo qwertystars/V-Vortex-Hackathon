@@ -251,18 +251,18 @@ export default function AdminDashboard() {
 
   const handleReview1Change = (teamId, key, value) => {
     setReview1Scores(prev => {
-      const teamScores = prev[teamId] || { faculty:0, idea:0, technical:0, architecture:0, innovation:0, planning:0, review_1_total:0 };
+      const teamScores = prev[teamId] || { architecture_flow:0, current_progress:0, qa_defense:0, review_1_total:0 };
       const updated = { ...teamScores, [key]: Number(value) };
-      const total = (Number(updated.faculty||0) + Number(updated.idea||0) + Number(updated.technical||0) + Number(updated.architecture||0) + Number(updated.innovation||0) + Number(updated.planning||0));
+      const total = (Number(updated.architecture_flow||0) + Number(updated.current_progress||0) + Number(updated.qa_defense||0));
       return { ...prev, [teamId]: { ...updated, review_1_total: total } };
     });
   };
 
   const handleReview2Change = (teamId, key, value) => {
     setReview2Scores(prev => {
-      const teamScores = prev[teamId] || { progress:0, demo:0, code:0, difficulty:0, fit:0, workflow:0, roadmap:0, review_2_total:0 };
+      const teamScores = prev[teamId] || { mvp_functionality:0, ui_usability:0, code_quality:0, review_2_total:0 };
       const updated = { ...teamScores, [key]: Number(value) };
-      const total = (Number(updated.progress||0) + Number(updated.demo||0) + Number(updated.code||0) + Number(updated.difficulty||0) + Number(updated.fit||0) + Number(updated.workflow||0) + Number(updated.roadmap||0));
+      const total = (Number(updated.mvp_functionality||0) + Number(updated.ui_usability||0) + Number(updated.code_quality||0));
       return { ...prev, [teamId]: { ...updated, review_2_total: total } };
     });
   };
@@ -271,9 +271,9 @@ export default function AdminDashboard() {
 
   const handleReview3Change = (teamId, key, value) => {
     setReview3Scores(prev => {
-      const teamScores = prev[teamId] || { final_product:0, technical:0, innovation:0, uiux:0, impact:0, presentation:0, docs:0, response:0, review_3_total:0 };
+      const teamScores = prev[teamId] || { final_demo:0, innovation:0, business_impact:0, review_3_total:0 };
       const updated = { ...teamScores, [key]: Number(value) };
-      const total = (Number(updated.final_product||0) + Number(updated.technical||0) + Number(updated.innovation||0) + Number(updated.uiux||0) + Number(updated.impact||0) + Number(updated.presentation||0) + Number(updated.docs||0) + Number(updated.response||0));
+      const total = (Number(updated.final_demo||0) + Number(updated.innovation||0) + Number(updated.business_impact||0));
       return { ...prev, [teamId]: { ...updated, review_3_total: total } };
     });
   };
@@ -282,9 +282,9 @@ export default function AdminDashboard() {
 
   const handleIdeaChange = (teamId, key, value) => {
     setIdeaScores(prev => {
-      const teamScores = prev[teamId] || { problem:0, innovation:0, approach:0, impact:0, presentation:0, idea_total:0 };
+      const teamScores = prev[teamId] || { requirement_check:0, solution_logic:0, feasibility:0, idea_total:0 };
       const updated = { ...teamScores, [key]: Number(value) };
-      const total = (Number(updated.problem||0) + Number(updated.innovation||0) + Number(updated.approach||0) + Number(updated.impact||0) + Number(updated.presentation||0));
+      const total = (Number(updated.requirement_check||0) + Number(updated.solution_logic||0) + Number(updated.feasibility||0));
       return { ...prev, [teamId]: { ...updated, idea_total: total } };
     });
   };
@@ -472,62 +472,52 @@ export default function AdminDashboard() {
                       </div>
                     </div>
 
-                    <div style={{color:'#cbd5e1', marginBottom:12}}>Score each category using the sliders. Raw total is scaled by 1.3 and rounded.</div>
+                    <div style={{color:'#cbd5e1', marginBottom:12}}>Score each category using the sliders. Total is out of 50.</div>
 
                     {(() => {
-                      const scores = ideaScores[selectedTeam.id] || { problem:0, innovation:0, approach:0, impact:0, presentation:0, idea_total:0 };
-                      const weighted = Math.round((scores.idea_total ?? (Number(scores.problem||0)+Number(scores.innovation||0)+Number(scores.approach||0)+Number(scores.impact||0)+Number(scores.presentation||0))) * 1.3);
+                      const scores = ideaScores[selectedTeam.id] || { requirement_check:0, solution_logic:0, feasibility:0, idea_total:0 };
+                      const total = scores.idea_total ?? (Number(scores.requirement_check||0) + Number(scores.solution_logic||0) + Number(scores.feasibility||0));
                       return (
                         <div style={{display:'grid', gridTemplateColumns:'1fr', gap:12}}>
                           <div style={{background:'rgba(255,255,255,0.02)', padding:12, borderRadius:8}}>
-                            <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Problem Understanding & Research</div>
-                            <input type="range" min={0} max={15} step={1} value={scores.problem} onChange={(e)=>handleIdeaChange(selectedTeam.id, 'problem', e.target.value)} />
-                            <div style={{color:'#9ca3af'}}>{scores.problem}</div>
+                            <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Requirement Check</div>
+                            <input type="range" min={0} max={20} step={1} value={scores.requirement_check} onChange={(e)=>handleIdeaChange(selectedTeam.id, 'requirement_check', e.target.value)} />
+                            <div style={{color:'#9ca3af'}}>{scores.requirement_check}</div>
                           </div>
 
                           <div style={{background:'rgba(255,255,255,0.02)', padding:12, borderRadius:8}}>
-                            <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Innovation & Creativity</div>
-                            <input type="range" min={0} max={15} step={1} value={scores.innovation} onChange={(e)=>handleIdeaChange(selectedTeam.id, 'innovation', e.target.value)} />
-                            <div style={{color:'#9ca3af'}}>{scores.innovation}</div>
+                            <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Solution Logic</div>
+                            <input type="range" min={0} max={15} step={1} value={scores.solution_logic} onChange={(e)=>handleIdeaChange(selectedTeam.id, 'solution_logic', e.target.value)} />
+                            <div style={{color:'#9ca3af'}}>{scores.solution_logic}</div>
                           </div>
 
                           <div style={{background:'rgba(255,255,255,0.02)', padding:12, borderRadius:8}}>
-                            <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Technical/Business Approach</div>
-                            <input type="range" min={0} max={7} step={1} value={scores.approach} onChange={(e)=>handleIdeaChange(selectedTeam.id, 'approach', e.target.value)} />
-                            <div style={{color:'#9ca3af'}}>{scores.approach}</div>
-                          </div>
-
-                          <div style={{background:'rgba(255,255,255,0.02)', padding:12, borderRadius:8}}>
-                            <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Impact & Scalability</div>
-                            <input type="range" min={0} max={7} step={1} value={scores.impact} onChange={(e)=>handleIdeaChange(selectedTeam.id, 'impact', e.target.value)} />
-                            <div style={{color:'#9ca3af'}}>{scores.impact}</div>
-                          </div>
-
-                          <div style={{background:'rgba(255,255,255,0.02)', padding:12, borderRadius:8}}>
-                            <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Presentation Quality</div>
-                            <input type="range" min={0} max={6} step={1} value={scores.presentation} onChange={(e)=>handleIdeaChange(selectedTeam.id, 'presentation', e.target.value)} />
-                            <div style={{color:'#9ca3af'}}>{scores.presentation}</div>
+                            <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Feasibility</div>
+                            <input type="range" min={0} max={15} step={1} value={scores.feasibility} onChange={(e)=>handleIdeaChange(selectedTeam.id, 'feasibility', e.target.value)} />
+                            <div style={{color:'#9ca3af'}}>{scores.feasibility}</div>
                           </div>
 
                           <div style={{display:'flex', justifyContent:'flex-end', marginTop:6, gap:8}}>
                             <div style={{background:'rgba(255,255,255,0.02)', padding:'8px 12px', borderRadius:8, color:'#e6fffa'}}>
-                              <strong>IdeaVortex Weighted Total:</strong> {weighted} / 65
-                            </div>
+                                <strong>IdeaVortex Total:</strong> {total} / 50
+                                <div style={{fontSize:12, marginTop:6}}>Weighted: {Math.round(Number(total) * 1.33)}</div>
+                              </div>
                             <div>
-                              <button className="logoutBtn" onClick={async () => {
-                                try {
-                                  const { error } = await supabase.from('scorecards').upsert({ team_id: selectedTeam.id, ideavortex: Number(weighted) }, { onConflict: 'team_id' });
-                                  if (error) throw error;
-                                  const { data: refreshedTeams } = await supabase.from('teams').select('id, team_name, lead_name, lead_email, domain, problem_statement, team_members(member_name)').order('team_name', { ascending: true });
-                                  setTeams(refreshedTeams || []);
-                                  const updated = refreshedTeams?.find(t => t.id === selectedTeam.id) || selectedTeam;
-                                  setSelectedTeam(updated);
-                                  setIdeaOpen(false);
-                                } catch (err) {
-                                  console.error('Failed to save idea score:', err);
-                                  alert('Failed to save idea score: ' + (err.message || err));
-                                }
-                              }}>Update Score</button>
+                                <button className="logoutBtn" onClick={async () => {
+                                  try {
+                                    const weightedIdea = Math.round(Number(total) * 1.33);
+                                    const { error } = await supabase.from('scorecards').upsert({ team_id: selectedTeam.id, ideavortex: weightedIdea }, { onConflict: 'team_id' });
+                                    if (error) throw error;
+                                    const { data: refreshedTeams } = await supabase.from('teams').select('id, team_name, lead_name, lead_email, domain, problem_statement, team_members(member_name)').order('team_name', { ascending: true });
+                                    setTeams(refreshedTeams || []);
+                                    const updated = refreshedTeams?.find(t => t.id === selectedTeam.id) || selectedTeam;
+                                    setSelectedTeam(updated);
+                                    setIdeaOpen(false);
+                                  } catch (err) {
+                                    console.error('Failed to save idea score:', err);
+                                    alert('Failed to save idea score: ' + (err.message || err));
+                                  }
+                                }}>Update Score</button>
                               <button className="logoutBtn" onClick={closeIdea} style={{marginLeft:8}}>Cancel</button>
                             </div>
                           </div>
@@ -562,28 +552,28 @@ export default function AdminDashboard() {
                 </div>
 
                 <div style={{display:'flex', gap:12, marginTop:16, flexWrap:'wrap'}}>
-                  <div onClick={() => { if(selectedTeam) { setIdeaOpen(true); setIdeaScores(prev=>({ ...prev, [selectedTeam.id]: prev[selectedTeam.id] ?? { problem:0, innovation:0, approach:0, impact:0, presentation:0, idea_total:0 } })) } }} style={{cursor: selectedTeam ? 'pointer' : 'not-allowed', flex:'1 1 180px', minWidth:140, background:'rgba(255,255,255,0.02)', border:'1px solid rgba(255,255,255,0.03)', padding:12, borderRadius:8}}>
+                  <div onClick={() => { if(selectedTeam) { setIdeaOpen(true); setIdeaScores(prev=>({ ...prev, [selectedTeam.id]: prev[selectedTeam.id] ?? { requirement_check:0, solution_logic:0, feasibility:0, idea_total:0 } })) } }} style={{cursor: selectedTeam ? 'pointer' : 'not-allowed', flex:'1 1 180px', minWidth:140, background:'rgba(255,255,255,0.02)', border:'1px solid rgba(255,255,255,0.03)', padding:12, borderRadius:8}}>
                     <div style={{fontSize:12, color:'#9ca3af', marginBottom:8}}>IdeaVortex</div>
                     <div style={{height:60, background:'rgba(0,0,0,0.35)', borderRadius:6, display:'flex', alignItems:'center', justifyContent:'center'}}>
                       <small style={{color:'#9ca3af'}}>{selectedTeam ? 'Click to open' : 'Select a team'}</small>
                     </div>
                   </div>
 
-                  <div onClick={() => { if(selectedTeam) { setReview1Open(true); setReview1Scores(prev=>({ ...prev, [selectedTeam.id]: prev[selectedTeam.id] ?? { faculty:0, idea:0, technical:0, architecture:0, innovation:0, planning:0, review_1_total:0 } })) } }} style={{cursor: selectedTeam ? 'pointer' : 'not-allowed', flex:'1 1 140px', minWidth:140, background:'rgba(255,255,255,0.02)', border:'1px solid rgba(255,255,255,0.03)', padding:12, borderRadius:8}}>
+                  <div onClick={() => { if(selectedTeam) { setReview1Open(true); setReview1Scores(prev=>({ ...prev, [selectedTeam.id]: prev[selectedTeam.id] ?? { architecture_flow:0, current_progress:0, qa_defense:0, review_1_total:0 } })) } }} style={{cursor: selectedTeam ? 'pointer' : 'not-allowed', flex:'1 1 140px', minWidth:140, background:'rgba(255,255,255,0.02)', border:'1px solid rgba(255,255,255,0.03)', padding:12, borderRadius:8}}>
                     <div style={{fontSize:12, color:'#9ca3af', marginBottom:8}}>Review 1</div>
                     <div style={{height:60, background:'rgba(0,0,0,0.35)', borderRadius:6, display:'flex', alignItems:'center', justifyContent:'center'}}>
                       <small style={{color:'#9ca3af'}}>{selectedTeam ? 'Click to open' : 'Select a team'}</small>
                     </div>
                   </div>
 
-                  <div onClick={() => { if(selectedTeam) { setReview2Open(true); setReview2Scores(prev=>({ ...prev, [selectedTeam.id]: prev[selectedTeam.id] ?? { progress:0, demo:0, code:0, difficulty:0, fit:0, workflow:0, roadmap:0, review_2_total:0 } })) } }} style={{cursor: selectedTeam ? 'pointer' : 'not-allowed', flex:'1 1 140px', minWidth:140, background:'rgba(255,255,255,0.02)', border:'1px solid rgba(255,255,255,0.03)', padding:12, borderRadius:8}}>
+                  <div onClick={() => { if(selectedTeam) { setReview2Open(true); setReview2Scores(prev=>({ ...prev, [selectedTeam.id]: prev[selectedTeam.id] ?? { mvp_functionality:0, ui_usability:0, code_quality:0, review_2_total:0 } })) } }} style={{cursor: selectedTeam ? 'pointer' : 'not-allowed', flex:'1 1 140px', minWidth:140, background:'rgba(255,255,255,0.02)', border:'1px solid rgba(255,255,255,0.03)', padding:12, borderRadius:8}}>
                     <div style={{fontSize:12, color:'#9ca3af', marginBottom:8}}>Review 2</div>
                     <div style={{height:60, background:'rgba(0,0,0,0.35)', borderRadius:6, display:'flex', alignItems:'center', justifyContent:'center'}}>
                       <small style={{color:'#9ca3af'}}>{selectedTeam ? 'Click to open' : 'Select a team'}</small>
                     </div>
                   </div>
 
-                  <div onClick={() => { if(selectedTeam) { setReview3Open(true); setReview3Scores(prev=>({ ...prev, [selectedTeam.id]: prev[selectedTeam.id] ?? { final_product:0, technical:0, innovation:0, uiux:0, impact:0, presentation:0, docs:0, response:0, review_3_total:0 } })) } }} style={{cursor: selectedTeam ? 'pointer' : 'not-allowed', flex:'1 1 140px', minWidth:140, background:'rgba(255,255,255,0.02)', border:'1px solid rgba(255,255,255,0.03)', padding:12, borderRadius:8}}>
+                  <div onClick={() => { if(selectedTeam) { setReview3Open(true); setReview3Scores(prev=>({ ...prev, [selectedTeam.id]: prev[selectedTeam.id] ?? { final_demo:0, innovation:0, business_impact:0, review_3_total:0 } })) } }} style={{cursor: selectedTeam ? 'pointer' : 'not-allowed', flex:'1 1 140px', minWidth:140, background:'rgba(255,255,255,0.02)', border:'1px solid rgba(255,255,255,0.03)', padding:12, borderRadius:8}}>
                     <div style={{fontSize:12, color:'#9ca3af', marginBottom:8}}>Review 3</div>
                     <div style={{height:60, background:'rgba(0,0,0,0.35)', borderRadius:6, display:'flex', alignItems:'center', justifyContent:'center'}}>
                       <small style={{color:'#9ca3af'}}>{selectedTeam ? 'Click to open' : 'Select a team'}</small>
@@ -622,57 +612,40 @@ export default function AdminDashboard() {
                         </div>
                       </div>
 
-                      <div style={{color:'#cbd5e1', marginBottom:12}}>Use the sliders to score each category (0–10).</div>
+                      <div style={{color:'#cbd5e1', marginBottom:12}}>Score each category using the sliders. Total is out of 50.</div>
 
                       {(() => {
-                        const scores = review1Scores[selectedTeam.id] || { faculty:0, idea:0, technical:0, architecture:0, innovation:0, planning:0 };
+                        const scores = review1Scores[selectedTeam.id] || { architecture_flow:0, current_progress:0, qa_defense:0, review_1_total:0 };
+                        const total = scores.review_1_total ?? (Number(scores.architecture_flow||0) + Number(scores.current_progress||0) + Number(scores.qa_defense||0));
                         return (
                           <div style={{display:'grid', gridTemplateColumns:'1fr', gap:12}}>
                             <div style={{background:'rgba(255,255,255,0.02)', padding:12, borderRadius:8}}>
-                              <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Faculty Appease Score</div>
-                              <input type="range" min={0} max={10} step={1} value={scores.faculty} onChange={(e)=>handleReview1Change(selectedTeam.id, 'faculty', e.target.value)} />
-                              <div style={{color:'#9ca3af'}}>{scores.faculty}</div>
+                              <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Architecture / Flow</div>
+                              <input type="range" min={0} max={20} step={1} value={scores.architecture_flow} onChange={(e)=>handleReview1Change(selectedTeam.id, 'architecture_flow', e.target.value)} />
+                              <div style={{color:'#9ca3af'}}>{scores.architecture_flow}</div>
                             </div>
 
                             <div style={{background:'rgba(255,255,255,0.02)', padding:12, borderRadius:8}}>
-                              <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Idea Feasibility & Solution Approach</div>
-                              <input type="range" min={0} max={10} step={1} value={scores.idea} onChange={(e)=>handleReview1Change(selectedTeam.id, 'idea', e.target.value)} />
-                              <div style={{color:'#9ca3af'}}>{scores.idea}</div>
+                              <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Current Progress</div>
+                              <input type="range" min={0} max={20} step={1} value={scores.current_progress} onChange={(e)=>handleReview1Change(selectedTeam.id, 'current_progress', e.target.value)} />
+                              <div style={{color:'#9ca3af'}}>{scores.current_progress}</div>
                             </div>
 
                             <div style={{background:'rgba(255,255,255,0.02)', padding:12, borderRadius:8}}>
-                              <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Initial Technical Implementation</div>
-                              <input type="range" min={0} max={10} step={1} value={scores.technical} onChange={(e)=>handleReview1Change(selectedTeam.id, 'technical', e.target.value)} />
-                              <div style={{color:'#9ca3af'}}>{scores.technical}</div>
-                            </div>
-
-                            <div style={{background:'rgba(255,255,255,0.02)', padding:12, borderRadius:8}}>
-                              <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Architecture / System Design Readiness</div>
-                              <input type="range" min={0} max={8} step={1} value={scores.architecture} onChange={(e)=>handleReview1Change(selectedTeam.id, 'architecture', e.target.value)} />
-                              <div style={{color:'#9ca3af'}}>{scores.architecture}</div>
-                            </div>
-
-                            <div style={{background:'rgba(255,255,255,0.02)', padding:12, borderRadius:8}}>
-                              <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Innovation & Uniqueness of Approach</div>
-                              <input type="range" min={0} max={6} step={1} value={scores.innovation} onChange={(e)=>handleReview1Change(selectedTeam.id, 'innovation', e.target.value)} />
-                              <div style={{color:'#9ca3af'}}>{scores.innovation}</div>
-                            </div>
-
-                            <div style={{background:'rgba(255,255,255,0.02)', padding:12, borderRadius:8}}>
-                              <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Team Planning & Execution Strategy</div>
-                              <input type="range" min={0} max={6} step={1} value={scores.planning} onChange={(e)=>handleReview1Change(selectedTeam.id, 'planning', e.target.value)} />
-                              <div style={{color:'#9ca3af'}}>{scores.planning}</div>
+                              <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Q&A Defense</div>
+                              <input type="range" min={0} max={10} step={1} value={scores.qa_defense} onChange={(e)=>handleReview1Change(selectedTeam.id, 'qa_defense', e.target.value)} />
+                              <div style={{color:'#9ca3af'}}>{scores.qa_defense}</div>
                             </div>
 
                             <div style={{display:'flex', justifyContent:'flex-end', marginTop:6, gap:8}}>
                               <div style={{background:'rgba(255,255,255,0.02)', padding:'8px 12px', borderRadius:8, color:'#e6fffa'}}>
-                                <strong>Review 1 Total:</strong> {scores.review_1_total ?? (Number(scores.faculty||0)+Number(scores.idea||0)+Number(scores.technical||0)+Number(scores.architecture||0)+Number(scores.innovation||0)+Number(scores.planning||0))} / 50
+                                <strong>Review 1 Total:</strong> {total} / 50
                               </div>
                               <div>
                                 <button className="logoutBtn" onClick={async () => {
-                                  const total = Number(scores.review_1_total ?? (Number(scores.faculty||0)+Number(scores.idea||0)+Number(scores.technical||0)+Number(scores.architecture||0)+Number(scores.innovation||0)+Number(scores.planning||0)));
+                                  const calcTotal = Number(total);
                                   try {
-                                    const { error } = await supabase.from('scorecards').upsert({ team_id: selectedTeam.id, review_1: total }, { onConflict: 'team_id' });
+                                    const { error } = await supabase.from('scorecards').upsert({ team_id: selectedTeam.id, review_1: calcTotal }, { onConflict: 'team_id' });
                                     if (error) throw error;
                                     // refresh teams list and selected team
                                     const { data: refreshedTeams } = await supabase.from('teams').select('id, team_name, lead_name, lead_email, domain, problem_statement, team_members(member_name)').order('team_name', { ascending: true });
@@ -705,63 +678,40 @@ export default function AdminDashboard() {
                         </div>
                       </div>
 
-                      <div style={{color:'#cbd5e1', marginBottom:12}}>Use the sliders to score each category.</div>
+                      <div style={{color:'#cbd5e1', marginBottom:12}}>Score each category using the sliders. Total is out of 50.</div>
 
                       {(() => {
-                        const scores = review2Scores[selectedTeam.id] || { progress:0, demo:0, code:0, difficulty:0, fit:0, workflow:0, roadmap:0, review_2_total:0 };
+                        const scores = review2Scores[selectedTeam.id] || { mvp_functionality:0, ui_usability:0, code_quality:0, review_2_total:0 };
+                        const total = scores.review_2_total ?? (Number(scores.mvp_functionality||0) + Number(scores.ui_usability||0) + Number(scores.code_quality||0));
                         return (
                           <div style={{display:'grid', gridTemplateColumns:'1fr', gap:12}}>
                             <div style={{background:'rgba(255,255,255,0.02)', padding:12, borderRadius:8}}>
-                              <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Progress & Completion Level</div>
-                              <input type="range" min={0} max={10} step={1} value={scores.progress} onChange={(e)=>handleReview2Change(selectedTeam.id, 'progress', e.target.value)} />
-                              <div style={{color:'#9ca3af'}}>{scores.progress}</div>
+                              <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>MVP Functionality</div>
+                              <input type="range" min={0} max={25} step={1} value={scores.mvp_functionality} onChange={(e)=>handleReview2Change(selectedTeam.id, 'mvp_functionality', e.target.value)} />
+                              <div style={{color:'#9ca3af'}}>{scores.mvp_functionality}</div>
                             </div>
 
                             <div style={{background:'rgba(255,255,255,0.02)', padding:12, borderRadius:8}}>
-                              <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Functionality Demo</div>
-                              <input type="range" min={0} max={10} step={1} value={scores.demo} onChange={(e)=>handleReview2Change(selectedTeam.id, 'demo', e.target.value)} />
-                              <div style={{color:'#9ca3af'}}>{scores.demo}</div>
+                              <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>UI / Usability</div>
+                              <input type="range" min={0} max={15} step={1} value={scores.ui_usability} onChange={(e)=>handleReview2Change(selectedTeam.id, 'ui_usability', e.target.value)} />
+                              <div style={{color:'#9ca3af'}}>{scores.ui_usability}</div>
                             </div>
 
                             <div style={{background:'rgba(255,255,255,0.02)', padding:12, borderRadius:8}}>
-                              <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Code Quality & Structure</div>
-                              <input type="range" min={0} max={8} step={1} value={scores.code} onChange={(e)=>handleReview2Change(selectedTeam.id, 'code', e.target.value)} />
-                              <div style={{color:'#9ca3af'}}>{scores.code}</div>
-                            </div>
-
-                            <div style={{background:'rgba(255,255,255,0.02)', padding:12, borderRadius:8}}>
-                              <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Technical Difficulty & Innovation</div>
-                              <input type="range" min={0} max={8} step={1} value={scores.difficulty} onChange={(e)=>handleReview2Change(selectedTeam.id, 'difficulty', e.target.value)} />
-                              <div style={{color:'#9ca3af'}}>{scores.difficulty}</div>
-                            </div>
-
-                            <div style={{background:'rgba(255,255,255,0.02)', padding:12, borderRadius:8}}>
-                              <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Problem–Solution Fit & Value</div>
-                              <input type="range" min={0} max={6} step={1} value={scores.fit} onChange={(e)=>handleReview2Change(selectedTeam.id, 'fit', e.target.value)} />
-                              <div style={{color:'#9ca3af'}}>{scores.fit}</div>
-                            </div>
-
-                            <div style={{background:'rgba(255,255,255,0.02)', padding:12, borderRadius:8}}>
-                              <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Team Workflow & Role Division</div>
-                              <input type="range" min={0} max={4} step={1} value={scores.workflow} onChange={(e)=>handleReview2Change(selectedTeam.id, 'workflow', e.target.value)} />
-                              <div style={{color:'#9ca3af'}}>{scores.workflow}</div>
-                            </div>
-
-                            <div style={{background:'rgba(255,255,255,0.02)', padding:12, borderRadius:8}}>
-                              <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Roadmap to 100% Completion</div>
-                              <input type="range" min={0} max={4} step={1} value={scores.roadmap} onChange={(e)=>handleReview2Change(selectedTeam.id, 'roadmap', e.target.value)} />
-                              <div style={{color:'#9ca3af'}}>{scores.roadmap}</div>
+                              <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Code Quality</div>
+                              <input type="range" min={0} max={10} step={1} value={scores.code_quality} onChange={(e)=>handleReview2Change(selectedTeam.id, 'code_quality', e.target.value)} />
+                              <div style={{color:'#9ca3af'}}>{scores.code_quality}</div>
                             </div>
 
                             <div style={{display:'flex', justifyContent:'flex-end', marginTop:6, gap:8}}>
                               <div style={{background:'rgba(255,255,255,0.02)', padding:'8px 12px', borderRadius:8, color:'#e6fffa'}}>
-                                <strong>Review 2 Total:</strong> {scores.review_2_total ?? (Number(scores.progress||0)+Number(scores.demo||0)+Number(scores.code||0)+Number(scores.difficulty||0)+Number(scores.fit||0)+Number(scores.workflow||0)+Number(scores.roadmap||0))} / 50
+                                <strong>Review 2 Total:</strong> {total} / 50
                               </div>
                               <div>
                                 <button className="logoutBtn" onClick={async () => {
-                                  const total = Number(scores.review_2_total ?? (Number(scores.progress||0)+Number(scores.demo||0)+Number(scores.code||0)+Number(scores.difficulty||0)+Number(scores.fit||0)+Number(scores.workflow||0)+Number(scores.roadmap||0)));
+                                  const calcTotal = Number(total);
                                   try {
-                                    const { error } = await supabase.from('scorecards').upsert({ team_id: selectedTeam.id, review_2: total }, { onConflict: 'team_id' });
+                                    const { error } = await supabase.from('scorecards').upsert({ team_id: selectedTeam.id, review_2: calcTotal }, { onConflict: 'team_id' });
                                     if (error) throw error;
                                     const { data: refreshedTeams } = await supabase.from('teams').select('id, team_name, lead_name, lead_email, domain, problem_statement, team_members(member_name)').order('team_name', { ascending: true });
                                     setTeams(refreshedTeams || []);
@@ -776,6 +726,7 @@ export default function AdminDashboard() {
                                 <button className="logoutBtn" onClick={closeReview2} style={{marginLeft:8}}>Cancel</button>
                               </div>
                             </div>
+
                           </div>
                         );
                       })()}
@@ -792,70 +743,42 @@ export default function AdminDashboard() {
                         </div>
                       </div>
 
-                      <div style={{color:'#cbd5e1', marginBottom:12}}>Use the sliders to score each category.</div>
+                      <div style={{color:'#cbd5e1', marginBottom:12}}>Score each category using the sliders. Total is out of 100.</div>
 
                       {(() => {
-                        const scores = review3Scores[selectedTeam.id] || { final_product:0, technical:0, innovation:0, uiux:0, impact:0, presentation:0, docs:0, response:0, review_3_total:0 };
+                        const scores = review3Scores[selectedTeam.id] || { final_demo:0, innovation:0, business_impact:0, review_3_total:0 };
+                        const total = scores.review_3_total ?? (Number(scores.final_demo||0) + Number(scores.innovation||0) + Number(scores.business_impact||0));
+                        const weighted = Math.round(Number(total) * 1.65);
                         return (
                           <div style={{display:'grid', gridTemplateColumns:'1fr', gap:12}}>
                             <div style={{background:'rgba(255,255,255,0.02)', padding:12, borderRadius:8}}>
-                              <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Final Product Completion & Functionality</div>
-                              <input type="range" min={0} max={10} step={1} value={scores.final_product} onChange={(e)=>handleReview3Change(selectedTeam.id, 'final_product', e.target.value)} />
-                              <div style={{color:'#9ca3af'}}>{scores.final_product}</div>
+                              <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Final Demo</div>
+                              <input type="range" min={0} max={40} step={1} value={scores.final_demo} onChange={(e)=>handleReview3Change(selectedTeam.id, 'final_demo', e.target.value)} />
+                              <div style={{color:'#9ca3af'}}>{scores.final_demo}</div>
                             </div>
 
                             <div style={{background:'rgba(255,255,255,0.02)', padding:12, borderRadius:8}}>
-                              <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Technical Implementation & Complexity</div>
-                              <input type="range" min={0} max={10} step={1} value={scores.technical} onChange={(e)=>handleReview3Change(selectedTeam.id, 'technical', e.target.value)} />
-                              <div style={{color:'#9ca3af'}}>{scores.technical}</div>
-                            </div>
-
-                            <div style={{background:'rgba(255,255,255,0.02)', padding:12, borderRadius:8}}>
-                              <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Innovation & Creativity</div>
-                              <input type="range" min={0} max={6} step={1} value={scores.innovation} onChange={(e)=>handleReview3Change(selectedTeam.id, 'innovation', e.target.value)} />
+                              <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Innovation</div>
+                              <input type="range" min={0} max={30} step={1} value={scores.innovation} onChange={(e)=>handleReview3Change(selectedTeam.id, 'innovation', e.target.value)} />
                               <div style={{color:'#9ca3af'}}>{scores.innovation}</div>
                             </div>
 
                             <div style={{background:'rgba(255,255,255,0.02)', padding:12, borderRadius:8}}>
-                              <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>UI/UX Quality</div>
-                              <input type="range" min={0} max={6} step={1} value={scores.uiux} onChange={(e)=>handleReview3Change(selectedTeam.id, 'uiux', e.target.value)} />
-                              <div style={{color:'#9ca3af'}}>{scores.uiux}</div>
-                            </div>
-
-                            <div style={{background:'rgba(255,255,255,0.02)', padding:12, borderRadius:8}}>
-                              <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Real-World Usefulness & Impact</div>
-                              <input type="range" min={0} max={6} step={1} value={scores.impact} onChange={(e)=>handleReview3Change(selectedTeam.id, 'impact', e.target.value)} />
-                              <div style={{color:'#9ca3af'}}>{scores.impact}</div>
-                            </div>
-
-                            <div style={{background:'rgba(255,255,255,0.02)', padding:12, borderRadius:8}}>
-                              <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Presentation & Pitch Delivery</div>
-                              <input type="range" min={0} max={5} step={1} value={scores.presentation} onChange={(e)=>handleReview3Change(selectedTeam.id, 'presentation', e.target.value)} />
-                              <div style={{color:'#9ca3af'}}>{scores.presentation}</div>
-                            </div>
-
-                            <div style={{background:'rgba(255,255,255,0.02)', padding:12, borderRadius:8}}>
-                              <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Documentation & Code Quality</div>
-                              <input type="range" min={0} max={2} step={1} value={scores.docs} onChange={(e)=>handleReview3Change(selectedTeam.id, 'docs', e.target.value)} />
-                              <div style={{color:'#9ca3af'}}>{scores.docs}</div>
-                            </div>
-
-                            <div style={{background:'rgba(255,255,255,0.02)', padding:12, borderRadius:8}}>
-                              <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Response Time</div>
-                              <input type="range" min={0} max={5} step={1} value={scores.response} onChange={(e)=>handleReview3Change(selectedTeam.id, 'response', e.target.value)} />
-                              <div style={{color:'#9ca3af'}}>{scores.response}</div>
+                              <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Business / Impact</div>
+                              <input type="range" min={0} max={30} step={1} value={scores.business_impact} onChange={(e)=>handleReview3Change(selectedTeam.id, 'business_impact', e.target.value)} />
+                              <div style={{color:'#9ca3af'}}>{scores.business_impact}</div>
                             </div>
 
                             <div style={{display:'flex', justifyContent:'flex-end', marginTop:6, gap:8}}>
                               <div style={{background:'rgba(255,255,255,0.02)', padding:'8px 12px', borderRadius:8, color:'#e6fffa'}}>
-                                <strong>Review 3 Total (weighted):</strong> {Math.round((scores.review_3_total ?? (Number(scores.final_product||0)+Number(scores.technical||0)+Number(scores.innovation||0)+Number(scores.uiux||0)+Number(scores.impact||0)+Number(scores.presentation||0)+Number(scores.docs||0)+Number(scores.response||0))) * 3.3)} / 165
+                                <strong>Review 3 Total:</strong> {total} / 100
+                                <div style={{fontSize:12, marginTop:6}}>Weighted: {weighted}</div>
                               </div>
                               <div>
                                 <button className="logoutBtn" onClick={async () => {
-                                  const raw = Number(scores.review_3_total ?? (Number(scores.final_product||0)+Number(scores.technical||0)+Number(scores.innovation||0)+Number(scores.uiux||0)+Number(scores.impact||0)+Number(scores.presentation||0)+Number(scores.docs||0)+Number(scores.response||0)));
-                                  const weighted = Math.round(raw * 3.3);
+                                  const calcTotal = Number(weighted);
                                   try {
-                                    const { error } = await supabase.from('scorecards').upsert({ team_id: selectedTeam.id, review_3: weighted }, { onConflict: 'team_id' });
+                                    const { error } = await supabase.from('scorecards').upsert({ team_id: selectedTeam.id, review_3: calcTotal }, { onConflict: 'team_id' });
                                     if (error) throw error;
                                     const { data: refreshedTeams } = await supabase.from('teams').select('id, team_name, lead_name, lead_email, domain, problem_statement, team_members(member_name)').order('team_name', { ascending: true });
                                     setTeams(refreshedTeams || []);
@@ -870,6 +793,7 @@ export default function AdminDashboard() {
                                 <button className="logoutBtn" onClick={closeReview3} style={{marginLeft:8}}>Cancel</button>
                               </div>
                             </div>
+
                           </div>
                         );
                       })()}
