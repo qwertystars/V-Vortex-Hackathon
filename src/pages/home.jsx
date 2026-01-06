@@ -113,6 +113,7 @@ export default function Home({ setTransition }) {
 
   const [activeRound, setActiveRound] = useState(null);
   const [activeDomain, setActiveDomain] = useState(null);
+  const DRIVE_LINK = 'https://drive.google.com/drive/folders/1_8MIetG3u4Y-5st4FfFWtrbDbe6VEPFd?usp=sharing';
 
   useEffect(() => {
     function onKey(e) {
@@ -306,6 +307,10 @@ export default function Home({ setTransition }) {
             and the chance to etch your name in the hall of legends.
           </p>
 
+          <div style={{marginTop:22}}>
+            <button className="cta" onClick={() => goTo('/register')}>Register Now</button>
+          </div>
+
           <div className="event-info">
             <div className="info-card">
               <h3>📍 VENUE</h3>
@@ -328,23 +333,23 @@ export default function Home({ setTransition }) {
       <section className="domains">
         <h2 className="section-title">⟨ BATTLE DOMAINS ⟩</h2>
         <div className="domains-grid">
-          <div className="domain-card" onClick={() => openDomainModal('aiml')} style={{cursor: 'pointer'}}>
+          <div className="domain-card" onClick={() => window.open(DRIVE_LINK, '_blank')} style={{cursor: 'pointer'}}>
             <div className="domain-icon">🤖</div>
             <h3>AI/ML</h3>
           </div>
-          <div className="domain-card">
+          <div className="domain-card" onClick={() => window.open(DRIVE_LINK, '_blank')} style={{cursor: 'pointer'}}>
             <div className="domain-icon">🛡️</div>
             <h3>Cybersecurity</h3>
           </div>
-          <div className="domain-card selected">
+          <div className="domain-card selected" onClick={() => window.open(DRIVE_LINK, '_blank')} style={{cursor: 'pointer'}}>
             <div className="domain-icon">🏥</div>
             <h3>Healthcare</h3>
           </div>
-          <div className="domain-card" onClick={() => openDomainModal('fintech')} style={{cursor: 'pointer'}}>
+          <div className="domain-card" onClick={() => window.open(DRIVE_LINK, '_blank')} style={{cursor: 'pointer'}}>
             <div className="domain-icon">💰</div>
             <h3>Fintech</h3>
           </div>
-          <div className="domain-card" onClick={() => openDomainModal('iot')} style={{cursor: 'pointer'}}>
+          <div className="domain-card" onClick={() => window.open(DRIVE_LINK, '_blank')} style={{cursor: 'pointer'}}>
             <div className="domain-icon">🔌</div>
             <h3>IoT & Robotics</h3>
           </div>
