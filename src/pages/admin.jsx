@@ -15,6 +15,7 @@ export default function AdminDashboard() {
   const [exporting, setExporting] = useState(false);
   const [teams, setTeams] = useState([]);
   const [teamQuery, setTeamQuery] = useState('');
+  const [domainFilter, setDomainFilter] = useState('');
   const [leaderboard, setLeaderboard] = useState([]);
   const [lbLoading, setLbLoading] = useState(false);
   const [leaderboardPublic, setLeaderboardPublic] = useState(false);
@@ -31,27 +32,14 @@ export default function AdminDashboard() {
   const [pitchOpen, setPitchOpen] = useState(false);
   const [pitchScores, setPitchScores] = useState({});
   const [scoringOpen, setScoringOpen] = useState(false);
-  const defaultSliderMax = {
+  // Slider maximums are fixed constants and must not be edited from the admin UI.
+  const SLIDER_MAX = {
     idea: { requirement_check: 20, solution_logic: 15, feasibility: 15 },
     review1: { architecture_flow: 20, current_progress: 20, qa_defense: 10 },
     review2: { mvp_functionality: 25, ui_usability: 15, code_quality: 10 },
     review3: { final_demo: 40, innovation: 30, business_impact: 30 },
     pitch: { pitch_vortex: 100 }
   };
-  const [sliderMax, setSliderMax] = useState(() => {
-    try {
-      const raw = localStorage.getItem('sliderMax');
-      return raw ? JSON.parse(raw) : defaultSliderMax;
-    } catch (e) {
-      return defaultSliderMax;
-    }
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('sliderMax', JSON.stringify(sliderMax));
-    } catch (e) {}
-  }, [sliderMax]);
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -445,18 +433,60 @@ export default function AdminDashboard() {
               onChange={(e) => setTeamQuery(e.target.value)}
               style={{flex:1, padding:8, borderRadius:6, border:'1px solid rgba(255,255,255,0.06)'}}
             />
-            {teamQuery && (
-              <button onClick={() => setTeamQuery('')} className="logoutBtn" style={{padding:'8px 10px'}}>Clear</button>
-            )}
+            <div style={{display:'flex', gap:8, alignItems:'center'}}>
+              <select value={domainFilter} onChange={(e) => setDomainFilter(e.target.value)} style={{padding:8, borderRadius:6, background:'#071018', color:'#e6fffa', border:'1px solid rgba(255,255,255,0.04)'}}>
+                <option value=''>All domains</option>
+                <option value='null'>(No domain)</option>
+                {
+                  (() => {
+                    // Prioritise these domains but only enable them if teams exist for that domain
+                    const desired = ['AI','IoT','Healthcare','Cybersecurity'];
+                    const discovered = Array.from(new Set(teams.map(t => t.domain).filter(Boolean))).sort();
+                    const lowerMap = new Map(discovered.map(d => [d.toLowerCase(), d]));
+
+                    const desiredOptions = desired.map(d => {
+                      const found = lowerMap.get(d.toLowerCase());
+                      if (found) return (<option key={found} value={found}>{found}</option>);
+                      return (<option key={d} value='' disabled>{d} (no teams)</option>);
+                    });
+
+                    const remaining = discovered.filter(d => !desired.some(x => x.toLowerCase() === d.toLowerCase()));
+                    return (
+                      <>
+                        {desiredOptions}
+                        {remaining.map(d => <option key={d} value={d}>{d}</option>)}
+                      </>
+                    );
+                  })()
+                }
+              </select>
+
+              {(teamQuery || domainFilter) && (
+                <button onClick={() => { setTeamQuery(''); setDomainFilter(''); }} className="logoutBtn" style={{padding:'8px 10px'}}>Clear</button>
+              )}
+            </div>
           </div>
           <div style={{background:'rgba(0,0,0,0.5)', borderRadius:8, padding:12, maxHeight:480, overflow:'auto'}}>
             {teams.length === 0 && <div style={{color:'#9ca3af'}}>No teams found.</div>}
                 {teams
                   .filter(t => {
-                    if (!teamQuery) return true;
-                    try {
-                      return (t.team_name || '').toLowerCase().includes(teamQuery.toLowerCase());
-                    } catch (e) { return true; }
+                    // text search filter
+                    if (teamQuery) {
+                      try {
+                        if (!((t.team_name || '').toLowerCase().includes(teamQuery.toLowerCase()))) return false;
+                      } catch (e) { /* ignore */ }
+                    }
+
+                    // domain filter
+                    if (domainFilter) {
+                      if (domainFilter === 'null') {
+                        if (t.domain) return false;
+                      } else {
+                        if (t.domain !== domainFilter) return false;
+                      }
+                    }
+
+                    return true;
                   })
                   .map(t => (
                   <div key={t.id} onClick={() => setSelectedTeam(t)} style={{padding:10, borderRadius:6, cursor:'pointer', marginBottom:8, background: selectedTeam?.id === t.id ? 'rgba(0,255,157,0.07)' : 'transparent'}}>
@@ -504,7 +534,7 @@ export default function AdminDashboard() {
                       </div>
                     </div>
 
-                    <div style={{color:'#cbd5e1', marginBottom:12}}>Score each category using the sliders. Total is out of {Object.values(sliderMax.idea).reduce((a,b)=>a+Number(b||0),0)}.</div>
+                    <div style={{color:'#cbd5e1', marginBottom:12}}>Score each category using the sliders. Total is out of {Object.values(SLIDER_MAX.idea).reduce((a,b)=>a+Number(b||0),0)}.</div>
 
                     {(() => {
                       const scores = ideaScores[selectedTeam.id] || { requirement_check:0, solution_logic:0, feasibility:0, idea_total:0 };
@@ -513,25 +543,25 @@ export default function AdminDashboard() {
                         <div style={{display:'grid', gridTemplateColumns:'1fr', gap:12}}>
                           <div style={{background:'rgba(255,255,255,0.02)', padding:12, borderRadius:8}}>
                             <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Requirement Check</div>
-                            <input type="range" min={0} max={sliderMax.idea.requirement_check} step={1} value={scores.requirement_check} onChange={(e)=>handleIdeaChange(selectedTeam.id, 'requirement_check', e.target.value)} />
-                            <div style={{color:'#9ca3af'}}>{scores.requirement_check} / {sliderMax.idea.requirement_check}</div>
+                            <input type="range" min={0} max={SLIDER_MAX.idea.requirement_check} step={1} value={scores.requirement_check} onChange={(e)=>handleIdeaChange(selectedTeam.id, 'requirement_check', e.target.value)} />
+                            <div style={{color:'#9ca3af'}}>{scores.requirement_check} / {SLIDER_MAX.idea.requirement_check}</div>
                           </div>
 
                           <div style={{background:'rgba(255,255,255,0.02)', padding:12, borderRadius:8}}>
                             <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Solution Logic</div>
-                            <input type="range" min={0} max={sliderMax.idea.solution_logic} step={1} value={scores.solution_logic} onChange={(e)=>handleIdeaChange(selectedTeam.id, 'solution_logic', e.target.value)} />
-                            <div style={{color:'#9ca3af'}}>{scores.solution_logic} / {sliderMax.idea.solution_logic}</div>
+                            <input type="range" min={0} max={SLIDER_MAX.idea.solution_logic} step={1} value={scores.solution_logic} onChange={(e)=>handleIdeaChange(selectedTeam.id, 'solution_logic', e.target.value)} />
+                            <div style={{color:'#9ca3af'}}>{scores.solution_logic} / {SLIDER_MAX.idea.solution_logic}</div>
                           </div>
 
                           <div style={{background:'rgba(255,255,255,0.02)', padding:12, borderRadius:8}}>
                             <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Feasibility</div>
-                            <input type="range" min={0} max={sliderMax.idea.feasibility} step={1} value={scores.feasibility} onChange={(e)=>handleIdeaChange(selectedTeam.id, 'feasibility', e.target.value)} />
-                            <div style={{color:'#9ca3af'}}>{scores.feasibility} / {sliderMax.idea.feasibility}</div>
+                            <input type="range" min={0} max={SLIDER_MAX.idea.feasibility} step={1} value={scores.feasibility} onChange={(e)=>handleIdeaChange(selectedTeam.id, 'feasibility', e.target.value)} />
+                            <div style={{color:'#9ca3af'}}>{scores.feasibility} / {SLIDER_MAX.idea.feasibility}</div>
                           </div>
 
                           <div style={{display:'flex', justifyContent:'flex-end', marginTop:6, gap:8}}>
                             <div style={{background:'rgba(255,255,255,0.02)', padding:'8px 12px', borderRadius:8, color:'#e6fffa'}}>
-                                <strong>IdeaVortex Total:</strong> {total} / {Object.values(sliderMax.idea).reduce((a,b)=>a+Number(b||0),0)}
+                                <strong>IdeaVortex Total:</strong> {total} / {Object.values(SLIDER_MAX.idea).reduce((a,b)=>a+Number(b||0),0)}
                                 <div style={{fontSize:12, marginTop:6}}>Weighted: {Math.round(Number(total) * 1.33)}</div>
                               </div>
                             <div>
@@ -644,7 +674,7 @@ export default function AdminDashboard() {
                         </div>
                       </div>
 
-                      <div style={{color:'#cbd5e1', marginBottom:12}}>Score each category using the sliders. Total is out of {Object.values(sliderMax.review1).reduce((a,b)=>a+Number(b||0),0)}.</div>
+                      <div style={{color:'#cbd5e1', marginBottom:12}}>Score each category using the sliders. Total is out of {Object.values(SLIDER_MAX.review1).reduce((a,b)=>a+Number(b||0),0)}.</div>
 
                       {(() => {
                         const scores = review1Scores[selectedTeam.id] || { architecture_flow:0, current_progress:0, qa_defense:0, review_1_total:0 };
@@ -653,25 +683,25 @@ export default function AdminDashboard() {
                           <div style={{display:'grid', gridTemplateColumns:'1fr', gap:12}}>
                             <div style={{background:'rgba(255,255,255,0.02)', padding:12, borderRadius:8}}>
                               <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Architecture / Flow</div>
-                              <input type="range" min={0} max={sliderMax.review1.architecture_flow} step={1} value={scores.architecture_flow} onChange={(e)=>handleReview1Change(selectedTeam.id, 'architecture_flow', e.target.value)} />
-                              <div style={{color:'#9ca3af'}}>{scores.architecture_flow} / {sliderMax.review1.architecture_flow}</div>
+                              <input type="range" min={0} max={SLIDER_MAX.review1.architecture_flow} step={1} value={scores.architecture_flow} onChange={(e)=>handleReview1Change(selectedTeam.id, 'architecture_flow', e.target.value)} />
+                              <div style={{color:'#9ca3af'}}>{scores.architecture_flow} / {SLIDER_MAX.review1.architecture_flow}</div>
                             </div>
 
                             <div style={{background:'rgba(255,255,255,0.02)', padding:12, borderRadius:8}}>
                               <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Current Progress</div>
-                              <input type="range" min={0} max={sliderMax.review1.current_progress} step={1} value={scores.current_progress} onChange={(e)=>handleReview1Change(selectedTeam.id, 'current_progress', e.target.value)} />
-                              <div style={{color:'#9ca3af'}}>{scores.current_progress} / {sliderMax.review1.current_progress}</div>
+                              <input type="range" min={0} max={SLIDER_MAX.review1.current_progress} step={1} value={scores.current_progress} onChange={(e)=>handleReview1Change(selectedTeam.id, 'current_progress', e.target.value)} />
+                              <div style={{color:'#9ca3af'}}>{scores.current_progress} / {SLIDER_MAX.review1.current_progress}</div>
                             </div>
 
                             <div style={{background:'rgba(255,255,255,0.02)', padding:12, borderRadius:8}}>
                               <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Q&A Defense</div>
-                              <input type="range" min={0} max={sliderMax.review1.qa_defense} step={1} value={scores.qa_defense} onChange={(e)=>handleReview1Change(selectedTeam.id, 'qa_defense', e.target.value)} />
-                              <div style={{color:'#9ca3af'}}>{scores.qa_defense} / {sliderMax.review1.qa_defense}</div>
+                              <input type="range" min={0} max={SLIDER_MAX.review1.qa_defense} step={1} value={scores.qa_defense} onChange={(e)=>handleReview1Change(selectedTeam.id, 'qa_defense', e.target.value)} />
+                              <div style={{color:'#9ca3af'}}>{scores.qa_defense} / {SLIDER_MAX.review1.qa_defense}</div>
                             </div>
 
                             <div style={{display:'flex', justifyContent:'flex-end', marginTop:6, gap:8}}>
                               <div style={{background:'rgba(255,255,255,0.02)', padding:'8px 12px', borderRadius:8, color:'#e6fffa'}}>
-                                <strong>Review 1 Total:</strong> {total} / {Object.values(sliderMax.review1).reduce((a,b)=>a+Number(b||0),0)}
+                                <strong>Review 1 Total:</strong> {total} / {Object.values(SLIDER_MAX.review1).reduce((a,b)=>a+Number(b||0),0)}
                               </div>
                               <div>
                                 <button className="logoutBtn" onClick={async () => {
@@ -710,7 +740,7 @@ export default function AdminDashboard() {
                         </div>
                       </div>
 
-                      <div style={{color:'#cbd5e1', marginBottom:12}}>Score each category using the sliders. Total is out of {Object.values(sliderMax.review2).reduce((a,b)=>a+Number(b||0),0)}.</div>
+                      <div style={{color:'#cbd5e1', marginBottom:12}}>Score each category using the sliders. Total is out of {Object.values(SLIDER_MAX.review2).reduce((a,b)=>a+Number(b||0),0)}.</div>
 
                       {(() => {
                         const scores = review2Scores[selectedTeam.id] || { mvp_functionality:0, ui_usability:0, code_quality:0, review_2_total:0 };
@@ -719,25 +749,25 @@ export default function AdminDashboard() {
                           <div style={{display:'grid', gridTemplateColumns:'1fr', gap:12}}>
                             <div style={{background:'rgba(255,255,255,0.02)', padding:12, borderRadius:8}}>
                               <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>MVP Functionality</div>
-                              <input type="range" min={0} max={sliderMax.review2.mvp_functionality} step={1} value={scores.mvp_functionality} onChange={(e)=>handleReview2Change(selectedTeam.id, 'mvp_functionality', e.target.value)} />
-                              <div style={{color:'#9ca3af'}}>{scores.mvp_functionality} / {sliderMax.review2.mvp_functionality}</div>
+                              <input type="range" min={0} max={SLIDER_MAX.review2.mvp_functionality} step={1} value={scores.mvp_functionality} onChange={(e)=>handleReview2Change(selectedTeam.id, 'mvp_functionality', e.target.value)} />
+                              <div style={{color:'#9ca3af'}}>{scores.mvp_functionality} / {SLIDER_MAX.review2.mvp_functionality}</div>
                             </div>
 
                             <div style={{background:'rgba(255,255,255,0.02)', padding:12, borderRadius:8}}>
                               <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>UI / Usability</div>
-                              <input type="range" min={0} max={sliderMax.review2.ui_usability} step={1} value={scores.ui_usability} onChange={(e)=>handleReview2Change(selectedTeam.id, 'ui_usability', e.target.value)} />
-                              <div style={{color:'#9ca3af'}}>{scores.ui_usability} / {sliderMax.review2.ui_usability}</div>
+                              <input type="range" min={0} max={SLIDER_MAX.review2.ui_usability} step={1} value={scores.ui_usability} onChange={(e)=>handleReview2Change(selectedTeam.id, 'ui_usability', e.target.value)} />
+                              <div style={{color:'#9ca3af'}}>{scores.ui_usability} / {SLIDER_MAX.review2.ui_usability}</div>
                             </div>
 
                             <div style={{background:'rgba(255,255,255,0.02)', padding:12, borderRadius:8}}>
                               <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Code Quality</div>
-                              <input type="range" min={0} max={sliderMax.review2.code_quality} step={1} value={scores.code_quality} onChange={(e)=>handleReview2Change(selectedTeam.id, 'code_quality', e.target.value)} />
-                              <div style={{color:'#9ca3af'}}>{scores.code_quality} / {sliderMax.review2.code_quality}</div>
+                              <input type="range" min={0} max={SLIDER_MAX.review2.code_quality} step={1} value={scores.code_quality} onChange={(e)=>handleReview2Change(selectedTeam.id, 'code_quality', e.target.value)} />
+                              <div style={{color:'#9ca3af'}}>{scores.code_quality} / {SLIDER_MAX.review2.code_quality}</div>
                             </div>
 
                             <div style={{display:'flex', justifyContent:'flex-end', marginTop:6, gap:8}}>
                               <div style={{background:'rgba(255,255,255,0.02)', padding:'8px 12px', borderRadius:8, color:'#e6fffa'}}>
-                                <strong>Review 2 Total:</strong> {total} / {Object.values(sliderMax.review2).reduce((a,b)=>a+Number(b||0),0)}
+                                <strong>Review 2 Total:</strong> {total} / {Object.values(SLIDER_MAX.review2).reduce((a,b)=>a+Number(b||0),0)}
                               </div>
                               <div>
                                 <button className="logoutBtn" onClick={async () => {
@@ -775,7 +805,7 @@ export default function AdminDashboard() {
                         </div>
                       </div>
 
-                      <div style={{color:'#cbd5e1', marginBottom:12}}>Score each category using the sliders. Total is out of {Object.values(sliderMax.review3).reduce((a,b)=>a+Number(b||0),0)}.</div>
+                      <div style={{color:'#cbd5e1', marginBottom:12}}>Score each category using the sliders. Total is out of {Object.values(SLIDER_MAX.review3).reduce((a,b)=>a+Number(b||0),0)}.</div>
 
                       {(() => {
                         const scores = review3Scores[selectedTeam.id] || { final_demo:0, innovation:0, business_impact:0, review_3_total:0 };
@@ -785,25 +815,25 @@ export default function AdminDashboard() {
                           <div style={{display:'grid', gridTemplateColumns:'1fr', gap:12}}>
                             <div style={{background:'rgba(255,255,255,0.02)', padding:12, borderRadius:8}}>
                               <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Final Demo</div>
-                              <input type="range" min={0} max={sliderMax.review3.final_demo} step={1} value={scores.final_demo} onChange={(e)=>handleReview3Change(selectedTeam.id, 'final_demo', e.target.value)} />
-                              <div style={{color:'#9ca3af'}}>{scores.final_demo} / {sliderMax.review3.final_demo}</div>
+                              <input type="range" min={0} max={SLIDER_MAX.review3.final_demo} step={1} value={scores.final_demo} onChange={(e)=>handleReview3Change(selectedTeam.id, 'final_demo', e.target.value)} />
+                              <div style={{color:'#9ca3af'}}>{scores.final_demo} / {SLIDER_MAX.review3.final_demo}</div>
                             </div>
 
                             <div style={{background:'rgba(255,255,255,0.02)', padding:12, borderRadius:8}}>
                               <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Innovation</div>
-                              <input type="range" min={0} max={sliderMax.review3.innovation} step={1} value={scores.innovation} onChange={(e)=>handleReview3Change(selectedTeam.id, 'innovation', e.target.value)} />
-                              <div style={{color:'#9ca3af'}}>{scores.innovation} / {sliderMax.review3.innovation}</div>
+                              <input type="range" min={0} max={SLIDER_MAX.review3.innovation} step={1} value={scores.innovation} onChange={(e)=>handleReview3Change(selectedTeam.id, 'innovation', e.target.value)} />
+                              <div style={{color:'#9ca3af'}}>{scores.innovation} / {SLIDER_MAX.review3.innovation}</div>
                             </div>
 
                             <div style={{background:'rgba(255,255,255,0.02)', padding:12, borderRadius:8}}>
                               <div style={{fontSize:13, color:'#e6fffa', marginBottom:6}}>Business / Impact</div>
-                              <input type="range" min={0} max={sliderMax.review3.business_impact} step={1} value={scores.business_impact} onChange={(e)=>handleReview3Change(selectedTeam.id, 'business_impact', e.target.value)} />
-                              <div style={{color:'#9ca3af'}}>{scores.business_impact} / {sliderMax.review3.business_impact}</div>
+                              <input type="range" min={0} max={SLIDER_MAX.review3.business_impact} step={1} value={scores.business_impact} onChange={(e)=>handleReview3Change(selectedTeam.id, 'business_impact', e.target.value)} />
+                              <div style={{color:'#9ca3af'}}>{scores.business_impact} / {SLIDER_MAX.review3.business_impact}</div>
                             </div>
 
                             <div style={{display:'flex', justifyContent:'flex-end', marginTop:6, gap:8}}>
                               <div style={{background:'rgba(255,255,255,0.02)', padding:'8px 12px', borderRadius:8, color:'#e6fffa'}}>
-                                <strong>Review 3 Total:</strong> {total} / {Object.values(sliderMax.review3).reduce((a,b)=>a+Number(b||0),0)}
+                                <strong>Review 3 Total:</strong> {total} / {Object.values(SLIDER_MAX.review3).reduce((a,b)=>a+Number(b||0),0)}
                                 <div style={{fontSize:12, marginTop:6}}>Weighted: {weighted}</div>
                               </div>
                               <div>
@@ -842,7 +872,7 @@ export default function AdminDashboard() {
                         </div>
                       </div>
 
-                      <div style={{color:'#cbd5e1', marginBottom:12}}>Enter a manual overall score for the Pitch round (0–{sliderMax.pitch.pitch_vortex}).</div>
+                      <div style={{color:'#cbd5e1', marginBottom:12}}>Enter a manual overall score for the Pitch round (0–{SLIDER_MAX.pitch.pitch_vortex}).</div>
 
                       {(() => {
                         const current = pitchScores[selectedTeam.id] ?? 0;
@@ -852,13 +882,13 @@ export default function AdminDashboard() {
                               <input
                                 type="number"
                                 min={0}
-                                max={sliderMax.pitch.pitch_vortex}
+                                max={SLIDER_MAX.pitch.pitch_vortex}
                                 step={1}
                                 value={current}
                                 onChange={(e) => setPitchScores(prev => ({ ...prev, [selectedTeam.id]: Number(e.target.value) }))}
                                 style={{width:'100%', padding:8, borderRadius:6}}
                               />
-                              <div style={{color:'#9ca3af', marginTop:8}}>Current: {current} / {sliderMax.pitch.pitch_vortex}</div>
+                              <div style={{color:'#9ca3af', marginTop:8}}>Current: {current} / {SLIDER_MAX.pitch.pitch_vortex}</div>
                             </div>
 
                             <div style={{display:'flex', justifyContent:'flex-end', gap:8}}>
@@ -893,90 +923,90 @@ export default function AdminDashboard() {
     </div>
 
     {scoringOpen && (
-                  <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1300}}>
-                    <div style={{width:'min(720px,96%)', maxHeight:'90vh', overflowY:'auto', background:'#0b1620', borderRadius:10, padding:18, boxShadow:'0 10px 30px rgba(0,0,0,0.6)'}}>
-                      <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12}}>
-                        <h3 style={{margin:0, color:'#fff'}}>Scoring Settings — Slider Maximums</h3>
-                        <div>
-                          <button onClick={() => setScoringOpen(false)} className="logoutBtn" style={{marginLeft:8}}>Close</button>
-                        </div>
-                      </div>
+      <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1300}}>
+        <div style={{width:'min(720px,96%)', maxHeight:'90vh', overflowY:'auto', background:'#0b1620', borderRadius:10, padding:18, boxShadow:'0 10px 30px rgba(0,0,0,0.6)'}}>
+          <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12}}>
+            <h3 style={{margin:0, color:'#fff'}}>Scoring Guide — Metrics & Maximums</h3>
+            <div>
+              <button onClick={() => setScoringOpen(false)} className="logoutBtn" style={{marginLeft:8}}>Close</button>
+            </div>
+          </div>
 
-                      <div style={{color:'#cbd5e1', marginBottom:12}}>Set the maximum value for each slider. Changes are saved to your browser (localStorage).</div>
+          <div style={{color:'#cbd5e1', marginBottom:12}}>These slider maximums are fixed in the application. This guide lists each metric and its maximum points.</div>
 
-                      <div style={{display:'grid', gap:12}}>
-                        <div style={{display:'grid', gridTemplateColumns:'1fr 120px', gap:8}}>
-                          <strong style={{color:'#e6fffa'}}>IdeaVortex — Requirement Check</strong>
-                          <input type="number" min={1} value={sliderMax.idea.requirement_check} onChange={(e)=>setSliderMax(prev=>({ ...prev, idea: { ...prev.idea, requirement_check: Number(e.target.value) } }))} />
-                        </div>
-                        <div style={{display:'grid', gridTemplateColumns:'1fr 120px', gap:8}}>
-                          <strong style={{color:'#e6fffa'}}>IdeaVortex — Solution Logic</strong>
-                          <input type="number" min={1} value={sliderMax.idea.solution_logic} onChange={(e)=>setSliderMax(prev=>({ ...prev, idea: { ...prev.idea, solution_logic: Number(e.target.value) } }))} />
-                        </div>
-                        <div style={{display:'grid', gridTemplateColumns:'1fr 120px', gap:8}}>
-                          <strong style={{color:'#e6fffa'}}>IdeaVortex — Feasibility</strong>
-                          <input type="number" min={1} value={sliderMax.idea.feasibility} onChange={(e)=>setSliderMax(prev=>({ ...prev, idea: { ...prev.idea, feasibility: Number(e.target.value) } }))} />
-                        </div>
+          <div style={{display:'grid', gap:12}}>
+            <div style={{display:'grid', gridTemplateColumns:'1fr 80px', gap:8}}>
+              <strong style={{color:'#e6fffa'}}>IdeaVortex — Requirement Check</strong>
+              <div style={{color:'#9ca3af', textAlign:'right'}}>{SLIDER_MAX.idea.requirement_check}</div>
+            </div>
+            <div style={{display:'grid', gridTemplateColumns:'1fr 80px', gap:8}}>
+              <strong style={{color:'#e6fffa'}}>IdeaVortex — Solution Logic</strong>
+              <div style={{color:'#9ca3af', textAlign:'right'}}>{SLIDER_MAX.idea.solution_logic}</div>
+            </div>
+            <div style={{display:'grid', gridTemplateColumns:'1fr 80px', gap:8}}>
+              <strong style={{color:'#e6fffa'}}>IdeaVortex — Feasibility</strong>
+              <div style={{color:'#9ca3af', textAlign:'right'}}>{SLIDER_MAX.idea.feasibility}</div>
+            </div>
 
-                        <hr style={{border:'none', borderTop:'1px solid rgba(255,255,255,0.03)'}} />
+            <hr style={{border:'none', borderTop:'1px solid rgba(255,255,255,0.03)'}} />
 
-                        <div style={{display:'grid', gridTemplateColumns:'1fr 120px', gap:8}}>
-                          <strong style={{color:'#e6fffa'}}>Review 1 — Architecture / Flow</strong>
-                          <input type="number" min={1} value={sliderMax.review1.architecture_flow} onChange={(e)=>setSliderMax(prev=>({ ...prev, review1: { ...prev.review1, architecture_flow: Number(e.target.value) } }))} />
-                        </div>
-                        <div style={{display:'grid', gridTemplateColumns:'1fr 120px', gap:8}}>
-                          <strong style={{color:'#e6fffa'}}>Review 1 — Current Progress</strong>
-                          <input type="number" min={1} value={sliderMax.review1.current_progress} onChange={(e)=>setSliderMax(prev=>({ ...prev, review1: { ...prev.review1, current_progress: Number(e.target.value) } }))} />
-                        </div>
-                        <div style={{display:'grid', gridTemplateColumns:'1fr 120px', gap:8}}>
-                          <strong style={{color:'#e6fffa'}}>Review 1 — Q&amp;A Defense</strong>
-                          <input type="number" min={1} value={sliderMax.review1.qa_defense} onChange={(e)=>setSliderMax(prev=>({ ...prev, review1: { ...prev.review1, qa_defense: Number(e.target.value) } }))} />
-                        </div>
+            <div style={{display:'grid', gridTemplateColumns:'1fr 80px', gap:8}}>
+              <strong style={{color:'#e6fffa'}}>Review 1 — Architecture / Flow</strong>
+              <div style={{color:'#9ca3af', textAlign:'right'}}>{SLIDER_MAX.review1.architecture_flow}</div>
+            </div>
+            <div style={{display:'grid', gridTemplateColumns:'1fr 80px', gap:8}}>
+              <strong style={{color:'#e6fffa'}}>Review 1 — Current Progress</strong>
+              <div style={{color:'#9ca3af', textAlign:'right'}}>{SLIDER_MAX.review1.current_progress}</div>
+            </div>
+            <div style={{display:'grid', gridTemplateColumns:'1fr 80px', gap:8}}>
+              <strong style={{color:'#e6fffa'}}>Review 1 — Q&amp;A Defense</strong>
+              <div style={{color:'#9ca3af', textAlign:'right'}}>{SLIDER_MAX.review1.qa_defense}</div>
+            </div>
 
-                        <hr style={{border:'none', borderTop:'1px solid rgba(255,255,255,0.03)'}} />
+            <hr style={{border:'none', borderTop:'1px solid rgba(255,255,255,0.03)'}} />
 
-                        <div style={{display:'grid', gridTemplateColumns:'1fr 120px', gap:8}}>
-                          <strong style={{color:'#e6fffa'}}>Review 2 — MVP Functionality</strong>
-                          <input type="number" min={1} value={sliderMax.review2.mvp_functionality} onChange={(e)=>setSliderMax(prev=>({ ...prev, review2: { ...prev.review2, mvp_functionality: Number(e.target.value) } }))} />
-                        </div>
-                        <div style={{display:'grid', gridTemplateColumns:'1fr 120px', gap:8}}>
-                          <strong style={{color:'#e6fffa'}}>Review 2 — UI / Usability</strong>
-                          <input type="number" min={1} value={sliderMax.review2.ui_usability} onChange={(e)=>setSliderMax(prev=>({ ...prev, review2: { ...prev.review2, ui_usability: Number(e.target.value) } }))} />
-                        </div>
-                        <div style={{display:'grid', gridTemplateColumns:'1fr 120px', gap:8}}>
-                          <strong style={{color:'#e6fffa'}}>Review 2 — Code Quality</strong>
-                          <input type="number" min={1} value={sliderMax.review2.code_quality} onChange={(e)=>setSliderMax(prev=>({ ...prev, review2: { ...prev.review2, code_quality: Number(e.target.value) } }))} />
-                        </div>
+            <div style={{display:'grid', gridTemplateColumns:'1fr 80px', gap:8}}>
+              <strong style={{color:'#e6fffa'}}>Review 2 — MVP Functionality</strong>
+              <div style={{color:'#9ca3af', textAlign:'right'}}>{SLIDER_MAX.review2.mvp_functionality}</div>
+            </div>
+            <div style={{display:'grid', gridTemplateColumns:'1fr 80px', gap:8}}>
+              <strong style={{color:'#e6fffa'}}>Review 2 — UI / Usability</strong>
+              <div style={{color:'#9ca3af', textAlign:'right'}}>{SLIDER_MAX.review2.ui_usability}</div>
+            </div>
+            <div style={{display:'grid', gridTemplateColumns:'1fr 80px', gap:8}}>
+              <strong style={{color:'#e6fffa'}}>Review 2 — Code Quality</strong>
+              <div style={{color:'#9ca3af', textAlign:'right'}}>{SLIDER_MAX.review2.code_quality}</div>
+            </div>
 
-                        <hr style={{border:'none', borderTop:'1px solid rgba(255,255,255,0.03)'}} />
+            <hr style={{border:'none', borderTop:'1px solid rgba(255,255,255,0.03)'}} />
 
-                        <div style={{display:'grid', gridTemplateColumns:'1fr 120px', gap:8}}>
-                          <strong style={{color:'#e6fffa'}}>Review 3 — Final Demo</strong>
-                          <input type="number" min={1} value={sliderMax.review3.final_demo} onChange={(e)=>setSliderMax(prev=>({ ...prev, review3: { ...prev.review3, final_demo: Number(e.target.value) } }))} />
-                        </div>
-                        <div style={{display:'grid', gridTemplateColumns:'1fr 120px', gap:8}}>
-                          <strong style={{color:'#e6fffa'}}>Review 3 — Innovation</strong>
-                          <input type="number" min={1} value={sliderMax.review3.innovation} onChange={(e)=>setSliderMax(prev=>({ ...prev, review3: { ...prev.review3, innovation: Number(e.target.value) } }))} />
-                        </div>
-                        <div style={{display:'grid', gridTemplateColumns:'1fr 120px', gap:8}}>
-                          <strong style={{color:'#e6fffa'}}>Review 3 — Business / Impact</strong>
-                          <input type="number" min={1} value={sliderMax.review3.business_impact} onChange={(e)=>setSliderMax(prev=>({ ...prev, review3: { ...prev.review3, business_impact: Number(e.target.value) } }))} />
-                        </div>
+            <div style={{display:'grid', gridTemplateColumns:'1fr 80px', gap:8}}>
+              <strong style={{color:'#e6fffa'}}>Review 3 — Final Demo</strong>
+              <div style={{color:'#9ca3af', textAlign:'right'}}>{SLIDER_MAX.review3.final_demo}</div>
+            </div>
+            <div style={{display:'grid', gridTemplateColumns:'1fr 80px', gap:8}}>
+              <strong style={{color:'#e6fffa'}}>Review 3 — Innovation</strong>
+              <div style={{color:'#9ca3af', textAlign:'right'}}>{SLIDER_MAX.review3.innovation}</div>
+            </div>
+            <div style={{display:'grid', gridTemplateColumns:'1fr 80px', gap:8}}>
+              <strong style={{color:'#e6fffa'}}>Review 3 — Business / Impact</strong>
+              <div style={{color:'#9ca3af', textAlign:'right'}}>{SLIDER_MAX.review3.business_impact}</div>
+            </div>
 
-                        <hr style={{border:'none', borderTop:'1px solid rgba(255,255,255,0.03)'}} />
+            <hr style={{border:'none', borderTop:'1px solid rgba(255,255,255,0.03)'}} />
 
-                        <div style={{display:'grid', gridTemplateColumns:'1fr 120px', gap:8}}>
-                          <strong style={{color:'#e6fffa'}}>PitchVortex — Max (overall)</strong>
-                          <input type="number" min={1} value={sliderMax.pitch.pitch_vortex} onChange={(e)=>setSliderMax(prev=>({ ...prev, pitch: { ...prev.pitch, pitch_vortex: Number(e.target.value) } }))} />
-                        </div>
+            <div style={{display:'grid', gridTemplateColumns:'1fr 80px', gap:8}}>
+              <strong style={{color:'#e6fffa'}}>PitchVortex — Max (overall)</strong>
+              <div style={{color:'#9ca3af', textAlign:'right'}}>{SLIDER_MAX.pitch.pitch_vortex}</div>
+            </div>
 
-                        <div style={{display:'flex', justifyContent:'flex-end', gap:8, marginTop:8}}>
-                          <button className="logoutBtn" onClick={() => setScoringOpen(false)}>Done</button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
+            <div style={{display:'flex', justifyContent:'flex-end', gap:8, marginTop:8}}>
+              <button className="logoutBtn" onClick={() => setScoringOpen(false)}>Done</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
     </div>
   );
 }
