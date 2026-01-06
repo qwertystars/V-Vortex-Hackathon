@@ -465,6 +465,9 @@ export default function Home({ setTransition }) {
             <a href="https://180degreesconsulting.com" target="_blank" rel="noopener noreferrer">
               <img src="/sponsors/180degrees.png" alt="180 Degrees Consulting" />
             </a>
+            <a href = "https://www.canarabank.com" target="_blank" rel="noopener noreferrer">
+              <img src="/sponsors/Canara-Bank.jpg" alt="Canara Bank" />
+            </a>
             <a href="https://unstop.com/" target="_blank" rel="noopener noreferrer">
               <img src="/sponsors/unstop.png" alt="Unstop" />
             </a>
@@ -573,10 +576,10 @@ export default function Home({ setTransition }) {
 
             <div style={{ ...problemCardStyle, position: 'relative', color: '#bfeffb' }}>
               <h3 style={{ ...problemTitleStyle, filter: 'none', WebkitFilter: 'none' }}>
-                Problem statements are not available on this page
+                Problem statements are in the below mentioned drive link.
               </h3>
               <p style={{ ...problemDescStyle, filter: 'none', WebkitFilter: 'none' }}>
-                The problem statements will be available soon. Please contact the organizers for more information.
+                https://drive.google.com/drive/folders/1_8MIetG3u4Y-5st4FfFWtrbDbe6VEPFd?usp=sharing
               </p>
             </div>
           </div>
