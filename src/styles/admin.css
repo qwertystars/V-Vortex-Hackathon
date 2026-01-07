@@ -116,6 +116,20 @@
   .adminGrid {
     grid-template-columns: 1fr;
   }
+
+  /* Stack the teams list and details panel vertically on small screens
+     so selecting a team shows details below the list instead of off-screen. */
+  .adminPanel {
+    flex-direction: column;
+    align-items: stretch;
+    width: 96%;
+    max-width: 960px;
+  }
+
+  .adminPanel > div {
+    width: 100%;
+    flex: none;
+  }
 }
 
 .panelTitle {
