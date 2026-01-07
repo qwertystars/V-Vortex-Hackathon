@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import "../styles/admin.css";
+import "../styles/admin_mobile_fix.css";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
