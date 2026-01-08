@@ -479,7 +479,9 @@ export default function Home({ setTransition }) {
             <a href="https://www.shnorh.com/" target="_blank" rel="noopener noreferrer">
               <img src="/sponsors/shnorh.jpg" alt="Shnorh" />
             </a>
-            < img src="/sponsors/bavesh.jpeg" alt="V-Nest" />
+            <a href = "https://www.bhaveshassociates.com/" target = "_blank" rel = "noopener noreferrer">
+            < img src="/sponsors/BaveshA.png" alt="Bavesh" />
+            </a>
           </div>
         </div>
 
@@ -593,4 +595,8 @@ export default function Home({ setTransition }) {
     </div>
   );
 }
+
+
+
+
 
