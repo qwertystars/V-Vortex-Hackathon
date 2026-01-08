@@ -157,27 +157,36 @@ export default function TeamDashboard() {
         return;
       }
 
+      // First, check if leaderboard is public
+      let isLeaderboardPublic = false;
       try {
-        const [settingsRes] = await Promise.all([
-          supabase.from('app_settings').select('leaderboard_public').eq('id', 'main').single()
-        ]);
-        if (settingsRes.data) setLeaderboardPublic(!!settingsRes.data.leaderboard_public);
+        const settingsRes = await supabase.from('app_settings').select('leaderboard_public').eq('id', 'main').single();
+        if (settingsRes.data) {
+          isLeaderboardPublic = !!settingsRes.data.leaderboard_public;
+          setLeaderboardPublic(isLeaderboardPublic);
+        }
       } catch (err) {
         console.error('Failed to load app settings:', err);
       }
 
       try {
-        const [
-          { data: teamData },
-          { data: scoreData },
-          { data: leaderboardData },
-          { data: membersData }
-        ] = await Promise.all([
+        // Only fetch leaderboard if it's public (prevents data from appearing in Network tab)
+        const queries = [
           supabase.from("teams").select("*").eq("id", teamId).single(),
           supabase.from("scorecards").select("*").eq("team_id", teamId).single(),
-          supabase.from("leaderboard_view").select("*").order("position", { ascending: true }),
           supabase.from("team_members").select("*").eq("team_id", teamId)
-        ]);
+        ];
+        
+        // Conditionally add leaderboard query only if public
+        if (isLeaderboardPublic) {
+          queries.push(supabase.from("leaderboard_view").select("*").order("position", { ascending: true }));
+        }
+        
+        const results = await Promise.all(queries);
+        const teamData = results[0]?.data;
+        const scoreData = results[1]?.data;
+        const membersData = results[2]?.data;
+        const leaderboardData = isLeaderboardPublic ? results[3]?.data : [];
 
         if (teamData) {
           const userEmail = user.email?.toLowerCase();
@@ -205,9 +214,19 @@ export default function TeamDashboard() {
     init();
   }, [teamId, navigate]);
 
-  // Helper to refresh leaderboard from the DB
+  // Helper to refresh leaderboard from the DB (only if public)
   const refreshLeaderboard = async () => {
+    // First check if leaderboard is public
     try {
+      const { data: settings } = await supabase.from('app_settings').select('leaderboard_public').eq('id', 'main').single();
+      const isPublic = !!settings?.leaderboard_public;
+      setLeaderboardPublic(isPublic);
+      
+      if (!isPublic) {
+        setLeaderboard([]);
+        return;
+      }
+      
       const { data, error } = await supabase
         .from('leaderboard_view')
         .select('*')
@@ -526,15 +545,24 @@ export default function TeamDashboard() {
               team={team}
               teamMembers={teamMembers}
               onTeamBuilt={async () => {
-                const [
-                  { data: updatedTeam },
-                  { data: updatedMembers },
-                  { data: updatedLeaderboard }
-                ] = await Promise.all([
+                // Check if leaderboard is public before fetching
+                const { data: settings } = await supabase.from('app_settings').select('leaderboard_public').eq('id', 'main').single();
+                const isPublic = !!settings?.leaderboard_public;
+                setLeaderboardPublic(isPublic);
+                
+                const queries = [
                   supabase.from("teams").select("*").eq("id", teamId).single(),
-                  supabase.from("team_members").select("*").eq("team_id", teamId),
-                  supabase.from("leaderboard_view").select("*").order("position", { ascending: true })
-                ]);
+                  supabase.from("team_members").select("*").eq("team_id", teamId)
+                ];
+                
+                if (isPublic) {
+                  queries.push(supabase.from("leaderboard_view").select("*").order("position", { ascending: true }));
+                }
+                
+                const results = await Promise.all(queries);
+                const updatedTeam = results[0]?.data;
+                const updatedMembers = results[1]?.data;
+                const updatedLeaderboard = isPublic ? results[2]?.data : [];
                 
                 setTeam(updatedTeam);
                 setTeamMembers(updatedMembers || []);
