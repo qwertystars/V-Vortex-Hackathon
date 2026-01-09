@@ -12,8 +12,6 @@ export default function TeamDashboard() {
 
   const [team, setTeam] = useState(null);
   const [scorecard, setScorecard] = useState(null);
-  const [leaderboard, setLeaderboard] = useState([]);
-  const [leaderboardPublic, setLeaderboardPublic] = useState(true);
   const [loading, setLoading] = useState(true);
   const [time, setTime] = useState("");
   const [activeTab, setActiveTab] = useState("vortex");
@@ -29,13 +27,6 @@ export default function TeamDashboard() {
   const [lastResponse, setLastResponse] = useState(null);
   const [lastError, setLastError] = useState(null);
   const [successInfo, setSuccessInfo] = useState(null);
-  
-  // Calculated stats
-  const myRank = leaderboard.find(row => row.team_name === team?.team_name)?.position ?? "—";
-  const totalTeams = leaderboard.length;
-  const topScore = leaderboard[0]?.score ?? 0;
-  const myScore = scorecard?.total_score ?? 0;
-  const gapToAlpha = myRank === 1 ? 0 : Math.max(0, topScore - myScore);
 
   // Problem Statements Data
   const [problemStatements, setProblemStatements] = useState({
@@ -157,36 +148,17 @@ export default function TeamDashboard() {
         return;
       }
 
-      // First, check if leaderboard is public
-      let isLeaderboardPublic = false;
       try {
-        const settingsRes = await supabase.from('app_settings').select('leaderboard_public').eq('id', 'main').single();
-        if (settingsRes.data) {
-          isLeaderboardPublic = !!settingsRes.data.leaderboard_public;
-          setLeaderboardPublic(isLeaderboardPublic);
-        }
-      } catch (err) {
-        console.error('Failed to load app settings:', err);
-      }
-
-      try {
-        // Only fetch leaderboard if it's public (prevents data from appearing in Network tab)
         const queries = [
           supabase.from("teams").select("*").eq("id", teamId).single(),
           supabase.from("scorecards").select("*").eq("team_id", teamId).single(),
           supabase.from("team_members").select("*").eq("team_id", teamId)
         ];
         
-        // Conditionally add leaderboard query only if public
-        if (isLeaderboardPublic) {
-          queries.push(supabase.from("leaderboard_view").select("*").order("position", { ascending: true }));
-        }
-        
         const results = await Promise.all(queries);
         const teamData = results[0]?.data;
         const scoreData = results[1]?.data;
         const membersData = results[2]?.data;
-        const leaderboardData = isLeaderboardPublic ? results[3]?.data : [];
 
         if (teamData) {
           const userEmail = user.email?.toLowerCase();
@@ -202,7 +174,6 @@ export default function TeamDashboard() {
 
         setTeam(teamData);
         setScorecard(scoreData || null);
-        setLeaderboard(leaderboardData || []);
         setTeamMembers(membersData || []);
       } catch (err) {
         console.error("Dashboard error:", err);
@@ -213,32 +184,6 @@ export default function TeamDashboard() {
 
     init();
   }, [teamId, navigate]);
-
-  // Helper to refresh leaderboard from the DB (only if public)
-  const refreshLeaderboard = async () => {
-    // First check if leaderboard is public
-    try {
-      const { data: settings } = await supabase.from('app_settings').select('leaderboard_public').eq('id', 'main').single();
-      const isPublic = !!settings?.leaderboard_public;
-      setLeaderboardPublic(isPublic);
-      
-      if (!isPublic) {
-        setLeaderboard([]);
-        return;
-      }
-      
-      const { data, error } = await supabase
-        .from('leaderboard_view')
-        .select('*')
-        .order('position', { ascending: true });
-      if (error) throw error;
-      // Normalize returned rows: some view versions expose `score` or `total_score`
-      const normalized = (data || []).map(r => ({ ...r, score: r.score ?? r.total_score ?? 0, delta: r.delta ?? 0 }));
-      setLeaderboard(normalized);
-    } catch (err) {
-      console.error('Failed to refresh leaderboard:', err);
-    }
-  };
 
   // Helper to refresh the current team's scorecard
   const refreshScorecard = async () => {
@@ -259,21 +204,14 @@ export default function TeamDashboard() {
     }
   };
 
-  // Subscribe to realtime changes so leaderboard updates automatically
+  // Subscribe to realtime changes so scorecard updates automatically
   useEffect(() => {
     const channel = supabase
-      .channel('public:leaderboard_updates')
+      .channel('public:scorecard_updates')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'scorecards' }, () => {
-        // leaderboard ranking changes and per-team score may change
-        refreshLeaderboard();
-        refreshScorecard();
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'teams' }, () => {
-        refreshLeaderboard();
         refreshScorecard();
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'scorecard_history' }, () => {
-        refreshLeaderboard();
         refreshScorecard();
       })
       .subscribe();
@@ -467,13 +405,6 @@ export default function TeamDashboard() {
           </button>
 
           <button
-            className={activeTab === "leaderboard" ? "active" : ""}
-            onClick={() => { setActiveTab("leaderboard"); setShowSidebar(false); }}
-          >
-            Leaderboard
-          </button>
-
-          <button
             className={activeTab === "nexus" ? "active" : ""}
             onClick={() => { setActiveTab("nexus"); setShowSidebar(false); }}
           >
@@ -516,7 +447,6 @@ export default function TeamDashboard() {
               <div className="headerTitle">
                 {activeTab === "vortex" && "Vortex Hub"}
                 {activeTab === "buildTeam" && "Build Your Team"}
-                {activeTab === "leaderboard" && "Leaderboard"}
                 {activeTab === "nexus" && "Nexus Entry"}
                 {activeTab === "mission" && "IdeaVortex - Problem Statement Selector"}
               </div>
@@ -608,12 +538,6 @@ export default function TeamDashboard() {
               )}
               
               <div className="vortexGrid">
-                <div className="vortexCard" onClick={() => setActiveTab("leaderboard")}>
-                  <div className="vortexIcon">↗</div>
-                  <h3>Leaderboard</h3>
-                  <p>Analyze the competitive landscape and track your climb.</p>
-                </div>
-
                 <div className="vortexCard" onClick={() => setActiveTab("nexus")}>
                   <div className="vortexIcon">⌁</div>
                   <h3>Nexus Entry</h3>
@@ -682,83 +606,6 @@ export default function TeamDashboard() {
                 </div>
               )}
             </div>
-          )}
-
-          {/* ===== LEADERBOARD ===== */}
-          {activeTab === "leaderboard" && (
-            <>
-              {!leaderboardPublic ? (
-                <div style={{textAlign:'center', padding:'60px 20px', background:'rgba(0,0,0,0.3)', borderRadius:12, marginTop:20}}>
-                  <div style={{fontSize:48, marginBottom:16}}>🔒</div>
-                  <h2 style={{color:'#e6fffa', marginBottom:8}}>Leaderboard Coming Soon</h2>
-                  <p style={{color:'#9ca3af'}}>The leaderboard will be made public once the results are released.</p>
-                </div>
-              ) : (
-              <>
-              <div className="statsGrid">
-                <div className="statCard">
-                  <div className="statLabel">TACTICAL RANK</div>
-                  <div className="statValue">{myRank} <span className="statSub">/{totalTeams}</span></div>
-                </div>
-                <div className="statCard">
-                  <div className="statLabel">ACCUMULATED DATA</div>
-                  <div className="statValue">{scorecard?.total_score ?? "—"}</div>
-                </div>
-                <div className="statCard">
-                  <div className="statLabel">GAP TO ALPHA</div>
-                  <div className="statValue">{gapToAlpha} <span className="statSub">PTS</span></div>
-                </div>
-              </div>
-
-              <div className="leaderboardTable">
-                <div className="lbHeader">
-                  <div>POSITION</div>
-                  <div>SQUAD DESIGNATION</div>
-                  <div style={{ textAlign: "right" }}>PAYLOAD</div>
-                </div>
-
-                {leaderboard.map((row) => {
-                  const isYou = row.team_name === team.team_name;
-
-                  const rankText =
-                    row.position === 1 ? "ULTRA-1" :
-                    row.position === 2 ? "ELITE-2" :
-                    row.position === 3 ? "APEX-3" :
-                    `#${row.position}`;
-
-                  const rankClass =
-                    row.position === 1 ? "rank-ultra" :
-                    row.position === 2 ? "rank-elite" :
-                    row.position === 3 ? "rank-apex" :
-                    "rankDefault";
-
-                  return (
-                    <div key={row.team_name} className={`lbRow ${isYou ? "you" : ""}`}>
-                      <div className={`rankBadge ${rankClass}`}>{rankText}</div>
-
-                      <div className="teamCell">
-                        <div className="teamIcon">
-                          {row.team_name.slice(0, 2).toUpperCase()}
-                        </div>
-                        <div className="teamMeta">
-                          <strong>{row.team_name}</strong>
-                          <span>{isYou ? "YOUR SQUAD" : "ACTIVE"}</span>
-                        </div>
-                      </div>
-
-                      <div className="payload">
-                        <strong>{row.score}</strong>
-                        <div className={row.delta >= 0 ? "deltaUp" : "deltaDown"}>
-                          {row.delta >= 0 ? "+" : ""}{row.delta} PTS
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-              </>
-              )}
-            </>
           )}
 
           {/* ===== NEXUS ENTRY ===== */}

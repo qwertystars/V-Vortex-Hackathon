@@ -94,11 +94,22 @@ export default function AdminDashboard() {
     loadTeams();
   }, [isAdmin]);
 
+  
+
   // Helper to refresh leaderboard from the DB
   const refreshLeaderboard = async () => {
     setLbLoading(true);
     try {
-      const { data, error } = await supabase.from('leaderboard_view').select('*').order('position', { ascending: true });
+      // Try secure RPC function first, fallback to direct view access
+      let data, error;
+      ({ data, error } = await supabase.rpc('get_leaderboard_secure'));
+      
+      // If RPC fails (function doesn't exist or error), fallback to direct view
+      if (error) {
+        console.warn('RPC failed, trying direct view access:', error.message);
+        ({ data, error } = await supabase.from('leaderboard_view').select('*').order('position', { ascending: true }));
+      }
+      
       if (error) throw error;
       setLeaderboard(data || []);
     } catch (err) {
@@ -108,6 +119,8 @@ export default function AdminDashboard() {
       setLbLoading(false);
     }
   };
+
+// ...existing code...
 
   // Load leaderboard when admin is confirmed
   useEffect(() => {
