@@ -563,12 +563,12 @@ export default function AdminDashboard() {
                           <div style={{display:'flex', justifyContent:'flex-end', marginTop:6, gap:8}}>
                             <div style={{background:'rgba(255,255,255,0.02)', padding:'8px 12px', borderRadius:8, color:'#e6fffa'}}>
                                 <strong>IdeaVortex Total:</strong> {total} / {Object.values(SLIDER_MAX.idea).reduce((a,b)=>a+Number(b||0),0)}
-                                <div style={{fontSize:12, marginTop:6}}>Weighted: {Math.round(Number(total) * 1.33)}</div>
+                                <div style={{fontSize:12, marginTop:6}}>Weighted: {Math.round(Number(total) * 0.6)}</div>
                               </div>
                             <div>
                                 <button className="logoutBtn" onClick={async () => {
                                   try {
-                                    const weightedIdea = Math.round(Number(total) * 1.33);
+                                    const weightedIdea = Math.round(Number(total) * 0.6);
                                     const { error } = await supabase.from('scorecards').upsert({ team_id: selectedTeam.id, ideavortex: weightedIdea }, { onConflict: 'team_id' });
                                     if (error) throw error;
                                     const { data: refreshedTeams } = await supabase.from('teams').select('id, team_name, lead_name, lead_email, domain, problem_statement, team_members(member_name)').order('team_name', { ascending: true });
@@ -769,12 +769,13 @@ export default function AdminDashboard() {
                             <div style={{display:'flex', justifyContent:'flex-end', marginTop:6, gap:8}}>
                               <div style={{background:'rgba(255,255,255,0.02)', padding:'8px 12px', borderRadius:8, color:'#e6fffa'}}>
                                 <strong>Review 2 Total:</strong> {total} / {Object.values(SLIDER_MAX.review2).reduce((a,b)=>a+Number(b||0),0)}
+                                <div style={{fontSize:12, marginTop:6}}>Weighted: {Math.round(Number(total) * 1.667)}</div>
                               </div>
                               <div>
                                 <button className="logoutBtn" onClick={async () => {
-                                  const calcTotal = Number(total);
+                                  const weightedReview2 = Math.round(Number(total) * 1.667);
                                   try {
-                                    const { error } = await supabase.from('scorecards').upsert({ team_id: selectedTeam.id, review_2: calcTotal }, { onConflict: 'team_id' });
+                                    const { error } = await supabase.from('scorecards').upsert({ team_id: selectedTeam.id, review_2: weightedReview2 }, { onConflict: 'team_id' });
                                     if (error) throw error;
                                     const { data: refreshedTeams } = await supabase.from('teams').select('id, team_name, lead_name, lead_email, domain, problem_statement, team_members(member_name)').order('team_name', { ascending: true });
                                     setTeams(refreshedTeams || []);
