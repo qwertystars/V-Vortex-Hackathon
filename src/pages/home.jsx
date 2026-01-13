@@ -482,6 +482,9 @@ export default function Home({ setTransition }) {
             <a href = "https://www.bhaveshassociates.com/" target = "_blank" rel = "noopener noreferrer">
             < img src="/sponsors/BaveshA.png" alt="Bavesh" />
             </a>
+            <a href = "https://nvskzen.in/index.html" target="_blank" rel="noopener noreferrer">
+              <img src="/sponsors/image.png" alt="NVSK Zen" />
+            </a>
           </div>
         </div>
 
