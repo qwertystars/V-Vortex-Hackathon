@@ -15,6 +15,11 @@ export default function HackVortexDashboard() {
   const [showProblemModal, setShowProblemModal] = useState(false);
   const [isAssigning, setIsAssigning] = useState(false);
 
+  // Leaderboard State
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [leaderboardPublic, setLeaderboardPublic] = useState(false);
+  const [leaderboardLoading, setLeaderboardLoading] = useState(false);
+
   // ===============================
   // AUTHENTICATION & DATA FETCH
   // ===============================
@@ -89,6 +94,45 @@ export default function HackVortexDashboard() {
   }, []);
 
   // ===============================
+  // LEADERBOARD FETCH
+  // ===============================
+  const refreshLeaderboard = async () => {
+    setLeaderboardLoading(true);
+    try {
+      // Check if leaderboard is public
+      const { data: settings } = await supabase.from('app_settings').select('leaderboard_public').eq('id', 'main').single();
+      const isPublic = !!settings?.leaderboard_public;
+      setLeaderboardPublic(isPublic);
+
+      if (isPublic) {
+        const { data, error } = await supabase.from('leaderboard_view').select('*').order('position', { ascending: true });
+        if (error) throw error;
+        const norm = (data || []).map(r => ({ ...r, score: r.score ?? r.total_score ?? 0, delta: r.delta ?? 0 }));
+        setLeaderboard(norm);
+      } else {
+        setLeaderboard([]);
+      }
+    } catch (err) {
+      console.error('Failed to refresh leaderboard:', err);
+      setLeaderboard([]);
+    } finally {
+      setLeaderboardLoading(false);
+    }
+  };
+
+  // Load leaderboard when tab changes to leaderboard
+  useEffect(() => {
+    if (activePage === 'leaderboard') {
+      refreshLeaderboard();
+    }
+  }, [activePage]);
+
+  // Initial leaderboard load
+  useEffect(() => {
+    refreshLeaderboard();
+  }, []);
+
+  // ===============================
   // PAGE TITLES
   // ===============================
   const titles = {
@@ -103,6 +147,10 @@ export default function HackVortexDashboard() {
     problem: {
       title: "Mission Logic",
       subtitle: "Strategic challenge overview",
+    },
+    leaderboard: {
+      title: "Leaderboard",
+      subtitle: "Live team rankings",
     },
   };
 
@@ -243,6 +291,15 @@ export default function HackVortexDashboard() {
               onClick={() => setActivePage("problem")}
             >
               Mission Logic
+            </button>
+
+            <button
+              className={`sidebar-btn ${
+                activePage === "leaderboard" ? "active" : ""
+              }`}
+              onClick={() => setActivePage("leaderboard")}
+            >
+              Leaderboard
             </button>
           </nav>
 
@@ -412,6 +469,261 @@ export default function HackVortexDashboard() {
                     </div>
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* LEADERBOARD PAGE */}
+            {activePage === "leaderboard" && (
+              <div className="page">
+                <div style={{ maxWidth: 900, margin: '0 auto' }}>
+                  
+                  {/* Team Stats Cards */}
+                  {leaderboardPublic && leaderboard.length > 0 && (() => {
+                    const currentTeam = leaderboard.find(r => r.team_id === teamData?.id);
+                    const alphaTeam = leaderboard[0];
+                    const gapToAlpha = currentTeam ? (alphaTeam?.score || 0) - (currentTeam?.score || 0) : 0;
+                    
+                    return (
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(3, 1fr)',
+                        gap: '1rem',
+                        marginBottom: '1.5rem'
+                      }}>
+                        {/* Tactical Rank Card */}
+                        <div className="card glass" style={{
+                          background: 'linear-gradient(135deg, rgba(0, 191, 165, 0.15), rgba(0, 230, 255, 0.08))',
+                          border: '1px solid rgba(0, 191, 165, 0.25)',
+                          padding: '1.5rem'
+                        }}>
+                          <div style={{ 
+                            color: '#00bfa5', 
+                            fontSize: '0.7rem', 
+                            fontWeight: 700, 
+                            textTransform: 'uppercase', 
+                            letterSpacing: '2px',
+                            marginBottom: '0.75rem'
+                          }}>TACTICAL RANK</div>
+                          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
+                            <span style={{ fontSize: '3rem', fontWeight: 800, color: '#fff' }}>
+                              {currentTeam?.position || '—'}
+                            </span>
+                            <span style={{ color: '#6b7280', fontSize: '1.1rem' }}>/{leaderboard.length}</span>
+                          </div>
+                        </div>
+
+                        {/* Accumulated Data Card */}
+                        <div className="card glass" style={{
+                          background: 'linear-gradient(135deg, rgba(34, 211, 238, 0.15), rgba(6, 182, 212, 0.08))',
+                          border: '1px solid rgba(34, 211, 238, 0.25)',
+                          padding: '1.5rem'
+                        }}>
+                          <div style={{ 
+                            color: '#22d3ee', 
+                            fontSize: '0.7rem', 
+                            fontWeight: 700, 
+                            textTransform: 'uppercase', 
+                            letterSpacing: '2px',
+                            marginBottom: '0.75rem'
+                          }}>ACCUMULATED DATA</div>
+                          <div style={{ fontSize: '3rem', fontWeight: 800, color: '#fff' }}>
+                            {currentTeam?.score || 0}
+                          </div>
+                        </div>
+
+                        {/* Gap to Alpha Card */}
+                        <div className="card glass" style={{
+                          background: 'linear-gradient(135deg, rgba(251, 146, 60, 0.15), rgba(249, 115, 22, 0.08))',
+                          border: '1px solid rgba(251, 146, 60, 0.25)',
+                          padding: '1.5rem'
+                        }}>
+                          <div style={{ 
+                            color: '#fb923c', 
+                            fontSize: '0.7rem', 
+                            fontWeight: 700, 
+                            textTransform: 'uppercase', 
+                            letterSpacing: '2px',
+                            marginBottom: '0.75rem'
+                          }}>GAP TO ALPHA</div>
+                          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
+                            <span style={{ fontSize: '3rem', fontWeight: 800, color: '#fff' }}>
+                              {gapToAlpha}
+                            </span>
+                            <span style={{ color: '#6b7280', fontSize: '1rem', fontWeight: 600 }}>PTS</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {!leaderboardPublic ? (
+                    <div className="card glass" style={{
+                      textAlign: 'center',
+                      padding: '4rem 2rem'
+                    }}>
+                      <div style={{ fontSize: '4rem', marginBottom: '1rem', opacity: 0.8 }}>🔒</div>
+                      <h3 style={{ marginBottom: '0.5rem', fontSize: '1.25rem' }}>Leaderboard Hidden</h3>
+                      <p style={{ color: '#9ca3af', maxWidth: '400px', margin: '0 auto' }}>
+                        The leaderboard is currently not available. Check back later when the organizers make it public.
+                      </p>
+                    </div>
+                  ) : leaderboardLoading ? (
+                    <div className="card glass" style={{
+                      textAlign: 'center',
+                      padding: '4rem 2rem'
+                    }}>
+                      <div style={{ 
+                        width: '48px', 
+                        height: '48px', 
+                        border: '3px solid rgba(0, 191, 165, 0.2)', 
+                        borderTopColor: '#00bfa5',
+                        borderRadius: '50%',
+                        margin: '0 auto 1rem',
+                        animation: 'spin 1s linear infinite'
+                      }} />
+                      <p style={{ color: '#9ca3af' }}>Loading leaderboard...</p>
+                    </div>
+                  ) : leaderboard.length === 0 ? (
+                    <div className="card glass" style={{
+                      textAlign: 'center',
+                      padding: '4rem 2rem'
+                    }}>
+                      <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📊</div>
+                      <p style={{ color: '#9ca3af' }}>No leaderboard data available yet.</p>
+                    </div>
+                  ) : (
+                    <div className="card glass" style={{
+                      padding: 0,
+                      overflow: 'hidden'
+                    }}>
+                      {/* Table Header */}
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: '140px 1fr 150px',
+                        padding: '1rem 1.5rem',
+                        borderBottom: '1px solid rgba(255,255,255,0.05)',
+                        fontWeight: 700,
+                        color: '#00bfa5',
+                        fontSize: '0.7rem',
+                        textTransform: 'uppercase',
+                        letterSpacing: '2px'
+                      }}>
+                        <div>POSITION</div>
+                        <div>SQUAD DESIGNATION</div>
+                        <div style={{ textAlign: 'right' }}>PAYLOAD</div>
+                      </div>
+
+                      {/* Leaderboard Rows */}
+                      {leaderboard.map((row, idx) => {
+                        const isCurrentTeam = row.team_id === teamData?.id;
+                        const prevTeam = leaderboard[idx - 1];
+                        const delta = prevTeam ? row.score - (prevTeam?.score || 0) : 0;
+
+                        return (
+                          <div 
+                            key={row.team_id || idx}
+                            style={{
+                              display: 'grid',
+                              gridTemplateColumns: '140px 1fr 150px',
+                              padding: '1rem 1.5rem',
+                              borderBottom: '1px solid rgba(255,255,255,0.03)',
+                              background: isCurrentTeam 
+                                ? 'linear-gradient(90deg, rgba(0, 191, 165, 0.12), transparent)' 
+                                : 'transparent',
+                              position: 'relative',
+                              alignItems: 'center'
+                            }}
+                          >
+                            {isCurrentTeam && (
+                              <div style={{
+                                position: 'absolute',
+                                left: 0,
+                                top: 0,
+                                bottom: 0,
+                                width: '3px',
+                                background: '#00bfa5'
+                              }} />
+                            )}
+                            
+                            {/* Position */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                              <span style={{ 
+                                color: isCurrentTeam ? '#00e6ff' : '#fff', 
+                                fontWeight: 700,
+                                fontSize: '0.95rem'
+                              }}>
+                                {row.position}
+                              </span>
+                            </div>
+                            
+                            {/* Squad Designation */}
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.875rem'
+                            }}>
+                              <div style={{
+                                width: '38px',
+                                height: '38px',
+                                borderRadius: '10px',
+                                background: `linear-gradient(135deg, hsl(${(row.position * 47 + 200) % 360}, 70%, 55%), hsl(${(row.position * 47 + 230) % 360}, 70%, 45%))`,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontWeight: 700,
+                                color: '#fff',
+                                fontSize: '0.75rem',
+                                textShadow: '0 1px 2px rgba(0,0,0,0.3)'
+                              }}>
+                                {row.team_name?.slice(0, 2).toUpperCase() || '??'}
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <span style={{ 
+                                  fontWeight: isCurrentTeam ? 700 : 500, 
+                                  color: isCurrentTeam ? '#00e6ff' : '#e6fffa',
+                                  fontSize: '0.95rem'
+                                }}>
+                                  {row.team_name}
+                                </span>
+                                <span style={{ 
+                                  fontSize: '0.65rem', 
+                                  color: isCurrentTeam ? '#5eead4' : '#6b7280',
+                                  fontWeight: 600,
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '1px'
+                                }}>
+                                  {isCurrentTeam ? 'YOUR SQUAD' : 'ACTIVE'}
+                                </span>
+                              </div>
+                            </div>
+                            
+                            {/* Payload */}
+                            <div style={{
+                              textAlign: 'right'
+                            }}>
+                              <div style={{
+                                fontWeight: 800,
+                                color: isCurrentTeam ? '#00e6ff' : '#fff',
+                                fontSize: '1.25rem'
+                              }}>
+                                {row.score}
+                              </div>
+                              {row.position > 1 && (
+                                <div style={{ 
+                                  fontSize: '0.7rem', 
+                                  color: '#22d3ee',
+                                  fontWeight: 600
+                                }}>
+                                  {delta >= 0 ? `+${delta}` : delta} PTS
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </section>
