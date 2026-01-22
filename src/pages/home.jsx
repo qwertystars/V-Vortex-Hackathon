@@ -94,9 +94,7 @@ export default function Home({ setTransition }) {
       <nav className="vv-nav glass-nav">
         <div className="nav-content">
           <div className="logo" data-cursor="hover">
-            <div className="logo-icon">
-              <VortexIcon size={45} />
-            </div>
+            <img src="/logo.jpg" alt="V-Vortex Logo" className="logo-image" />
             <h1 className="gradient-text">V-VORTEX</h1>
           </div>
 
